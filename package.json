@@ -7,22 +7,53 @@
 				"vscode": "^1.30.0"
 		},
 		"categories": [
-				"Other"
+			"Debuggers"
 		],
 		"activationEvents": [
 				"onLanguage:soliditypp",
 				"onDebug"
 		],
-        "main": "./out/extension.js",
-        "contributes": {
-            "languages": [{
-                "id": "soliditypp",
-                "extensions": [
-                    ".solpp"
-                ],
-                "aliases": ["Soliditypp", "soliditypp"] 
-            }]
-        },
+		"main": "./out/extension.js",
+		"contributes": {
+			"languages": [
+				{
+					"id": "soliditypp",
+					"extensions": [
+							".solpp"
+					],
+					"aliases": [
+							"Soliditypp",
+							"soliditypp"
+					]
+				}
+			],
+			"debuggers": [
+				{
+					"type": "soliditypp",
+					"label": "Soliditypp",
+					"program": "./out/debugAdapter.js",
+					"runtime": "node",
+					"initialConfigurations": [
+						{
+							"type": "soliditypp",
+							"request": "launch",
+							"name": "Soliditypp Debug"
+						}
+					],
+					"configurationSnippets": [
+						{
+							"label": "Soliditypp Debug: Launch",
+							"description": "A new configuration for 'debugging' a user selected soliditypp project.",
+							"body": {
+								"type": "soliditypp",
+								"request": "launch",
+								"name": "Soliditypp Debug"
+							}
+						}
+					]
+				}
+			]
+		},
 		"scripts": {
 				"vscode:prepublish": "npm run compile",
 				"compile": "tsc -p ./",
@@ -36,5 +67,8 @@
 				"tslint": "^5.8.0",
 				"@types/node": "^8.10.25",
 				"@types/mocha": "^2.2.42"
+		},
+		"dependencies": {
+				"vscode-debugadapter": "^1.33.0"
 		}
 }
