@@ -1,15 +1,59 @@
 import * as vscode from 'vscode';
 
+const DEBUGGER_TYPE = "soliditypp"
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "soliditypp" is now active!');
 
-    const panel = vscode.window.createWebviewPanel(
-        'soliditypp',
-        'Soliditypp',
-        vscode.ViewColumn.One,
-        {},
-    )
-    panel.webview.html = getWebviewContent();
+
+    var debuggerPanel:vscode.WebviewPanel | undefined;
+    var debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
+
+    function initDebuggerPanel () {
+        debuggerPanel = vscode.window.createWebviewPanel(
+            'soliditypp',
+            'Soliditypp',
+            debuggerViewColumn,
+            {
+                enableScripts: true
+            }
+        );
+        debuggerPanel.webview.html = getWebviewContent();
+
+        debuggerPanel.onDidDispose(
+            () => {
+                setTimeout(() => {
+                    let debugSession = vscode.debug.activeDebugSession
+                    if (debugSession && debuggerPanel) {
+                        initDebuggerPanel()
+                    }
+                }, 200)
+                
+            },
+            null,
+            context.subscriptions
+        );
+    }
+
+    vscode.debug.onDidStartDebugSession(function (event) {
+        if (event.type != DEBUGGER_TYPE) {
+            return
+        }
+        
+        initDebuggerPanel()
+
+    });
+
+    vscode.debug.onDidTerminateDebugSession(function (event) {
+        if (event.type != DEBUGGER_TYPE) {
+            return
+        }
+
+        if (debuggerPanel) {
+            debuggerPanel.dispose()
+            debuggerPanel = undefined
+        }
+    });
 }
 
 export function deactivate() {
