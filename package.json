@@ -33,11 +33,25 @@
 					"label": "Soliditypp",
 					"program": "./out/debugAdapter.js",
 					"runtime": "node",
+					"configurationAttributes": {
+						"required": [
+							"program"
+						],
+						"properties": {
+							"program": {
+								"type": "string",
+								"description": "Path to a soliditypp file.",
+								"default": "index.solpp"
+							}
+						}
+					},
 					"initialConfigurations": [
 						{
 							"type": "soliditypp",
 							"request": "launch",
-							"name": "Soliditypp Debug"
+							"name": "Soliditypp Debug",
+							"debugServer": 4711,
+							"program": "index.solpp"
 						}
 					],
 					"configurationSnippets": [
@@ -47,7 +61,9 @@
 							"body": {
 								"type": "soliditypp",
 								"request": "launch",
-								"name": "Soliditypp Debug"
+								"name": "Soliditypp Debug",
+								"debugServer": 4711,
+								"program": "index.solpp"
 							}
 						}
 					]

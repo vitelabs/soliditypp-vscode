@@ -1,13 +1,16 @@
 import * as vscode from 'vscode';
+import { SolidityConfigurationProvider } from './debugConfigurationProvider';
 
 const DEBUGGER_TYPE = "soliditypp"
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "soliditypp" is now active!');
 
-
     var debuggerPanel:vscode.WebviewPanel | undefined;
     var debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
+
+    const provider = new SolidityConfigurationProvider();
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('soliditypp', provider));
 
     function initDebuggerPanel () {
         debuggerPanel = vscode.window.createWebviewPanel(

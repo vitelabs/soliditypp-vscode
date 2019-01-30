@@ -1,0 +1,10 @@
+{
+  "name": "view",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.3.0",
+    "@vue/cli-plugin-eslint": "^3.3.0",
+    "@vue/cli-service": "^3.3.0"
+  }
+}
