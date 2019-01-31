@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const COMMAND_PREFIX = 'soliditypp.da.';
+const COMMAND_PREFIX = 'view2debugAdapter.';
 const vscode = acquireVsCodeApi();
 
 let latestRequestId = 1;

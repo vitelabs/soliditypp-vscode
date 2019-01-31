@@ -4,6 +4,7 @@ import * as path from 'path';
 import { SolidityConfigurationProvider } from './debugConfigurationProvider';
 
 const DEBUGGER_TYPE = "soliditypp"
+const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter."
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -26,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
         debuggerPanel.webview.html = getWebviewContent();
         debuggerPanel.webview.onDidReceiveMessage(
             message => {
-                if (message.command.indexOf("soliditypp.da.") == 0) {
+                if (message.command.indexOf(VIEW_TO_DA_COMMAND_PREFIX) == 0) {
                     // proxy
                     let activeDebugSession = vscode.debug.activeDebugSession
                     if (activeDebugSession) {

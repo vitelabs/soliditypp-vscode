@@ -2,6 +2,7 @@ import {
     DebugSession
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import ViewRequestProcessor from './viewRequestProcessor';
 import { readFileSync } from 'fs';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
@@ -9,7 +10,11 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	program: string;
 }
 
+const VIEW_COMMAND_PREFIX = "view2debugAdapter."
+
 export class SolidityppDebugSession extends DebugSession {
+    private viewRequestProcessor: ViewRequestProcessor
+
     // the initial (and one and only) file we are 'debugging'
 	private _sourceFilePath: string = "";
 	public get sourceFile() {
@@ -26,31 +31,26 @@ export class SolidityppDebugSession extends DebugSession {
 		return this._bytecodes;
     }
 
-    private _abi: string[] | undefined
-    public get abi() {
-		return this._abi;
+    private _abiList: string[] | undefined
+    public get abiList() {
+		return this._abiList;
     }
 
     public constructor() {
         super()
-        console.log("debug session as")
+        this.viewRequestProcessor = new ViewRequestProcessor(this)
+        return this;
     }
 
-    protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
-        console.log(command)
-        console.log(args)
-        response.body = {
-            id: args.id,
-            "test": "abc" + args.id.toString()
+    protected async customRequest(command: string, response: DebugProtocol.Response, args: any): Promise<void> {
+        if (command.indexOf(VIEW_COMMAND_PREFIX) === 0) {
+            let actualCommand = command.replace(VIEW_COMMAND_PREFIX, "");
+            this.sendResponse(await this.viewRequestProcessor.serve(actualCommand, response, args));
         }
-        this.sendResponse(response)
     }
 
     protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments):void {
-        response.body = response.body || {};
-
         this.sendResponse(response);
-        console.log("Initialized");
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
@@ -74,7 +74,7 @@ export class SolidityppDebugSession extends DebugSession {
 
         // TODO need compile source
         this._bytecodes = [this.sourceFileContent + "mock bytecodes"]
-        this._abi = ["mock abi"]
+        this._abiList = ["mock abi"]
     }
 
 }

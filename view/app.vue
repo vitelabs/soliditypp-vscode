@@ -13,18 +13,13 @@ export default {
             byteCodes: ['a', 'b']
         };
     },
-    created () {
-        console.log(request);
-        for (let i = 0; i < 10; i++) {
-            request('sayhello', {
-                text: 'hello world'
-            }).then(function (res) {
-                console.log(res);
-            }).catch(function (err) {
-                console.log(err);
-            });
-        }
- 
+    created () {  
+        request('compileResult').then(function (res) {
+            console.log(res);
+        }).catch(function (err) {
+            console.log(err);
+        });
+
     }
 };
 </script>
