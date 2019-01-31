@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
+import { readFileSync } from 'fs';
+import * as path from 'path';
 import { SolidityConfigurationProvider } from './debugConfigurationProvider';
 
 const DEBUGGER_TYPE = "soliditypp"
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "soliditypp" is now active!');
 
     var debuggerPanel:vscode.WebviewPanel | undefined;
     var debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
@@ -18,10 +19,40 @@ export function activate(context: vscode.ExtensionContext) {
             'Soliditypp',
             debuggerViewColumn,
             {
-                enableScripts: true
+                enableScripts: true,
+                retainContextWhenHidden: true
             }
         );
         debuggerPanel.webview.html = getWebviewContent();
+        debuggerPanel.webview.onDidReceiveMessage(
+            message => {
+                if (message.command.indexOf("soliditypp.da.") == 0) {
+                    // proxy
+                    let activeDebugSession = vscode.debug.activeDebugSession
+                    if (activeDebugSession) {
+                        activeDebugSession.customRequest(message.command, message.body).then(function (args) {
+                            let response = {
+                                id: message.id,
+                                body: args
+                            }
+                            if (debuggerPanel) {
+                                debuggerPanel.webview.postMessage(response)
+                            }
+                        }, function (err) {
+                            let response = {
+                                id: message.id,
+                                error: err
+                            }
+                            if (debuggerPanel) {
+                                debuggerPanel.webview.postMessage(response)
+                            }
+                        });
+                    }
+                }
+            },
+            undefined,
+            context.subscriptions
+        )
 
         debuggerPanel.onDidDispose(
             () => {
@@ -44,7 +75,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
         
         initDebuggerPanel()
-
     });
 
     vscode.debug.onDidTerminateDebugSession(function (event) {
@@ -57,22 +87,19 @@ export function activate(context: vscode.ExtensionContext) {
             debuggerPanel = undefined
         }
     });
+
+    console.log('Congratulations, your extension "soliditypp" is now active!');
 }
 
 export function deactivate() {
     console.log('Your extension "soliditypp" is now deactive!');
 }
 
-function getWebviewContent() {
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cat Coding</title>
-</head>
-<body>
-    <h1>Hello, soliditypp</h1>
-</body>
-</html>`;
+let webviewContent: string = ""
+function getWebviewContent() :string {
+    if (!webviewContent) {
+        webviewContent = readFileSync(path.join(__dirname, "./view/index.html")).toString();
+    }
+
+    return webviewContent
 }

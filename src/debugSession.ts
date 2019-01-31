@@ -36,6 +36,16 @@ export class SolidityppDebugSession extends DebugSession {
         console.log("debug session as")
     }
 
+    protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
+        console.log(command)
+        console.log(args)
+        response.body = {
+            id: args.id,
+            "test": "abc" + args.id.toString()
+        }
+        this.sendResponse(response)
+    }
+
     protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments):void {
         response.body = response.body || {};
 
@@ -47,7 +57,6 @@ export class SolidityppDebugSession extends DebugSession {
         this.loadSource(args.program)
         this.compileSource()
         this.sendResponse(response);
-        console.log(this.sourceFileContent);
     }
     
 	private loadSource(file: string) {

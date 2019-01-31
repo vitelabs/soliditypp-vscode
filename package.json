@@ -1,90 +1,108 @@
 {
-		"name": "soliditypp",
-		"displayName": "Soliditypp",
-		"description": "soliditypp for vscode",
-		"version": "0.0.1",
-		"engines": {
-				"vscode": "^1.30.0"
-		},
-		"categories": [
-			"Debuggers"
+	"name": "soliditypp",
+	"displayName": "Soliditypp",
+	"description": "soliditypp for vscode",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.30.0"
+	},
+	"categories": [
+		"Debuggers"
+	],
+	"activationEvents": [
+		"onLanguage:soliditypp",
+		"onDebug"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"languages": [
+			{
+				"id": "soliditypp",
+				"extensions": [
+					".solpp"
+				],
+				"aliases": [
+					"Soliditypp",
+					"soliditypp"
+				]
+			}
 		],
-		"activationEvents": [
-				"onLanguage:soliditypp",
-				"onDebug"
-		],
-		"main": "./out/extension.js",
-		"contributes": {
-			"languages": [
-				{
-					"id": "soliditypp",
-					"extensions": [
-							".solpp"
+		"debuggers": [
+			{
+				"type": "soliditypp",
+				"label": "Soliditypp",
+				"program": "./out/debugAdapter.js",
+				"runtime": "node",
+				"configurationAttributes": {
+					"required": [
+						"program"
 					],
-					"aliases": [
-							"Soliditypp",
-							"soliditypp"
-					]
-				}
-			],
-			"debuggers": [
-				{
-					"type": "soliditypp",
-					"label": "Soliditypp",
-					"program": "./out/debugAdapter.js",
-					"runtime": "node",
-					"configurationAttributes": {
-						"required": [
-							"program"
-						],
-						"properties": {
-							"program": {
-								"type": "string",
-								"description": "Path to a soliditypp file.",
-								"default": "index.solpp"
-							}
+					"properties": {
+						"program": {
+							"type": "string",
+							"description": "Path to a soliditypp file.",
+							"default": "${workspaceFolder}/index.solpp"
 						}
-					},
-					"initialConfigurations": [
-						{
+					}
+				},
+				"initialConfigurations": [
+					{
+						"type": "soliditypp",
+						"request": "launch",
+						"name": "Soliditypp Debug",
+						"debugServer": 4711,
+						"program": "${workspaceFolder}/index.solpp"
+					}
+				],
+				"configurationSnippets": [
+					{
+						"label": "Soliditypp Debug: Launch",
+						"description": "A new configuration for 'debugging' a user selected soliditypp project.",
+						"body": {
 							"type": "soliditypp",
 							"request": "launch",
 							"name": "Soliditypp Debug",
 							"debugServer": 4711,
-							"program": "index.solpp"
+							"program": "${workspaceFolder}/index.solpp"
 						}
-					],
-					"configurationSnippets": [
-						{
-							"label": "Soliditypp Debug: Launch",
-							"description": "A new configuration for 'debugging' a user selected soliditypp project.",
-							"body": {
-								"type": "soliditypp",
-								"request": "launch",
-								"name": "Soliditypp Debug",
-								"debugServer": 4711,
-								"program": "index.solpp"
-							}
-						}
-					]
-				}
-			]
-		},
-		"scripts": {
-				"vscode:prepublish": "npm run compile",
-				"compile": "tsc -p ./",
-				"watch": "tsc -watch -p ./",
-				"postinstall": "node ./node_modules/vscode/bin/install",
-				"test": "npm run compile && node ./node_modules/vscode/bin/test"
-		},
-		"devDependencies": {
-				"typescript": "^3.1.4",
-				"vscode": "^1.1.25",
-				"tslint": "^5.8.0",
-				"@types/node": "^8.10.25",
-				"@types/mocha": "^2.2.42"
-		},
-		"dependencies": {
-				"vscode-debugadapter": "^1.33.0"
-		}
+					}
+				]
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./ && npm run view:build:dev",
+		"watch": "tsc -watch -p ./ & npm run view:build:watch",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test",
+		"view:clean": "rm -rf out/view",
+		"lint": "eslint --ext .js,.vue ./",
+		"view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out/view/index.js",
+		"view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.2.2",
+		"@babel/preset-env": "^7.3.1",
+		"@types/mocha": "^2.2.42",
+		"@types/node": "^8.10.25",
+		"babel-loader": "^8.0.5",
+		"eslint": "^5.12.1",
+		"eslint-plugin-vue": "^5.1.0",
+		"html-webpack-inline-source-plugin": "0.0.10",
+		"html-webpack-plugin": "^3.2.0",
+		"tslint": "^5.8.0",
+		"typescript": "^3.1.4",
+		"uglifyjs-webpack-plugin": "^2.1.1",
+		"vscode": "^1.1.25",
+		"vue-loader": "^15.6.2",
+		"vue-template-compiler": "^2.5.22",
+		"webpack": "^4.29.0",
+		"webpack-cli": "^3.2.1"
+	},
+	"dependencies": {
+		"events": "^3.0.0",
+		"vscode-debugadapter": "^1.33.0",
+		"vue": "^2.5.22"
+	}
 }
