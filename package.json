@@ -24,7 +24,8 @@
 				"aliases": [
 					"Soliditypp",
 					"soliditypp"
-				]
+				],
+				"configuration": "./soliditypp.configuration.json"
 			}
 		],
 		"debuggers": [
@@ -67,6 +68,13 @@
 						}
 					}
 				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "soliditypp",
+				"scopeName": "source.soliditypp",
+				"path": "./syntax/soliditypp.json"
 			}
 		]
 	},
