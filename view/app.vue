@@ -1,94 +1,158 @@
 <template>
     <div>
-        <h1>Soliditypp, hello world</h1>
-        <h2>{{abiList}}</h2>
+    
+        <el-form v-if="testAccount" label-width="80px">
+            <el-form-item label="account:">
+                <el-form-item :label="testAccount.address">
+                </el-form-item>
+            </el-form-item>
+        </el-form>
+
+        <el-form v-if="abi" label="deploy" label-width="80px">
+            <el-form-item label="amount:">
+                <el-input v-model="deployAmount"></el-input>
+            </el-form-item>
+            <template v-if="constructAbi" >
+
+                <template v-for="(input, index) in constructAbi.inputs">
+                    <el-form-item :key="input.name" :label="input.name + ':'">
+                        <el-input v-model="deployParams[index]"></el-input>
+                    </el-form-item>    
+                </template>
+            </template>
+            <el-form-item>            
+                <el-button @click="deployContract">deploy</el-button>
+            </el-form-item>
+        </el-form>         
+        {{functionAbiList}}
+        <el-tree
+            v-if="functionAbiList"
+            :data="functionAbiList"
+            node-key="name"
+        >
+        </el-tree>    
     </div>
 </template>
 
 <script>
 import getCompileResult from 'services/compile';
-import WsProvider  from '@vite/vitejs/dist/es5/provider/WS';
-import * as Vitejs from '@vite/vitejs';
+import * as vite from 'global/vite';
 
 export default {
     data () {
         return {
-            abiList: []
+            compileResult: undefined,
+            testAccount: undefined,
+            deployParams: [],
+            deployAmount: 0,
+            deployStatus: 0 // 0 mean no deploy, 1 mean deploying, 2 mean deployed
         };
     },
-    async created () { 
-        try {
-            let compileResult = await getCompileResult();
 
-            this.abiList = compileResult.abiList;
+    computed: {
+        abiList () {
+            if (!this.compileResult) {
+                return undefined;
+            }
+            return this.compileResult.abiList;
 
-            let wsRpc = new WsProvider('ws://localhost:41420', 30 * 1000);
+        },
+        abi () {
+            if (!this.abiList) {
+                return undefined;
+            }
+            return this.abiList[0];
+        },
 
-            let vite = new Vitejs.client(wsRpc, function () {
-                console.log('Already connected.');
-            });
+        bytecodes () {
+            if (!this.compileResult) {
+                return undefined;
+            }
+            return this.compileResult.bytecodesList[0];
+        },
 
-            const VITE_TOKEN_ID = 'tti_5649544520544f4b454e6e40';
-            
-            let keyPair = Vitejs.utils.ed25519.keyPair();
-            const GenesisAccount = new Vitejs.wallet.account({
-                privateKey: '7488b076b27aec48692230c88cbe904411007b71981057ea47d757c1e7f7ef24f4da4390a6e2618bec08053a86a6baf98830430cbefc078d978cf396e1c43e3a',
-                client: vite
-            });
-            // on road
-            let blocks = await vite.onroad.getOnroadBlocksByAddress(GenesisAccount.address, 0, 10);
-            for (let i =0 ;i < blocks.length; i++) {
-                let block = blocks[i];
-                // receive on road
-                await GenesisAccount.receiveTx({
-                    fromBlockHash: block.hash
-                });
+        constructAbi () {
+            if (!this.abi) {
+                return undefined;
             }
 
-            const TestAccount = new Vitejs.wallet.account({
-                privateKey: keyPair.secretKey,
-                client: vite
-            });
+            for (let i = 0; i < this.abi.length; i++) {
+                let methodAbi = this.abi[i];
             
-            await GenesisAccount.sendTx({
-                toAddress: TestAccount.address,
-                tokenId: VITE_TOKEN_ID,
-                amount: '1'
-            });
-
-            // on road
-            let sentToTestAccountBlocks = await vite.onroad.getOnroadBlocksByAddress(TestAccount.address, 0, 10);
-            for (let i =0 ;i < sentToTestAccountBlocks.length; i++) {
-                let block = sentToTestAccountBlocks[i];
-                // receive on road
-                await TestAccount.receiveTx({
-                    fromBlockHash: block.hash
-                });
+                if (methodAbi.type === 'constructor') {
+                    return methodAbi;
+                }
             }
 
+            return undefined;
+        },
 
-            let latestSnapshotHash = await vite.ledger.getLatestSnapshotChainHash();
 
-            let createContractBlock = await vite.buildinTxBlock.createContract({
-                accountAddress: TestAccount.address,
-                tokenId: VITE_TOKEN_ID,
-                amount: '0',
-                fee: '10000000000000000000',
-                hexCode: compileResult.bytecodes[0],
-                abi: JSON.stringify(compileResult.abiList[0]),
-                snapshotHash: latestSnapshotHash,
-                params: [TestAccount.address]
-            });
+        functionAbiList () {
+            if (!this.abi) {
+                return undefined;
+            }
 
-            console.log(createContractBlock);
-
-            await TestAccount.sendRawTx(createContractBlock);
-
-            console.log(await vite.ledger.getSnapshotChainHeight());
-        } catch (err) {
-            console.log(err);
+    
+            let list = [];
+            for (let i = 0; i < this.abi.length; i++) {
+                let methodAbi = this.abi[i];
+                
+                if (methodAbi.type === 'function') {
+                    list.push(methodAbi);
+                }
+            }
+            console.log(list);
+            return list;
         }
+    },
 
+    async created () { 
+        let compileResult = await getCompileResult();
+        this.compileResult = compileResult;
+
+        this.initDeployParams();
+        await vite.init(compileResult);
+        this.testAccount = vite.getTestAccount();
+    },
+    methods: {
+        initDeployParams () {
+            if (!this.constructAbi) {
+                return;
+            }
+            this.deployParams = [];
+            this.constructAbi.inputs.forEach((input) => {
+                if (input.type === 'address') {
+                    this.deployParams.push('vite_0000000000000000000000000000000000000000a4f3a0cb58');
+                } else {
+                    this.deployParams.push('');
+                }
+                
+            });
+        },
+
+        changeDeployParams (index, event) {
+            console.log(event);
+            this.deployParams[index] = event.value;
+        },
+
+        cleanDeployParams () {
+            
+        },
+
+        async deployContract () {
+            console.log(this.deployParams);
+            this.deployStatus = 1;
+            await vite.createContract(vite.getTestAccount(), {
+                bytecodes: this.bytecodes,
+                abi: this.abi
+            }, this.deployAmount, this.deployParams);
+            this.deployStatus = 2;
+        }
     }
+    
 };
 </script>
+
+<style lang="scss">
+</style>

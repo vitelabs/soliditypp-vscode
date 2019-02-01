@@ -7,6 +7,7 @@ import { exec }  from 'shelljs';
 import * as path from 'path';
 import * as os from 'os';
 import { ChildProcess, spawn, spawnSync} from 'child_process';
+import { Readable, Writable } from 'stream';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -24,9 +25,9 @@ export class SolidityppDebugSession extends DebugSession {
 		return this._sourceFilePath;
     }
     
-    private _bytecodes: string[] = [];
-    public get bytecodes() {
-		return this._bytecodes;
+    private _bytecodesList: string[] = [];
+    public get bytecodesList() {
+		return this._bytecodesList;
     }
 
     private _abiList: any[][] = [];
@@ -41,6 +42,13 @@ export class SolidityppDebugSession extends DebugSession {
         this.viewRequestProcessor = new ViewRequestProcessor(this);
         console.log('constructor');
         return this;
+    }
+
+    public start(inStream: Readable, outStream: Writable) {
+        super.start(inStream, outStream);
+        inStream.on("end", () => {
+            this.cleanVite()
+        })
     }
 
     protected async customRequest(command: string, response: DebugProtocol.Response, args: any): Promise<void> {
@@ -96,7 +104,7 @@ export class SolidityppDebugSession extends DebugSession {
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i]
             if (line.startsWith("Binary:")) {
-                 this._bytecodes.push(lines[i+1])
+                 this._bytecodesList.push(lines[i+1])
             } else if (line.startsWith("Contract JSON ABI")) {
                 this._abiList.push(JSON.parse(lines[i+1]))
             }
@@ -140,6 +148,10 @@ export class SolidityppDebugSession extends DebugSession {
     }
 
     private cleanVite () {
+        if (this._viteChildProcess && !this._viteChildProcess.killed) {
+            this._viteChildProcess.kill('SIGKILL')
+        }
+
         spawnSync('./clean.sh', [], {
             cwd: path.resolve(process.cwd(), 'bin/vite/')
         })
@@ -150,10 +162,11 @@ export class SolidityppDebugSession extends DebugSession {
         this.sendResponse(response)
     }
 
+    protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
+        console.log("disconnect");
+    }
+
     private terminateSession (code:number = 0) {
-        if (this._viteChildProcess && !this._viteChildProcess.killed) {
-            this._viteChildProcess.kill('SIGKILL')
-        }
         this.cleanVite()
 
         this.sendEvent(<DebugProtocol.TerminatedEvent>{

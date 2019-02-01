@@ -21,7 +21,7 @@ export default class ViewRequestProcessor {
 
     public getCompileResult ():any {
         return {
-            bytecodes: this.debugSession.bytecodes,
+            bytecodesList: this.debugSession.bytecodesList,
             abiList: this.debugSession.abiList
         }
 

@@ -31,7 +31,7 @@ let config = {
             }
         }, {
             test: /\.js$/,
-            exclude: /node_modules(?!\/base-x)/,
+            exclude: /node_modules/,
             use: {
                 loader: 'babel-loader',
                 options: {
@@ -39,7 +39,14 @@ let config = {
                         '@babel/preset-env'
                     ],
                     plugins: [
-                        '@babel/plugin-proposal-class-properties'
+                        '@babel/plugin-proposal-class-properties',
+                        [ 
+                            'component',
+                            {
+                                'libraryName': 'element-ui',
+                                'styleLibraryName': 'theme-chalk'
+                            }
+                        ]
                     ]
                 }
             }
@@ -52,6 +59,9 @@ let config = {
             }, {
                 loader: 'sass-loader'
             }]
+        }, {
+            test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+            loader: 'url-loader'
         }]
     },
     resolve: {
@@ -60,7 +70,8 @@ let config = {
             src: SRC_PATH,
             components: path.join(SRC_PATH, '/components'),
             services: path.join(SRC_PATH, '/services'),
-            utils: path.join(SRC_PATH, '/utils')
+            utils: path.join(SRC_PATH, '/utils'),
+            global: path.join(SRC_PATH, '/global')
         },
         extensions: ['.js', '.scss', '.vue', '.json']
     }
