@@ -6,7 +6,7 @@ import ViewRequestProcessor from './viewRequestProcessor';
 import { exec }  from 'shelljs';
 import * as path from 'path';
 import * as os from 'os';
-import { ChildProcess, spawn} from 'child_process';
+import { ChildProcess, spawn, spawnSync} from 'child_process';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -106,6 +106,7 @@ export class SolidityppDebugSession extends DebugSession {
     }
 
     private initVite (){
+        this.cleanVite()
         this._viteChildProcess = spawn('./run.sh', [], {
             cwd: path.resolve(process.cwd(), 'bin/vite/')
         })
@@ -124,14 +125,23 @@ export class SolidityppDebugSession extends DebugSession {
 
         this._viteChildProcess.on('close', (code) => {
             // init vite failed
-            this.sendEvent(<DebugProtocol.OutputEvent>{
-                event: 'output',
-                body: {
-                    category: 'stderr',
-                    output: `vite exited with code ${code}`
-                }
-            });
+            if (code > 0) {
+                this.sendEvent(<DebugProtocol.OutputEvent>{
+                    event: 'output',
+                    body: {
+                        category: 'stderr', 
+                        output: `vite exited with code ${code}`
+                    }
+                });
+            } 
+           
             this.terminateSession(code)
+        })
+    }
+
+    private cleanVite () {
+        spawnSync('./clean.sh', [], {
+            cwd: path.resolve(process.cwd(), 'bin/vite/')
         })
     }
 
@@ -142,10 +152,9 @@ export class SolidityppDebugSession extends DebugSession {
 
     private terminateSession (code:number = 0) {
         if (this._viteChildProcess && !this._viteChildProcess.killed) {
-            console.log("kill")
-            this._viteChildProcess.kill()
-        
+            this._viteChildProcess.kill('SIGKILL')
         }
+        this.cleanVite()
 
         this.sendEvent(<DebugProtocol.TerminatedEvent>{
             event: 'terminated'
