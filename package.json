@@ -24,7 +24,8 @@
 				"aliases": [
 					"Soliditypp",
 					"soliditypp"
-				]
+				],
+				"configuration": "./soliditypp.configuration.json"
 			}
 		],
 		"debuggers": [
