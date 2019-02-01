@@ -68,6 +68,13 @@
 					}
 				]
 			}
+		],
+		"grammars": [
+			{
+				"language": "soliditypp",
+				"scopeName": "source.soliditypp",
+				"path": "./syntax/soliditypp.json"
+			}
 		]
 	},
 	"scripts": {

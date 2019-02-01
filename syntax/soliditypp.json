@@ -1,0 +1,458 @@
+{
+    "fileTypes": [
+        "solpp"
+    ],
+    "name": "soliditypp",
+    "patterns": [
+        {
+            "include": "#comment"
+        },
+        {
+            "include": "#operator"
+        },
+        {
+            "include": "#control"
+        },
+        {
+            "include": "#constant"
+        },
+        {
+            "include": "#number"
+        },
+        {
+            "include": "#string"
+        },
+        {
+            "include": "#type"
+        },
+        {
+            "include": "#global"
+        },
+        {
+            "include": "#declaration"
+        },
+        {
+            "include": "#function-call"
+        },
+        {
+            "include": "#assembly"
+        },
+        {
+            "include": "#punctuation"
+        }
+    ],
+    "repository": {
+        "comment": {
+            "patterns": [
+                {
+                    "include": "#comment-line"
+                },
+                {
+                    "include": "#comment-block"
+                }
+            ]
+        },
+        "comment-line": {
+            "match": "(?<!tp:)//.*?$",
+            "name": "comment.line.soliditypp"
+        },
+        "comment-block": {
+            "begin": "/\\*",
+            "end": "\\*/",
+            "name": "comment.block.soliditypp"
+        },
+        "operator": {
+            "patterns": [
+                {
+                    "include": "#operator-logic"
+                },
+                {
+                    "include": "#operator-mapping"
+                },
+                {
+                    "include": "#operator-arithmetic"
+                },
+                {
+                    "include": "#operator-binary"
+                },
+                {
+                    "include": "#operator-assignment"
+                }
+            ]
+        },
+        "operator-logic": {
+            "match": "(==|<(?!<)|<=|>(?!>)|>=|\\&\\&|\\|\\||\\:(?!=)|\\?)",
+            "name": "keyword.operator.logic.soliditypp"
+        },
+        "operator-mapping": {
+            "match": "(=>)",
+            "name": "keyword.operator.mapping.soliditypp"
+        },
+        "operator-arithmetic": {
+            "match": "(\\+|\\-|\\/|\\*)",
+            "name": "keyword.operator.arithmetic.soliditypp"
+        },
+        "operator-binary": {
+            "match": "(\\^|\\&|\\||<<|>>)",
+            "name": "keyword.operator.binary.soliditypp"
+        },
+        "operator-assignment": {
+            "match": "(\\:?=)",
+            "name": "keyword.operator.assignment.soliditypp"
+        },
+        "control": {
+            "patterns": [
+                {
+                    "include": "#control-flow"
+                },
+                {
+                    "include": "#control-using"
+                },
+                {
+                    "include": "#control-import"
+                },
+                {
+                    "include": "#control-pragma"
+                },
+                {
+                    "include": "#control-underscore"
+                },
+                {
+                    "include": "#control-other"
+                }
+            ]
+        },
+        "control-flow": {
+            "match": "\\b(if|else|for|while|do|break|continue|throw|returns?)\\b",
+            "name": "keyword.control.flow.soliditypp"
+        },
+        "control-using": {
+            "match": "\\b(using)\\b",
+            "name": "keyword.control.using.soliditypp"
+        },
+        "control-import": {
+            "match": "\\b(import)\\b",
+            "name": "keyword.control.import.soliditypp"
+        },
+        "control-pragma": {
+            "match": "\\b(pragma)(?:\\s+([A-Za-z_]\\w+)\\s+([^\\s]+))?\\b",
+            "captures": {
+                "1": {
+                    "name": "keyword.control.pragma.soliditypp"
+                },
+                "2": {
+                    "name": "entity.name.tag.pragma.soliditypp"
+                },
+                "3": {
+                    "name": "constant.other.pragma.soliditypp"
+                }
+            }
+        },
+        "control-underscore": {
+            "match": "\\b(_)\\b",
+            "name": "constant.other.underscore.soliditypp"
+        },
+        "control-other": {
+            "match": "\\b(new|delete|emit)\\b",
+            "name": "keyword.control.soliditypp"
+        },
+        "constant": {
+            "patterns": [
+                {
+                    "include": "#constant-boolean"
+                },
+                {
+                    "include": "#constant-time"
+                },
+                {
+                    "include": "#constant-currency"
+                }
+            ]
+        },
+        "constant-boolean": {
+            "match": "\\b(true|false)\\b",
+            "name": "constant.language.boolean.soliditypp"
+        },
+        "constant-time": {
+            "match": "\\b(seconds|minutes|hours|days|weeks|years)\\b",
+            "name": "constant.language.time.soliditypp"
+        },
+        "constant-currency": {
+            "match": "\\b(attov|vite)\\b",
+            "name": "constant.language.currency.soliditypp"
+        },
+        "number": {
+            "patterns": [
+                {
+                    "include": "#number-decimal"
+                },
+                {
+                    "include": "#number-hex"
+                }
+            ]
+        },
+        "number-decimal": {
+            "match": "\\b(\\d+(\\.\\d+)?)\\b",
+            "name": "constant.numeric.decimal.soliditypp"
+        },
+        "number-hex": {
+            "match": "\\b(0[xX][a-fA-F0-9]+)\\b",
+            "name": "constant.numeric.hexadecimal.soliditypp"
+        },
+        "string": {
+            "patterns": [
+                {
+                    "match": "\\\".*?\\\"",
+                    "name": "string.quoted.double.soliditypp"
+                },
+                {
+                    "match": "\\'.*?\\'",
+                    "name": "string.quoted.single.soliditypp"
+                }
+            ]
+        },
+        "type": {
+            "patterns": [
+                {
+                    "include": "#type-primitive"
+                }
+            ]
+        },
+        "type-primitive": {
+            "match": "\\b(address|gid|tokenId|string\\d*|bytes\\d*|int\\d*|uint\\d*|bool|hash\\d*)\\b",
+            "name": "support.type.primitive.soliditypp"
+        },
+        "global": {
+            "patterns": [
+                {
+                    "include": "#global-variables"
+                },
+                {
+                    "include": "#global-functions"
+                }
+            ]
+        },
+        "global-variables": {
+            "patterns": [
+                {
+                    "match": "\\b(msg|block|tx|now)\\b",
+                    "name": "variable.language.transaction.soliditypp"
+                },
+                {
+                    "match": "\\b(this)\\b",
+                    "name": "variable.language.this.soliditypp"
+                },
+                {
+                    "match": "\\b(super)\\b",
+                    "name": "variable.language.super.soliditypp"
+                }
+            ]
+        },
+        "global-functions": {
+            "patterns": [
+                {
+                    "match": "\\b(require|assert|revert)\\b",
+                    "name": "keyword.control.exceptions.soliditypp"
+                },
+                {
+                    "match": "\\b(selfdestruct|suicide)\\b",
+                    "name": "keyword.control.contract.soliditypp"
+                },
+                {
+                    "match": "\\b(addmod|mulmod|blake2b)\\b",
+                    "name": "support.function.math.soliditypp"
+                },
+                {
+                    "match": "\\b(blockhash)\\b",
+                    "name": "variable.language.transaction.soliditypp"
+                }
+            ]
+        },
+        "declaration": {
+            "patterns": [
+                {
+                    "include": "#declaration-contract"
+                },
+                {
+                    "include": "#declaration-interface"
+                },
+                {
+                    "include": "#declaration-library"
+                },
+                {
+                    "include": "#declaration-struct"
+                },
+                {
+                    "include": "#declaration-event"
+                },
+                {
+                    "include": "#declaration-enum"
+                },
+                {
+                    "include": "#declaration-function"
+                },
+                {
+                    "include": "#declaration-constructor"
+                },
+                {
+                    "include": "#declaration-modifier"
+                },
+                {
+                    "include": "#declaration-mapping"
+                }
+            ]
+        },
+        "declaration-contract": {
+            "patterns": [
+                {
+                    "match": "\\b(contract)(\\s+([A-Za-z_]\\w*))?\\b",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.contract.soliditypp"
+                        },
+                        "3": {
+                            "name": "entity.name.type.contract.soliditypp"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b(is)\\b",
+                    "name": "storage.modifier.is.soliditypp"
+                }
+            ]
+        },
+        "declaration-interface": {
+            "match": "\\b(message)(\\s+([A-Za-z_]\\w*))?\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.interface.soliditypp"
+                },
+                "3": {
+                    "name": "entity.name.type.interface.soliditypp"
+                }
+            }
+        },
+        "declaration-library": {
+            "match": "\\b(library)(\\s+([A-Za-z_]\\w*))?\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.library.soliditypp"
+                },
+                "3": {
+                    "name": "entity.name.type.library.soliditypp"
+                }
+            }
+        },
+        "declaration-struct": {
+            "match": "\\b(struct)(\\s+([A-Za-z_]\\w*))?\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.struct.soliditypp"
+                },
+                "3": {
+                    "name": "entity.name.type.struct.soliditypp"
+                }
+            }
+        },
+        "declaration-event": {
+            "match": "\\b(event)(\\s+([A-Za-z_]\\w*))?\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.event.soliditypp"
+                },
+                "3": {
+                    "name": "entity.name.type.event.soliditypp"
+                }
+            }
+        },
+        "declaration-constructor": {
+            "match": "\\b(constructor)\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.constructor.soliditypp"
+                }
+            }
+        },
+        "declaration-enum": {
+            "match": "\\b(enum)(\\s+([A-Za-z_]\\w*))?\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.enum.soliditypp"
+                },
+                "3": {
+                    "name": "entity.name.type.enum.soliditypp"
+                }
+            }
+        },
+        "declaration-function": {
+            "patterns": [
+                {
+                    "match": "\\b(function)\\s+([A-Za-z_]\\w*)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.function.soliditypp"
+                        },
+                        "2": {
+                            "name": "entity.name.function.soliditypp"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b(onMessage)\\s+([A-Za-z_]\\w*)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.onMessage.soliditypp"
+                        },
+                        "2": {
+                            "name": "entity.name.onMessage.soliditypp"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b(public|pure|view|payable|nonpayable|inherited|indexed|storage|memory)\\b",
+                    "name": "storage.type.mofifier.soliditypp"
+                }
+            ]
+        },
+        "declaration-modifier": {
+            "match": "\\b(modifier)(\\s+([A-Za-z_]\\w*))?\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.modifier.soliditypp"
+                },
+                "3": {
+                    "name": "entity.name.function.soliditypp"
+                }
+            }
+        },
+        "declaration-mapping": {
+            "match": "\\b(mapping)\\b",
+            "name": "storage.type.mapping.soliditypp"
+        },
+        "function-call": {
+            "match": "\\b([A-Za-z_]\\w*)\\s*\\(",
+            "captures": {
+                "1": {
+                    "name": "entity.name.function.soliditypp"
+                }
+            }
+        },
+        "punctuation": {
+            "patterns": [
+                {
+                    "match": ";",
+                    "name": "punctuation.terminator.statement.soliditypp"
+                },
+                {
+                    "match": "\\.",
+                    "name": "punctuation.accessor.soliditypp"
+                },
+                {
+                    "match": ",",
+                    "name": "punctuation.separator.soliditypp"
+                }
+            ]
+        }
+    },
+    "scopeName": "source.soliditypp"
+}
