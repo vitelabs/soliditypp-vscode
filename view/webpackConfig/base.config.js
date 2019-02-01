@@ -35,7 +35,12 @@ let config = {
             use: {
                 loader: 'babel-loader',
                 options: {
-                    presets: ['@babel/preset-env']
+                    presets: [
+                        '@babel/preset-env'
+                    ],
+                    plugins: [
+                        '@babel/plugin-proposal-class-properties'
+                    ]
                 }
             }
         }, {
@@ -54,7 +59,8 @@ let config = {
             vue: 'vue/dist/vue.js',
             src: SRC_PATH,
             components: path.join(SRC_PATH, '/components'),
-            utils: path.join(SRC_PATH, '/utils'),
+            services: path.join(SRC_PATH, '/services'),
+            utils: path.join(SRC_PATH, '/utils')
         },
         extensions: ['.js', '.scss', '.vue', '.json']
     }

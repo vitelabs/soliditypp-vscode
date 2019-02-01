@@ -1,25 +1,23 @@
 <template>
     <div>
         <h1>Soliditypp, hello world</h1>
-        <h2>{{byteCodes}}</h2>
+        <h2>{{abiList}}</h2>
     </div>
 </template>
 
 <script>
-import request from 'utils/request';
+import getCompileResult from 'services/compile';
 export default {
     data () {
         return {
-            byteCodes: ['a', 'b']
+            abiList: []
         };
     },
-    created () {  
-        request('compileResult').then(function (res) {
-            console.log(res);
-        }).catch(function (err) {
-            console.log(err);
+    created () { 
+        getCompileResult().then((result) => {
+            console.log(result);
+            this.abiList = result.abiList;
         });
-
     }
 };
 </script>

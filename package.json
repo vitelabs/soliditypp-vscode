@@ -83,6 +83,7 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.2.2",
+		"@babel/plugin-proposal-class-properties": "^7.3.0",
 		"@babel/preset-env": "^7.3.1",
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^8.10.25",
@@ -101,7 +102,10 @@
 		"webpack-cli": "^3.2.1"
 	},
 	"dependencies": {
+		"@types/shelljs": "^0.8.2",
+		"babel-polyfill": "^6.26.0",
 		"events": "^3.0.0",
+		"shelljs": "^0.8.3",
 		"vscode-debugadapter": "^1.33.0",
 		"vue": "^2.5.22"
 	}

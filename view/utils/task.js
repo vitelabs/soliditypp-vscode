@@ -1,29 +1,32 @@
 class Task {
-    data 
     _taskTimer
     _taskInterval
     _task
 
-    constructor () {
+    constructor (task, interval) {
+        this._task = task;
+        this._taskInterval = interval;
+
         return this;
     }
 
     _run () {
-        this.taskInterval = setTimeout(() => {
+        this._taskTimer = setTimeout(async () => {
             if (!this._task) {
                 return;
             }
-            this._task();
+            if (!(await this._task())) {
+                return;
+            }
             this._run();
-        }, this._interval);
+        }, this._taskInterval);
     }
 
-    start (task, interval) {
+    start () {
         if (this._taskTimer) {
             return;
         }
-        this._task = task;
-        this._taskInterval = interval;
+        
         this._run();
     }
 
@@ -34,9 +37,6 @@ class Task {
         }    
         window.clearTimeout(this._taskTimer);
         this._taskTimer = undefined;
-        this._task = undefined;
-        this._taskInterval = undefined;
-        this.data = undefined;
     }
 }
 

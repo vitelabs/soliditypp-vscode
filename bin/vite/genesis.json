@@ -1,0 +1,47 @@
+{
+  "GenesisAccountAddress": "vite_bb6ad02107a4422d6a324fd2e3707ad53cfed9359378a78792",
+  "BlockProducers": [
+    "vite_e41be57d38c796984952fad618a9bc91637329b5255cb18906"
+  ],
+  "SnapshotConsensusGroup": {
+    "NodeCount": 2,
+    "Interval": 1,
+    "PerCount": 3,
+    "RandCount": 0,
+    "RandRank": 0,
+    "CountingTokenId": "tti_5649544520544f4b454e6e40",
+    "RegisterConditionId": 1,
+    "RegisterConditionParam": {
+      "PledgeAmount": 500000000000000000000000,
+      "PledgeHeight": 1,
+      "PledgeToken": "tti_5649544520544f4b454e6e40"
+    },
+    "VoteConditionId": 1,
+    "Owner": "vite_bb6ad02107a4422d6a324fd2e3707ad53cfed9359378a78792",
+    "PledgeAmount": 0,
+    "WithdrawHeight": 1
+  },
+  "CommonConsensusGroup": {
+    "NodeCount": 2,
+    "Interval": 3,
+    "PerCount": 1,
+    "RandCount": 2,
+    "RandRank": 100,
+    "CountingTokenId": "tti_5649544520544f4b454e6e40",
+    "RegisterConditionId": 1,
+    "RegisterConditionParam": {
+      "PledgeAmount": 500000000000000000000000,
+      "PledgeHeight": 1,
+      "PledgeToken": "tti_5649544520544f4b454e6e40"
+    },
+    "VoteConditionId": 1,
+    "Owner": "vite_bb6ad02107a4422d6a324fd2e3707ad53cfed9359378a78792",
+    "PledgeAmount": 0,
+    "WithdrawHeight": 1
+  },
+  "ForkPoints":{
+    "Smart":{
+      "Height":3
+    }
+  }
+}
