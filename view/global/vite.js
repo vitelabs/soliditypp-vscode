@@ -84,8 +84,8 @@ export async function sendContractTx (account,contractAddress, abi, amount, meth
     let callContractBlock = await viteClient.buildinTxBlock.callContract({
         accountAddress: account.address,
         tokenId: VITE_TOKEN_ID,
-        amount: amount,
-        abi: abi,
+        amount: amount.toString(),
+        abi: JSON.stringify(abi),
         snapshotHash: latestSnapshotHash,
         params: params,
         methodName: methodName,

@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { ChildProcess, spawn, spawnSync} from 'child_process';
 import { Readable, Writable } from 'stream';
+import ExtensionRequestProcessor from './extensionRequestProcessor';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -15,9 +16,11 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 }
 
 const VIEW_COMMAND_PREFIX = "view2debugAdapter."
+const EXTENSION_COMMAND_PREFIX = "extension2debugAdapter."
 
 export class SolidityppDebugSession extends DebugSession {
     private viewRequestProcessor: ViewRequestProcessor
+    private extensionRequestProcessor: ExtensionRequestProcessor
 
     // the initial (and one and only) file we are 'debugging'
 	private _sourceFilePath: string = "";
@@ -40,7 +43,7 @@ export class SolidityppDebugSession extends DebugSession {
     public constructor() {
         super();
         this.viewRequestProcessor = new ViewRequestProcessor(this);
-        console.log('constructor');
+        this.extensionRequestProcessor = new ExtensionRequestProcessor(this);
         return this;
     }
 
@@ -55,11 +58,13 @@ export class SolidityppDebugSession extends DebugSession {
         if (command.indexOf(VIEW_COMMAND_PREFIX) === 0) {
             let actualCommand = command.replace(VIEW_COMMAND_PREFIX, "");
             this.sendResponse(await this.viewRequestProcessor.serve(actualCommand, response, args));
+        } else if (command.indexOf(EXTENSION_COMMAND_PREFIX) === 0) {
+            let actualCommand = command.replace(EXTENSION_COMMAND_PREFIX, "");
+            this.sendResponse(await this.extensionRequestProcessor.serve(actualCommand, response, args));
         }
     }
 
     protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments):void {
-        console.log('initializeRequest');
         response.body = <DebugProtocol.Capabilities> {
             supportsTerminateRequest: true
         }
@@ -68,7 +73,6 @@ export class SolidityppDebugSession extends DebugSession {
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
-        console.log('launchRequest');
         // set source file path
         this._sourceFilePath = args.program
 
@@ -166,7 +170,7 @@ export class SolidityppDebugSession extends DebugSession {
         console.log("disconnect");
     }
 
-    private terminateSession (code:number = 0) {
+    public terminateSession (code:number = 0) {
         this.cleanVite()
 
         this.sendEvent(<DebugProtocol.TerminatedEvent>{

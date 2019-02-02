@@ -29,6 +29,7 @@ module.exports = {
     "rules": {
         "indent": ["error", 4],
         "linebreak-style": ["error", "unix"],
+        "vue/require-v-for-key": "off",
         "quotes": ["error", "single"],
         "semi": ["error", "always"],
         "no-console": "off",

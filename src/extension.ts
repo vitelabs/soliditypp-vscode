@@ -5,11 +5,19 @@ import { SolidityConfigurationProvider } from './debugConfigurationProvider';
 
 const DEBUGGER_TYPE = "soliditypp"
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter."
+const EXTENSION_TO_DA_COMMAND_PREFIX = "extension2debugAdapter."
+enum DEBUGGER_STATUS {
+    STOPPING = 1,
+    STOPPED = 2,
+    STARTING = 3,
+    STARTED = 4
+}
 
 export function activate(context: vscode.ExtensionContext) {
 
-    var debuggerPanel:vscode.WebviewPanel | undefined;
-    var debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
+    let debuggerPanel:vscode.WebviewPanel | undefined;
+    let debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
+    let debuggerStatus:DEBUGGER_STATUS= DEBUGGER_STATUS.STOPPED
 
     const provider = new SolidityConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('soliditypp', provider));
@@ -56,37 +64,49 @@ export function activate(context: vscode.ExtensionContext) {
         )
 
         debuggerPanel.onDidDispose(
-            () => {
-                setTimeout(() => {
-                    let debugSession = vscode.debug.activeDebugSession
-                    if (debugSession && debuggerPanel) {
-                        initDebuggerPanel()
-                    }
-                }, 200)
-                
+            async () => {
+                if (debuggerStatus === DEBUGGER_STATUS.STARTING) {
+                    return
+                }
+                let debugSession = vscode.debug.activeDebugSession
+                if (debugSession) {
+                    await debugSession.customRequest(EXTENSION_TO_DA_COMMAND_PREFIX + "terminate")
+                }
             },
             null,
             context.subscriptions
         );
     }
 
+    function terminateDebuggerPanel() {
+        if (debuggerPanel) {
+            debuggerPanel.dispose()
+            debuggerPanel = undefined
+        }
+    }
+
     vscode.debug.onDidStartDebugSession(function (event) {
         if (event.type != DEBUGGER_TYPE) {
             return
         }
+        debuggerStatus = DEBUGGER_STATUS.STARTING
         
+    
+        terminateDebuggerPanel()
+    
         initDebuggerPanel()
+        debuggerStatus = DEBUGGER_STATUS.STARTED
     });
+
 
     vscode.debug.onDidTerminateDebugSession(function (event) {
         if (event.type != DEBUGGER_TYPE) {
             return
         }
+        debuggerStatus = DEBUGGER_STATUS.STOPPING
 
-        if (debuggerPanel) {
-            debuggerPanel.dispose()
-            debuggerPanel = undefined
-        }
+        terminateDebuggerPanel()
+        debuggerStatus = DEBUGGER_STATUS.STOPPED
     });
 
     console.log('Congratulations, your extension "soliditypp" is now active!');

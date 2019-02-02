@@ -8,7 +8,11 @@ import {
     Button,
     FormItem,
     Input,
-    Tree
+    Tree,
+    Row,
+    Col,
+    Loading,
+    Message
 } from 'element-ui';
 
 Vue.use(Form);
@@ -16,6 +20,12 @@ Vue.use(FormItem);
 Vue.use(Button);
 Vue.use(Input);
 Vue.use(Tree);
+Vue.use(Row);
+Vue.use(Col);
+Vue.use(Loading.directive);
+
+Vue.prototype.$message = Message;
+Vue.prototype.$loading = Loading.service;
 
 new Vue({
     el: '#app',
