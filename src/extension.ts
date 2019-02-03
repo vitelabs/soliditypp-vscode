@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import { readFileSync } from 'fs';
 import * as path from 'path';
-import { SolidityConfigurationProvider } from './debugConfigurationProvider';
+import SolidityConfigurationProvider from './debugConfigurationProvider';
+import SolidityppDebugAdapterDescriptorFactory from './debugAdapterDescriptorFactory';
+import {debuggerType} from './constant'
 
-const DEBUGGER_TYPE = "soliditypp"
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter."
 const EXTENSION_TO_DA_COMMAND_PREFIX = "extension2debugAdapter."
 enum DEBUGGER_STATUS {
@@ -15,13 +16,20 @@ enum DEBUGGER_STATUS {
 
 export function activate(context: vscode.ExtensionContext) {
 
+    console.log(vscode.window.activeTextEditor);
     let debuggerPanel:vscode.WebviewPanel | undefined;
     let debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
     let debuggerStatus:DEBUGGER_STATUS= DEBUGGER_STATUS.STOPPED
 
     const provider = new SolidityConfigurationProvider();
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('soliditypp', provider));
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(debuggerType, provider));
 
+
+    const factory = new SolidityppDebugAdapterDescriptorFactory();
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(debuggerType, factory));
+    context.subscriptions.push(factory);
+
+    
     function initDebuggerPanel () {
         debuggerPanel = vscode.window.createWebviewPanel(
             'soliditypp',
@@ -86,9 +94,10 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     vscode.debug.onDidStartDebugSession(function (event) {
-        if (event.type != DEBUGGER_TYPE) {
+        if (event.type != debuggerType) {
             return
         }
+    
         debuggerStatus = DEBUGGER_STATUS.STARTING
         
     
@@ -100,7 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
     vscode.debug.onDidTerminateDebugSession(function (event) {
-        if (event.type != DEBUGGER_TYPE) {
+        if (event.type != debuggerType) {
             return
         }
         debuggerStatus = DEBUGGER_STATUS.STOPPING

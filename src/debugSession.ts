@@ -9,6 +9,7 @@ import * as os from 'os';
 import { ChildProcess, spawn, spawnSync} from 'child_process';
 import { Readable, Writable } from 'stream';
 import ExtensionRequestProcessor from './extensionRequestProcessor';
+import { extensionPath } from './constant';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -18,7 +19,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 const VIEW_COMMAND_PREFIX = "view2debugAdapter."
 const EXTENSION_COMMAND_PREFIX = "extension2debugAdapter."
 
-export class SolidityppDebugSession extends DebugSession {
+export default class SolidityppDebugSession extends DebugSession {
     private viewRequestProcessor: ViewRequestProcessor
     private extensionRequestProcessor: ExtensionRequestProcessor
 
@@ -42,16 +43,10 @@ export class SolidityppDebugSession extends DebugSession {
 
     public constructor() {
         super();
+        
         this.viewRequestProcessor = new ViewRequestProcessor(this);
         this.extensionRequestProcessor = new ExtensionRequestProcessor(this);
         return this;
-    }
-
-    public start(inStream: Readable, outStream: Writable) {
-        super.start(inStream, outStream);
-        inStream.on("end", () => {
-            this.cleanVite()
-        })
     }
 
     protected async customRequest(command: string, response: DebugProtocol.Response, args: any): Promise<void> {
@@ -85,10 +80,7 @@ export class SolidityppDebugSession extends DebugSession {
     }
     
     private async compileSource ():Promise<boolean> {
-        const { code, stdout, stderr } = await exec(`${path.resolve(process.cwd(), 'bin/solc')} --bin --abi ${this.sourceFilePath}`)
-        console.log('Exit code:', code);
-        console.log('Program output:', stdout);
-        console.log('Program stderr:', stderr);
+        const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solc')} --bin --abi ${this.sourceFilePath}`)
 
         if (code > 0) {
             // compile failed   
@@ -120,7 +112,7 @@ export class SolidityppDebugSession extends DebugSession {
     private initVite (){
         this.cleanVite()
         this._viteChildProcess = spawn('./run.sh', [], {
-            cwd: path.resolve(process.cwd(), 'bin/vite/')
+            cwd: path.resolve(extensionPath, 'bin/vite/')
         })
 
         this._viteChildProcess.stderr.on('data', (stderr) => {
@@ -157,21 +149,22 @@ export class SolidityppDebugSession extends DebugSession {
         }
 
         spawnSync('./clean.sh', [], {
-            cwd: path.resolve(process.cwd(), 'bin/vite/')
+            cwd: path.resolve(extensionPath, 'bin/vite/')
         })
     }
 
     protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments) {
-        this.terminateSession()
-        this.sendResponse(response)
+        this.terminateSession();
+        this.sendResponse(response);
     }
 
-    protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
-        console.log("disconnect");
+    protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {   
+        this.cleanVite();
+        this.sendResponse(response);
     }
 
     public terminateSession (code:number = 0) {
-        this.cleanVite()
+        this.cleanVite();
 
         this.sendEvent(<DebugProtocol.TerminatedEvent>{
             event: 'terminated'

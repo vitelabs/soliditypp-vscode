@@ -10,9 +10,7 @@ let viteClient;
 let genesisAccount;
 let testAccount;
 
-export async function init(compileResult) {
-    this.abiList = compileResult.abiList;
-
+export async function init() {
     let wsRpc = new WsProvider(WS_SERVER, 30 * 1000);
 
     viteClient = new Vitejs.client(wsRpc, function () {

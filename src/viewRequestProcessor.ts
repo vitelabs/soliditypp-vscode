@@ -1,5 +1,5 @@
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { SolidityppDebugSession } from './debugSession';
+import SolidityppDebugSession from './debugSession';
 
 
 export default class ViewRequestProcessor {
