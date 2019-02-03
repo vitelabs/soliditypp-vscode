@@ -2,8 +2,8 @@
 	"name": "soliditypp",
 	"displayName": "Soliditypp",
 	"description": "soliditypp for vscode",
-    "version": "0.1.0",
-    "publisher": "ViteLabs",
+	"version": "0.1.0",
+	"publisher": "ViteLabs",
 	"engines": {
 		"vscode": "^1.30.0"
 	},
@@ -33,10 +33,9 @@
 			{
 				"type": "soliditypp",
 				"label": "Soliditypp",
-
 				"configurationAttributes": {
 					"required": [
-                        "program"
+						"program"
 					],
 					"properties": {
 						"program": {
@@ -82,19 +81,20 @@
 		"watch": "tsc -watch -p ./ & npm run view:build:watch",
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"test": "npm run compile && node ./node_modules/vscode/bin/test",
-        "view:clean": "rm -rf out/view",
-        
+		"view:clean": "rm -rf out/view",
 		"lint": "eslint --ext .js,.vue ./",
 		"view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out/view/index.js",
-        "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js",
-        "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"
+		"view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js",
+		"view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.2.2",
 		"@babel/plugin-proposal-class-properties": "^7.3.0",
 		"@babel/preset-env": "^7.3.1",
+		"@types/decompress": "^4.2.3",
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^8.10.25",
+		"@types/shelljs": "^0.8.2",
 		"babel-eslint": "^10.0.1",
 		"babel-loader": "^8.0.5",
 		"babel-plugin-component": "^1.1.1",
@@ -117,9 +117,10 @@
 		"webpack-cli": "^3.2.1"
 	},
 	"dependencies": {
-		"@types/shelljs": "^0.8.2",
 		"@vite/vitejs": "^1.1.3",
 		"babel-polyfill": "^6.26.0",
+		"decompress": "^4.2.0",
+		"decompress-unzip": "^4.0.1",
 		"element-ui": "^2.5.4",
 		"events": "^3.0.0",
 		"shelljs": "^0.8.3",

@@ -1,5 +1,5 @@
 import {
-    DebugSession
+    DebugSession, OutputEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import ViewRequestProcessor from './viewRequestProcessor';
@@ -10,6 +10,7 @@ import * as os from 'os';
 import { ChildProcess, spawn, spawnSync} from 'child_process';
 import ExtensionRequestProcessor from './extensionRequestProcessor';
 import { extensionPath } from './constant';
+import createGvite from './createGvite';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -67,17 +68,25 @@ export default class SolidityppDebugSession extends DebugSession {
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
-        await vscode.commands.executeCommand("workbench.debug.panel.action.clearReplAction")
+        try {
+            await vscode.commands.executeCommand("workbench.debug.panel.action.clearReplAction")
+            
+            this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'))
+            await createGvite()
+            // set source file path
+            this._sourceFilePath = args.program
     
-        // set source file path
-        this._sourceFilePath = args.program
-
-        if (!(await this.compileSource())) {
-            return;
+            if (!(await this.compileSource())) {
+                return;
+            }
+    
+            this.initVite()
+            this.sendEvent(new OutputEvent('Vite is ready!\n', 'stdout'))
+            this.sendResponse(response);
+        } catch (err) {
+            this.aborted(err.stack, 1)
         }
-
-        this.initVite()
-        this.sendResponse(response);
+       
     }
     
     private async compileSource ():Promise<boolean> {
@@ -85,14 +94,7 @@ export default class SolidityppDebugSession extends DebugSession {
 
         if (code > 0) {
             // compile failed   
-            this.sendEvent(<DebugProtocol.OutputEvent>{
-                event: 'output',
-                body: {
-                    category: 'stderr',
-                    output: stderr
-                }
-            });
-            this.terminateSession(code)
+            this.aborted(stderr, code)
             return false
         }
         // TODO need compile source
@@ -118,14 +120,7 @@ export default class SolidityppDebugSession extends DebugSession {
 
         this._viteChildProcess.stderr.on('data', (stderr) => {
             // init vite failed
-            this.sendEvent(<DebugProtocol.OutputEvent>{
-                event: 'output',
-                body: {
-                    category: 'stderr',
-                    output: `Init vite faild, error is ${stderr}`
-                }
-            });
-            this.terminateSession(1)
+            this.aborted(`Init vite faild, error is ${stderr}`, 1)
         })
 
         this._viteChildProcess.on('close', (code) => {
@@ -162,6 +157,17 @@ export default class SolidityppDebugSession extends DebugSession {
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {   
         this.cleanVite();
         this.sendResponse(response);
+    }
+
+    public aborted (errorMsg:string="", code:number =0) {
+        this.sendEvent(<DebugProtocol.OutputEvent>{
+            event: 'output',
+            body: {
+                category: 'stderr', 
+                output: errorMsg
+            }
+        });
+        this.terminateSession(code)
     }
 
     public terminateSession (code:number = 0) {

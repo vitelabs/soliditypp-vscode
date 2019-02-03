@@ -1,5 +1,6 @@
 node_modules
 out
+gvite
 .DS_Store
 ledger
 *.vsix
