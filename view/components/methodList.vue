@@ -38,6 +38,8 @@
 </template>
 <script>
 import * as vite from 'global/vite';
+import throwError from 'utils/throwError';
+
 export default {
     props: ['account', 'abi', 'contractAddress'],
     data () {
@@ -87,24 +89,29 @@ export default {
             return params;
         },
         async callContract (functionAbi) {
-            functionAbi.status = 'CALLING';
-            this.makeViewUpdate();
+            try {
+                functionAbi.status = 'CALLING';
+                this.makeViewUpdate();
 
-            await vite.sendContractTx(
-                this.account, 
-                this.contractAddress, 
-                this.abi, 
-                functionAbi.amount, 
-                functionAbi.abi.name, 
-                functionAbi.params
-            );
+                await vite.sendContractTx(
+                    this.account, 
+                    this.contractAddress, 
+                    this.abi, 
+                    functionAbi.amount, 
+                    functionAbi.abi.name, 
+                    functionAbi.params
+                );
 
-            this.$message({
-                message: `Call "${functionAbi.abi.name}" success!`,
-                type: 'success'
-            });
-            functionAbi.status = 'BEFORE_CALL';
-            this.makeViewUpdate();
+                this.$message({
+                    message: `Call "${functionAbi.abi.name}" success!`,
+                    type: 'success'
+                });
+                functionAbi.status = 'BEFORE_CALL';
+                this.makeViewUpdate();
+            } catch (err) {
+                throwError(err);
+            }
+          
         }
     }
 };

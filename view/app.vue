@@ -17,6 +17,7 @@ import resultList from 'components/resultList';
 import baseInfo from 'components/baseInfo';
 import deploy from 'components/deploy';
 import methodList from 'components/methodList';
+import throwError from 'utils/throwError';
 
 export default {
     components: {
@@ -59,11 +60,16 @@ export default {
     },
 
     async created () { 
-        let compileResult = await getCompileResult();
-        this.compileResult = compileResult;
+        try {
+            let compileResult = await getCompileResult();
+            this.compileResult = compileResult;
 
-        await vite.init(compileResult);
-        this.testAccount = vite.getTestAccount();
+            await vite.init(compileResult);
+            this.testAccount = vite.getTestAccount();
+        } catch (err) {
+            throwError(err);
+        }
+        
     },
     methods: {
         deployed (contractAddress) {

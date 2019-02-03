@@ -28,7 +28,7 @@ export default class SolidityConfigurationProvider implements vscode.DebugConfig
                 return null    
             }
             config.program = '${file}';
-		}    
+        }    
 
 		return config;
     }

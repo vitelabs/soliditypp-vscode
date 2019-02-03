@@ -27,6 +27,7 @@
 </template>
 <script>
 import * as vite from 'global/vite';
+import throwError from 'utils/throwError';
 
 export default {
     props: ['abi', 'bytecodes'],
@@ -66,18 +67,22 @@ export default {
     },
     methods: {
         async deploy () {
-            this.status = 'DEPLOYING';
-            let createContractBlock = await vite.createContract(vite.getTestAccount(), {
-                bytecodes: this.bytecodes,
-                abi: this.abi
-            }, this.amount, this.params); 
+            try {
+                this.status = 'DEPLOYING';
+                let createContractBlock = await vite.createContract(vite.getTestAccount(), {
+                    bytecodes: this.bytecodes,
+                    abi: this.abi
+                }, this.amount, this.params); 
         
-            this.status = 'DEPLOYED';
-            this.$message({
-                message: 'Contract has been deployed!',
-                type: 'success'
-            });
-            this.$emit('deployed', createContractBlock.toAddress);
+                this.status = 'DEPLOYED';
+                this.$message({
+                    message: 'Contract has been deployed!',
+                    type: 'success'
+                });
+                this.$emit('deployed', createContractBlock.toAddress);
+            } catch (err ){ 
+                throwError(err);
+            }
         }
     }
 };

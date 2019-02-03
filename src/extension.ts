@@ -5,8 +5,9 @@ import SolidityConfigurationProvider from './debugConfigurationProvider';
 import SolidityppDebugAdapterDescriptorFactory from './debugAdapterDescriptorFactory';
 import {debuggerType} from './constant'
 
-const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter."
-const EXTENSION_TO_DA_COMMAND_PREFIX = "extension2debugAdapter."
+const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter.";
+const VIEW_TO_EXTENSION_COMMAND_PREFIX = "view2extension.";
+const EXTENSION_TO_DA_COMMAND_PREFIX = "extension2debugAdapter.";
 enum DEBUGGER_STATUS {
     STOPPING = 1,
     STOPPED = 2,
@@ -15,8 +16,6 @@ enum DEBUGGER_STATUS {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-
-    console.log(vscode.window.activeTextEditor);
     let debuggerPanel:vscode.WebviewPanel | undefined;
     let debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
     let debuggerStatus:DEBUGGER_STATUS= DEBUGGER_STATUS.STOPPED
@@ -32,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.getCommands().then(function (cmds) {
         console.log(cmds)
     });
-    
+
     function initDebuggerPanel () {
         debuggerPanel = vscode.window.createWebviewPanel(
             'soliditypp',
@@ -45,8 +44,8 @@ export function activate(context: vscode.ExtensionContext) {
         );
         debuggerPanel.webview.html = getWebviewContent();
         debuggerPanel.webview.onDidReceiveMessage(
-            message => {
-                if (message.command.indexOf(VIEW_TO_DA_COMMAND_PREFIX) == 0) {
+            async (message) => {
+                if (message.command.indexOf(VIEW_TO_DA_COMMAND_PREFIX) === 0) {
                     // proxy
                     let activeDebugSession = vscode.debug.activeDebugSession
                     if (activeDebugSession) {
@@ -68,6 +67,16 @@ export function activate(context: vscode.ExtensionContext) {
                             }
                         });
                     }
+                } else if (message.command.indexOf(VIEW_TO_EXTENSION_COMMAND_PREFIX) === 0) {
+                    let actualCommand = message.command.replace(VIEW_TO_EXTENSION_COMMAND_PREFIX, "")
+                    if (actualCommand === "error") {
+                        let debugConsole = vscode.debug.activeDebugConsole
+                        if (debugConsole) {
+                            debugConsole.appendLine("Soliditypp debugger error:\n" + message.body)
+                        }
+                        
+                        await terminateDA();
+                    }
                 }
             },
             undefined,
@@ -79,14 +88,18 @@ export function activate(context: vscode.ExtensionContext) {
                 if (debuggerStatus === DEBUGGER_STATUS.STARTING) {
                     return
                 }
-                let debugSession = vscode.debug.activeDebugSession
-                if (debugSession) {
-                    await debugSession.customRequest(EXTENSION_TO_DA_COMMAND_PREFIX + "terminate")
-                }
+                await terminateDA();
             },
             null,
             context.subscriptions
         );
+    }
+
+    async function terminateDA () {
+        let debugSession = vscode.debug.activeDebugSession
+        if (debugSession) {
+            await debugSession.customRequest(EXTENSION_TO_DA_COMMAND_PREFIX + "terminate")
+        }
     }
 
     function terminateDebuggerPanel() {

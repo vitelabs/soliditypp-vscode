@@ -39,6 +39,7 @@
 import accountBlock from './accountBlock';
 import * as vite from 'global/vite.js';
 import Task from 'utils/task';
+import throwError from 'utils/throwError';
 
 export default {
     props: [
@@ -93,57 +94,62 @@ export default {
             this.updateView();
         },
         async updateCallHistoryList () {
-            if (!this.account) {
+            try {
+                if (!this.account) {
+                    return true;
+                }
+                let client = vite.getVite();
+
+                if (this.status === 'QUERY_SEND_BLOCK') {
+                    let nextBlockHeight = this.blockHeight + 1;
+                    let block = await client.request('ledger_getBlockByHeight', this.account.address, nextBlockHeight.toString());
+                
+                    if (!block) {
+                        return true;
+                    }
+
+                    this.blockHeight = nextBlockHeight;
+                    
+                    if (block.blockType === 4 || block.blockType === 5) {
+                        // receive block
+                        return true;
+                    }
+
+                    this.callHistoryList.push({
+                        isShowRequest: false,
+                        isShowResponseList: false,
+                        request: block,
+                        responseList: []
+                    });
+                    this.currentSendBlock = block;
+                    this.status = 'QUERY_RESPONSE_BLOCKS';
+                }
+
+                if (this.status === 'QUERY_RESPONSE_BLOCKS') {
+                    let block = await client.request('ledger_getBlockByHeight', this.account.address, this.currentSendBlock.height);
+                    
+                    if (!block) {
+                        return true;
+                    }
+
+
+                    let receiveBlockHeights = block.receiveBlockHeights;     
+                    if (!receiveBlockHeights || receiveBlockHeights.length <= 0) {
+                        return true;
+                    }
+
+                    let receiveBlocks = await this.queryReceiveBlocks(block.toAddress, receiveBlockHeights);
+                    this.callHistoryList[this.callHistoryList.length - 1].responseList = receiveBlocks;
+                    this.currentSendBlock = undefined;
+                    this.status = 'QUERY_SEND_BLOCK';
+                }
                 return true;
-            }
-            let client = vite.getVite();
-
-            if (this.status === 'QUERY_SEND_BLOCK') {
-                let nextBlockHeight = this.blockHeight + 1;
-                let block = await client.request('ledger_getBlockByHeight', this.account.address, nextBlockHeight.toString());
             
-                if (!block) {
-                    return true;
-                }
-
-                this.blockHeight = nextBlockHeight;
-                
-                if (block.blockType === 4 || block.blockType === 5) {
-                    // receive block
-                    return true;
-                }
-
-                this.callHistoryList.push({
-                    isShowRequest: false,
-                    isShowResponseList: false,
-                    request: block,
-                    responseList: []
-                });
-                this.currentSendBlock = block;
-                this.status = 'QUERY_RESPONSE_BLOCKS';
+            } catch (err) {
+                throwError(err);
             }
-
-            if (this.status === 'QUERY_RESPONSE_BLOCKS') {
-                let block = await client.request('ledger_getBlockByHeight', this.account.address, this.currentSendBlock.height);
-                
-                if (!block) {
-                    return true;
-                }
-
-
-                let receiveBlockHeights = block.receiveBlockHeights;     
-                if (!receiveBlockHeights || receiveBlockHeights.length <= 0) {
-                    return true;
-                }
-
-                let receiveBlocks = await this.queryReceiveBlocks(block.toAddress, receiveBlockHeights);
-                this.callHistoryList[this.callHistoryList.length - 1].responseList = receiveBlocks;
-                this.currentSendBlock = undefined;
-                this.status = 'QUERY_SEND_BLOCK';
-            }
-            return true;
-        
         },
+            
 
         async queryReceiveBlocks (contractAddress, receiveBlockHeights) {
             let client = vite.getVite();
