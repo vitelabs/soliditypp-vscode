@@ -1,6 +1,7 @@
-const EventEmitter = require('events');
+import vscode from 'global/vscode';
+import EventEmitter from 'events'; 
+
 const COMMAND_PREFIX = 'view2debugAdapter.';
-const vscode = acquireVsCodeApi();
 
 let latestRequestId = 1;
 let ee = new EventEmitter();
@@ -36,4 +37,4 @@ function request (command, body) {
     });
 }
 
-module.exports = request;
+export default request;

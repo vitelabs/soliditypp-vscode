@@ -4,10 +4,10 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import ViewRequestProcessor from './viewRequestProcessor';
 import { exec }  from 'shelljs';
+import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
 import { ChildProcess, spawn, spawnSync} from 'child_process';
-import { Readable, Writable } from 'stream';
 import ExtensionRequestProcessor from './extensionRequestProcessor';
 import { extensionPath } from './constant';
 
@@ -42,8 +42,7 @@ export default class SolidityppDebugSession extends DebugSession {
     private _viteChildProcess: ChildProcess | undefined
 
     public constructor() {
-        super();
-        
+        super();        
         this.viewRequestProcessor = new ViewRequestProcessor(this);
         this.extensionRequestProcessor = new ExtensionRequestProcessor(this);
         return this;
@@ -68,6 +67,8 @@ export default class SolidityppDebugSession extends DebugSession {
     }
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
+        await vscode.commands.executeCommand("workbench.debug.panel.action.clearReplAction")
+    
         // set source file path
         this._sourceFilePath = args.program
 

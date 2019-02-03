@@ -29,6 +29,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(debuggerType, factory));
     context.subscriptions.push(factory);
 
+    vscode.commands.getCommands().then(function (cmds) {
+        console.log(cmds)
+    });
     
     function initDebuggerPanel () {
         debuggerPanel = vscode.window.createWebviewPanel(
