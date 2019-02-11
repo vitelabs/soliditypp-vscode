@@ -1,14 +1,20 @@
 {
 	"name": "soliditypp",
 	"displayName": "Soliditypp",
-	"description": "soliditypp for vscode",
-    "version": "0.1.0",
-    "publisher": "ViteLabs",
+	"description": "Debugger for soliditypp smart contracts",
+	"version": "0.1.0",
+	"publisher": "ViteLabs",
 	"engines": {
 		"vscode": "^1.30.0"
 	},
 	"categories": [
-		"Debuggers"
+		"Debuggers",
+		"Programming Languages"
+	],
+	"keywords": [
+		"soliditypp",
+		"vite",
+		"ViteLabs"
 	],
 	"activationEvents": [
 		"onLanguage:soliditypp",
@@ -26,17 +32,16 @@
 					"Soliditypp",
 					"soliditypp"
 				],
-				"configuration": "./soliditypp.configuration.json"
+				"configuration": "./soliditypp-configuration.json"
 			}
 		],
 		"debuggers": [
 			{
 				"type": "soliditypp",
 				"label": "Soliditypp",
-
 				"configurationAttributes": {
 					"required": [
-                        "program"
+						"program"
 					],
 					"properties": {
 						"program": {
@@ -82,12 +87,11 @@
 		"watch": "tsc -watch -p ./ & npm run view:build:watch",
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"test": "npm run compile && node ./node_modules/vscode/bin/test",
-        "view:clean": "rm -rf out/view",
-        
+		"view:clean": "rm -rf out/view",
 		"lint": "eslint --ext .js,.vue ./",
 		"view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out/view/index.js",
-        "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js",
-        "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"
+		"view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js",
+		"view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.2.2",
