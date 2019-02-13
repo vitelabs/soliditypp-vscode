@@ -4,6 +4,7 @@ import * as path from 'path';
 import SolidityConfigurationProvider from './debugConfigurationProvider';
 import SolidityppDebugAdapterDescriptorFactory from './debugAdapterDescriptorFactory';
 import {debuggerType} from './constant'
+import {completeItemList} from './autoComplete';
 
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter.";
 const VIEW_TO_EXTENSION_COMMAND_PREFIX = "view2extension.";
@@ -27,6 +28,14 @@ export function activate(context: vscode.ExtensionContext) {
     const factory = new SolidityppDebugAdapterDescriptorFactory();
     context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(debuggerType, factory));
     context.subscriptions.push(factory);
+
+    // auto complete
+    let staticProvider = vscode.languages.registerCompletionItemProvider('soliditypp', {
+		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+			return completeItemList;
+		}
+	});
+    context.subscriptions.push(staticProvider);
 
     vscode.commands.getCommands().then(function (cmds) {
         console.log(cmds)
