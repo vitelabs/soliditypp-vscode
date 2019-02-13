@@ -183,6 +183,11 @@ export const completeItemList = [
         kind: vscode.CompletionItemKind.Keyword,
     },
     {
+        label: "soliditypp",
+        insertText: "soliditypp",
+        kind: vscode.CompletionItemKind.Keyword,
+    },
+    {
         label: "private",
         insertText: "private",
         kind: vscode.CompletionItemKind.Keyword,
