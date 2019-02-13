@@ -171,6 +171,7 @@ async function compileSource(textDocument: vscode.TextDocument) {
     if (textDocument.languageId != 'soliditypp') {
         return;
     }
+    diagnosticCollection.clear();
     const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solc')} --bin --abi ${textDocument.fileName}`)
     if (code > 0) {
         let lines = stderr.split(textDocument.fileName + ':');
@@ -180,7 +181,6 @@ async function compileSource(textDocument: vscode.TextDocument) {
                 let lineNum = +lines[0] - 1;  
                 let columnNum = +lines[1] - 1;
                 let line = textDocument.lineAt(lineNum);
-                diagnosticCollection.clear();
                 let diagnostics: vscode.Diagnostic[] = [];
                 let diagnosic: vscode.Diagnostic = {
                     severity: vscode.DiagnosticSeverity.Error,
