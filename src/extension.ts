@@ -5,6 +5,8 @@ import SolidityConfigurationProvider from './debugConfigurationProvider';
 import SolidityppDebugAdapterDescriptorFactory from './debugAdapterDescriptorFactory';
 import { debuggerType } from './constant'
 import { completeItemList } from './autoComplete';
+import { extensionPath } from './constant';
+import { exec } from 'shelljs';
 
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter.";
 const VIEW_TO_EXTENSION_COMMAND_PREFIX = "view2extension.";
@@ -15,6 +17,8 @@ enum DEBUGGER_STATUS {
     STARTING = 3,
     STARTED = 4
 }
+
+let diagnosticCollection: vscode.DiagnosticCollection;
 
 export function activate(context: vscode.ExtensionContext) {
     let debuggerPanel: vscode.WebviewPanel | undefined;
@@ -37,6 +41,9 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(staticProvider);
 
+    // compile on save
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('soliditypp auto compile');
+    context.subscriptions.push(diagnosticCollection);
     vscode.workspace.onDidSaveTextDocument(compileSource);
 
     vscode.commands.getCommands().then(function (cmds) {
@@ -160,10 +167,31 @@ function getWebviewContent(): string {
     return webviewContent
 }
 
-function compileSource(textDocument: vscode.TextDocument) {
+async function compileSource(textDocument: vscode.TextDocument) {
     if (textDocument.languageId != 'soliditypp') {
         return;
     }
-    console.log("auto compile source on save");
-    // TODO
+    const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solc')} --bin --abi ${textDocument.fileName}`)
+    if (code > 0) {
+        let lines = stderr.split(textDocument.fileName + ':');
+        if (lines && lines.length > 1) {
+            lines = lines[1].split(':');
+            if (lines && lines.length > 1) {
+                let lineNum = +lines[0] - 1;  
+                let columnNum = +lines[1] - 1;
+                let line = textDocument.lineAt(lineNum);
+                diagnosticCollection.clear();
+                let diagnostics: vscode.Diagnostic[] = [];
+                let diagnosic: vscode.Diagnostic = {
+                    severity: vscode.DiagnosticSeverity.Error,
+                    range: new vscode.Range(lineNum, columnNum, lineNum, line.range.end.character),
+                    message: stderr,
+                };
+                diagnostics.push(diagnosic);
+                diagnosticCollection.set(textDocument.uri, diagnostics);
+                return;
+            }
+        }
+        console.log(code, stdout, stderr)
+    }
 }
