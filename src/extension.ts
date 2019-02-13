@@ -3,8 +3,8 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import SolidityConfigurationProvider from './debugConfigurationProvider';
 import SolidityppDebugAdapterDescriptorFactory from './debugAdapterDescriptorFactory';
-import {debuggerType} from './constant'
-import {completeItemList} from './autoComplete';
+import { debuggerType } from './constant'
+import { completeItemList } from './autoComplete';
 
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter.";
 const VIEW_TO_EXTENSION_COMMAND_PREFIX = "view2extension.";
@@ -17,9 +17,9 @@ enum DEBUGGER_STATUS {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    let debuggerPanel:vscode.WebviewPanel | undefined;
-    let debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
-    let debuggerStatus:DEBUGGER_STATUS= DEBUGGER_STATUS.STOPPED
+    let debuggerPanel: vscode.WebviewPanel | undefined;
+    let debuggerViewColumn: vscode.ViewColumn = vscode.ViewColumn.Two
+    let debuggerStatus: DEBUGGER_STATUS = DEBUGGER_STATUS.STOPPED
 
     const provider = new SolidityConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(debuggerType, provider));
@@ -31,17 +31,19 @@ export function activate(context: vscode.ExtensionContext) {
 
     // auto complete
     let staticProvider = vscode.languages.registerCompletionItemProvider('soliditypp', {
-		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
-			return completeItemList;
-		}
-	});
+        provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+            return completeItemList;
+        }
+    });
     context.subscriptions.push(staticProvider);
+
+    vscode.workspace.onDidSaveTextDocument(compileSource);
 
     vscode.commands.getCommands().then(function (cmds) {
         console.log(cmds)
     });
 
-    function initDebuggerPanel () {
+    function initDebuggerPanel() {
         debuggerPanel = vscode.window.createWebviewPanel(
             'soliditypp',
             'Soliditypp',
@@ -83,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
                         if (debugConsole) {
                             debugConsole.appendLine("Soliditypp debugger error:\n" + message.body)
                         }
-                        
+
                         await terminateDA();
                     }
                 }
@@ -104,7 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
         );
     }
 
-    async function terminateDA () {
+    async function terminateDA() {
         let debugSession = vscode.debug.activeDebugSession
         if (debugSession) {
             await debugSession.customRequest(EXTENSION_TO_DA_COMMAND_PREFIX + "terminate")
@@ -122,16 +124,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (event.type != debuggerType) {
             return
         }
-    
+
         debuggerStatus = DEBUGGER_STATUS.STARTING
-        
-    
+
+
         terminateDebuggerPanel()
-    
+
         initDebuggerPanel()
         debuggerStatus = DEBUGGER_STATUS.STARTED
     });
-
 
     vscode.debug.onDidTerminateDebugSession(function (event) {
         if (event.type != debuggerType) {
@@ -151,10 +152,18 @@ export function deactivate() {
 }
 
 let webviewContent: string = ""
-function getWebviewContent() :string {
+function getWebviewContent(): string {
     if (!webviewContent) {
         webviewContent = readFileSync(path.join(__dirname, "./view/index.html")).toString();
     }
 
     return webviewContent
+}
+
+function compileSource(textDocument: vscode.TextDocument) {
+    if (textDocument.languageId != 'soliditypp') {
+        return;
+    }
+    console.log("auto compile source on save");
+    // TODO
 }
