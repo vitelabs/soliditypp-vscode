@@ -1,14 +1,21 @@
 {
 	"name": "soliditypp",
 	"displayName": "Soliditypp",
-	"description": "soliditypp for vscode",
+
+	"description": "Debugger for soliditypp smart contracts",
 	"version": "0.1.0",
 	"publisher": "ViteLabs",
 	"engines": {
 		"vscode": "^1.30.0"
 	},
 	"categories": [
-		"Debuggers"
+		"Debuggers",
+		"Programming Languages"
+	],
+	"keywords": [
+		"soliditypp",
+		"vite",
+		"ViteLabs"
 	],
 	"activationEvents": [
 		"onLanguage:soliditypp",
@@ -26,7 +33,7 @@
 					"Soliditypp",
 					"soliditypp"
 				],
-				"configuration": "./soliditypp.configuration.json"
+				"configuration": "./soliditypp-configuration.json"
 			}
 		],
 		"debuggers": [

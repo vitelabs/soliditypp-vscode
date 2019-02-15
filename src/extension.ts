@@ -3,7 +3,10 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import SolidityConfigurationProvider from './debugConfigurationProvider';
 import SolidityppDebugAdapterDescriptorFactory from './debugAdapterDescriptorFactory';
-import {debuggerType} from './constant'
+import { debuggerType } from './constant'
+import { completeItemList } from './autoComplete';
+import { extensionPath } from './constant';
+import { exec } from 'shelljs';
 
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter.";
 const VIEW_TO_EXTENSION_COMMAND_PREFIX = "view2extension.";
@@ -15,10 +18,12 @@ enum DEBUGGER_STATUS {
     STARTED = 4
 }
 
+let diagnosticCollection: vscode.DiagnosticCollection;
+
 export function activate(context: vscode.ExtensionContext) {
-    let debuggerPanel:vscode.WebviewPanel | undefined;
-    let debuggerViewColumn:vscode.ViewColumn = vscode.ViewColumn.Two
-    let debuggerStatus:DEBUGGER_STATUS= DEBUGGER_STATUS.STOPPED
+    let debuggerPanel: vscode.WebviewPanel | undefined;
+    let debuggerViewColumn: vscode.ViewColumn = vscode.ViewColumn.Two
+    let debuggerStatus: DEBUGGER_STATUS = DEBUGGER_STATUS.STOPPED
 
     const provider = new SolidityConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(debuggerType, provider));
@@ -28,7 +33,25 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(debuggerType, factory));
     context.subscriptions.push(factory);
 
-    function initDebuggerPanel () {
+
+    // auto complete
+    let staticProvider = vscode.languages.registerCompletionItemProvider('soliditypp', {
+        provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+            return completeItemList;
+        }
+    });
+    context.subscriptions.push(staticProvider);
+
+    // compile on save
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('soliditypp auto compile');
+    context.subscriptions.push(diagnosticCollection);
+    vscode.workspace.onDidSaveTextDocument(compileSource);
+
+    vscode.commands.getCommands().then(function (cmds) {
+        console.log(cmds)
+    });
+
+    function initDebuggerPanel() {
         debuggerPanel = vscode.window.createWebviewPanel(
             'soliditypp',
             'Soliditypp',
@@ -70,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
                         if (debugConsole) {
                             debugConsole.appendLine("Soliditypp debugger error:\n" + message.body)
                         }
-                        
+
                         await terminateDA();
                     }
                 }
@@ -91,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
         );
     }
 
-    async function terminateDA () {
+    async function terminateDA() {
         let debugSession = vscode.debug.activeDebugSession
         if (debugSession) {
             await debugSession.customRequest(EXTENSION_TO_DA_COMMAND_PREFIX + "terminate")
@@ -109,16 +132,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (event.type != debuggerType) {
             return
         }
-    
+
         debuggerStatus = DEBUGGER_STATUS.STARTING
-        
-    
+
+
         terminateDebuggerPanel()
-    
+
         initDebuggerPanel()
         debuggerStatus = DEBUGGER_STATUS.STARTED
     });
-
 
     vscode.debug.onDidTerminateDebugSession(function (event) {
         if (event.type != debuggerType) {
@@ -138,10 +160,39 @@ export function deactivate() {
 }
 
 let webviewContent: string = ""
-function getWebviewContent() :string {
+function getWebviewContent(): string {
     if (!webviewContent) {
         webviewContent = readFileSync(path.join(__dirname, "./view/index.html")).toString();
     }
 
     return webviewContent
+}
+
+async function compileSource(textDocument: vscode.TextDocument) {
+    if (textDocument.languageId != 'soliditypp') {
+        return;
+    }
+    diagnosticCollection.clear();
+    const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solc')} --bin --abi ${textDocument.fileName}`)
+    if (code > 0) {
+        let lines = stderr.split(textDocument.fileName + ':');
+        if (lines && lines.length > 1) {
+            lines = lines[1].split(':');
+            if (lines && lines.length > 1) {
+                let lineNum = +lines[0] - 1;  
+                let columnNum = +lines[1] - 1;
+                let line = textDocument.lineAt(lineNum);
+                let diagnostics: vscode.Diagnostic[] = [];
+                let diagnosic: vscode.Diagnostic = {
+                    severity: vscode.DiagnosticSeverity.Error,
+                    range: new vscode.Range(lineNum, columnNum, lineNum, line.range.end.character),
+                    message: stderr,
+                };
+                diagnostics.push(diagnosic);
+                diagnosticCollection.set(textDocument.uri, diagnostics);
+                return;
+            }
+        }
+        console.log(code, stdout, stderr)
+    }
 }
