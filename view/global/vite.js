@@ -57,6 +57,14 @@ export function getTestAccount () {
     return testAccount;
 }
 
+export function createAccount () {
+    let keyPair = Vitejs.utils.ed25519.keyPair();
+    return new Vitejs.wallet.account({
+        privateKey: keyPair.secretKey,
+        client: viteClient
+    });
+}
+
 export async function createContract (account, contract, amount, params) {
     let latestSnapshotHash = await viteClient.ledger.getLatestSnapshotChainHash();
 

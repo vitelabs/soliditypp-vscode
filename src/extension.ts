@@ -47,10 +47,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
     vscode.workspace.onDidSaveTextDocument(compileSource);
 
-    vscode.commands.getCommands().then(function (cmds) {
-        console.log(cmds)
-    });
-
     function initDebuggerPanel() {
         debuggerPanel = vscode.window.createWebviewPanel(
             'soliditypp',

@@ -1,11 +1,19 @@
 <template>
     <div>
-        <base-info :account="testAccount" :contractAddress="contractAddress"> </base-info>
-        <deploy v-if="abi && bytecodes && !isDeployed" :abi="abi" :bytecodes="bytecodes" @deployed="deployed"> </deploy>  
-        <method-list v-if="isDeployed" :account="testAccount" :abi="abi" :contractAddress="contractAddress"></method-list>    
+        <base-info  
+            v-if="selectedAccount"
+            v-bind:selected-account.sync="selectedAccount" 
+            :contractAddress="contractAddress">
+
+        </base-info>
+
+        <deploy-list v-if="compileResult" :compile-result="compileResult"></deploy-list>
+
+        <method-list v-if="contractAddress" :account="selectedAccount" :abi="abi" :contractAddress="contractAddress"></method-list>
+
         <result-list 
-            v-if="testAccount" 
-            :account="testAccount">
+            v-if="selectedAccount" 
+            :account="selectedAccount">
         </result-list>
     </div>
 </template>
@@ -15,66 +23,41 @@ import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
 import resultList from 'components/resultList';
 import baseInfo from 'components/baseInfo';
-import deploy from 'components/deploy';
+import deployList from 'components/deployList';
 import methodList from 'components/methodList';
 import throwError from 'utils/throwError';
 
 export default {
     components: {
         resultList,
-        deploy,
         baseInfo,
-        methodList
+        methodList,
+        deployList
     },
+
     data () {
         return {
             compileResult: undefined,
-            testAccount: undefined,
-            contractAddress: undefined,
-
-            isDeployed: false
+            selectedAccount: undefined,
+            contractAddress: undefined
         };
-    },
-
-    computed: {
-        abiList () {
-            if (!this.compileResult) {
-                return undefined;
-            }
-            return this.compileResult.abiList;
-
-        },
-        abi () {
-            if (!this.abiList) {
-                return undefined;
-            }
-            return this.abiList[0];
-        },
-
-        bytecodes () {
-            if (!this.compileResult) {
-                return undefined;
-            }
-            return this.compileResult.bytecodesList[0];
-        }
     },
 
     async created () { 
         try {
             let compileResult = await getCompileResult();
             this.compileResult = compileResult;
-
+            
             await vite.init(compileResult);
-            this.testAccount = vite.getTestAccount();
+
+            this.selectedAccount = vite.getTestAccount();
         } catch (err) {
             throwError(err);
         }
-        
     },
     methods: {
         deployed (contractAddress) {
             this.contractAddress = contractAddress;
-            this.isDeployed = true;
         }
     }
     

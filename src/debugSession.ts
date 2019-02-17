@@ -29,7 +29,11 @@ export default class SolidityppDebugSession extends DebugSession {
 	public get sourceFilePath() {
 		return this._sourceFilePath;
     }
-    
+    private _contractNameList: string[] = [];
+    public get contractNameList() {
+        return this._contractNameList;
+    }
+
     private _bytecodesList: string[] = [];
     public get bytecodesList() {
 		return this._bytecodesList;
@@ -99,11 +103,15 @@ export default class SolidityppDebugSession extends DebugSession {
         }
         // TODO need compile source
         let lines = stdout.split(os.EOL)
-
+        console.log(lines)
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i]
-            if (line.startsWith("Binary:")) {
-                 this._bytecodesList.push(lines[i+1])
+            if (line.startsWith("======= ")) {
+                line = line.slice("======= ".length, -(" =======".length)).split(":")[1]
+                console.log(line)
+                this._contractNameList.push(line)
+            } else if (line.startsWith("Binary:")) {
+                this._bytecodesList.push(lines[i+1])
             } else if (line.startsWith("Contract JSON ABI")) {
                 this._abiList.push(JSON.parse(lines[i+1]))
             }

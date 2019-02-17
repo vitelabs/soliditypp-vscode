@@ -12,7 +12,9 @@ import {
     Row,
     Col,
     Loading,
-    Message
+    Message,
+    Select,
+    Option
 } from 'element-ui';
 
 Vue.use(Form);
@@ -23,6 +25,9 @@ Vue.use(Tree);
 Vue.use(Row);
 Vue.use(Col);
 Vue.use(Loading.directive);
+Vue.use(Select);
+Vue.use(Option);
+
 
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;

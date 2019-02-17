@@ -1,27 +1,28 @@
 <template>
-    <div class="module-wrapper">
-        <h4 class="title">Deploy contract</h4>
-        <div v-if="status !== 'DEPLOYED'" 
-             v-loading="status === 'DEPLOYING'"
-             element-loading-text="deploying"
-             element-loading-background="rgba(0, 0, 0, 0.8)"
-        >
-            <el-row class="row" type="flex" justify="center" align="middle">
-                <el-col  :span="4" class="label">amount </el-col>
-                <el-col  :span="18">
-                    <el-input v-model="amount"></el-input>
-                </el-col>
-            </el-row>
-            <el-row class="row" type="flex" justify="center" align="middle" :key="index" v-for="(input, index) in constructAbi.inputs">
+    
+
+    <div v-loading="status === 'DEPLOYING'"
+         element-loading-text="deploying"
+         element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+        <el-row class="row" type="flex" justify="center" align="middle">
+            <el-col  :span="4" class="label">amount </el-col>
+            <el-col  :span="18">
+                <el-input v-model="amount"></el-input>
+            </el-col>
+        </el-row>
+        <template v-if="constructAbi && constructAbi.inputs">
+            <el-row  class="row" type="flex" justify="center" align="middle" :key="index" v-for="(input, index) in constructAbi.inputs">
                 <el-col :span="4" class="label">{{input.name}}</el-col>
     
                 <el-col :span="18">
                     <el-input v-model="params[index]"></el-input>
                 </el-col>
-            </el-row>
-            <div class="deploy-button-wrapper">
-                <el-button @click="deploy">deploy</el-button>
-            </div>
+            </el-row>    
+        </template>
+            
+        <div class="deploy-button-wrapper">
+            <el-button @click="deploy">deploy</el-button>
         </div>
     </div>
 </template>
@@ -57,13 +58,15 @@ export default {
     },
     created () {
         this.params = [];
-        this.constructAbi.inputs.forEach((input) => {
-            if (input.type === 'address') {
-                this.params.push('vite_0000000000000000000000000000000000000000a4f3a0cb58');
-            } else {
-                this.params.push('');
-            }
-        });
+        if (this.constructAbi) {
+            this.constructAbi.inputs.forEach((input) => {
+                if (input.type === 'address') {
+                    this.params.push('vite_0000000000000000000000000000000000000000a4f3a0cb58');
+                } else {
+                    this.params.push('');
+                }
+            });    
+        }
     },
     methods: {
         async deploy () {
@@ -74,7 +77,7 @@ export default {
                     abi: this.abi
                 }, this.amount, this.params); 
         
-                this.status = 'DEPLOYED';
+                this.status = 'BEFORE_DEPLOY';
                 this.$message({
                     message: 'Contract has been deployed!',
                     type: 'success'
