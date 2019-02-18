@@ -1,6 +1,4 @@
 <template>
-    
-
     <div v-loading="status === 'DEPLOYING'"
          element-loading-text="deploying"
          element-loading-background="rgba(0, 0, 0, 0.8)"
@@ -26,6 +24,7 @@
         </div>
     </div>
 </template>
+
 <script>
 import * as vite from 'global/vite';
 import throwError from 'utils/throwError';

@@ -4,7 +4,6 @@
             v-if="selectedAccount"
             v-bind:selected-account.sync="selectedAccount" 
             :contractAddress="contractAddress">
-
         </base-info>
 
         <deploy-list v-if="compileResult" :compile-result="compileResult"></deploy-list>

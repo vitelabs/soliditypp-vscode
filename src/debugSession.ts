@@ -4,9 +4,11 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import ViewRequestProcessor from './viewRequestProcessor';
 import { exec }  from 'shelljs';
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
+
 import { ChildProcess, spawn, spawnSync} from 'child_process';
 import ExtensionRequestProcessor from './extensionRequestProcessor';
 import { extensionPath } from './constant';
@@ -98,38 +100,36 @@ export default class SolidityppDebugSession extends DebugSession {
 
         if (code > 0) {
             // compile failed   
-            this.aborted(stderr, code)
-            return false
+            this.aborted(stderr, code);
+            return false;
         }
         // TODO need compile source
-        let lines = stdout.split(os.EOL)
-        console.log(lines)
+        let lines = stdout.split(os.EOL);
         for (let i = 0; i < lines.length; i++) {
-            let line = lines[i]
+            let line = lines[i];
             if (line.startsWith("======= ")) {
-                line = line.slice("======= ".length, -(" =======".length)).split(":")[1]
-                console.log(line)
-                this._contractNameList.push(line)
+                line = line.slice("======= ".length, -(" =======".length)).split(":")[1]; 
+                this._contractNameList.push(line);
             } else if (line.startsWith("Binary:")) {
-                this._bytecodesList.push(lines[i+1])
+                this._bytecodesList.push(lines[i+1]);
             } else if (line.startsWith("Contract JSON ABI")) {
-                this._abiList.push(JSON.parse(lines[i+1]))
+                this._abiList.push(JSON.parse(lines[i+1]));
             }
         }
 
-        return true
+        return true;
     }
 
     private initVite (){
-        this.cleanVite()
+        this.cleanVite();
         this._viteChildProcess = spawn('./run.sh', [], {
             cwd: path.resolve(extensionPath, 'bin/vite/')
-        })
+        });
 
         this._viteChildProcess.stderr.on('data', (stderr) => {
             // init vite failed
-            this.aborted(`Init vite faild, error is ${stderr}`, 1)
-        })
+            this.aborted(`Init vite faild, error is ${stderr}`, 1);
+        });
 
         this._viteChildProcess.on('close', (code) => {
             // init vite failed
