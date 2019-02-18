@@ -7,6 +7,7 @@ import { debuggerType } from './constant'
 import { completeItemList } from './autoComplete';
 import { extensionPath } from './constant';
 import { exec } from 'shelljs';
+import * as fs from 'fs';
 
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter.";
 const VIEW_TO_EXTENSION_COMMAND_PREFIX = "view2extension.";
@@ -46,6 +47,22 @@ export function activate(context: vscode.ExtensionContext) {
     diagnosticCollection = vscode.languages.createDiagnosticCollection('soliditypp auto compile');
     context.subscriptions.push(diagnosticCollection);
     vscode.workspace.onDidSaveTextDocument(compileSource);
+
+    // generate test code
+    context.subscriptions.push(vscode.commands.registerCommand('soliditypp.generateHelloWorld', () => {
+        let workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders && workspaceFolders.length > 0) {
+            let newFile = path.join(workspaceFolders[0].uri.path, 'HelloWorld.solpp');
+            fs.copyFile(path.resolve(extensionPath, 'bin/vite/HelloWorld.solpp'), newFile, function(err){
+                if(err){
+                    console.log(err);
+                    return false;
+                }
+            });
+            let uri = vscode.Uri.file(newFile);
+            vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc));
+        }
+    }));
 
     function initDebuggerPanel() {
         debuggerPanel = vscode.window.createWebviewPanel(
@@ -189,6 +206,6 @@ async function compileSource(textDocument: vscode.TextDocument) {
                 return;
             }
         }
-        console.log(code, stdout, stderr)
+        console.log(code, stdout, stderr);
     }
 }

@@ -1,7 +1,6 @@
 {
 	"name": "soliditypp",
 	"displayName": "Soliditypp",
-
 	"description": "Debugger for soliditypp smart contracts",
 	"version": "0.1.0",
 	"publisher": "ViteLabs",
@@ -19,7 +18,8 @@
 	],
 	"activationEvents": [
 		"onLanguage:soliditypp",
-		"onDebug"
+		"onDebug",
+		"onCommand:soliditypp.generateHelloWorld"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -80,7 +80,13 @@
 				"scopeName": "source.soliditypp",
 				"path": "./syntax/soliditypp.json"
 			}
-		]
+		],
+		"commands": [
+            {
+                "command": "soliditypp.generateHelloWorld",
+                "title": "soliditypp: Generate HelloWorld.solpp"
+            }
+        ]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
