@@ -6,12 +6,14 @@
                 <i class="el-icon-caret-bottom" @click="hideDeploy(index)" v-if="showContractDeployList[index]"></i>
                 <i class="el-icon-caret-right" @click="showDeploy(index)" v-else></i>
                 {{compileResult.contractNameList[index]}}
-            </h5>    
+            </h5>
+            
             <deploy 
                 v-if="showContractDeployList[index]"
                 :abi="abi" 
                 :bytecodes="compileResult.bytecodesList[index]" 
-                @deployed="deployed"> </deploy>            
+                @deployed="deployed($event, abi, compileResult.contractNameList[index])"> 
+            </deploy>            
         </div>
     </div>
 </template>
@@ -37,8 +39,8 @@ export default {
         });
     },
     methods: {
-        deployed (contractAddress) {
-            this.$emit('deployed', contractAddress);
+        deployed (contractAddress, abi, contractName) {
+            this.$emit('deployed', contractAddress, abi, contractName);
         },
         showDeploy (index) {
             this.$set(this.showContractDeployList, index, true);

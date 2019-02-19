@@ -1,5 +1,5 @@
 <template>
-    <div class="module-wrapper">
+    <div>
         <h4 class="title">Call contract</h4>  
         <div  v-for="(functionAbi, functionAbiIndex) in functionAbiList" 
               :key="functionAbiIndex"

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div :key="index" class="module-wrapper" v-for="(callHistory, index) in reverseCallHistory">
+        <div :key="index" v-for="(callHistory, index) in reverseCallHistory">
             <h4 class="title">Result(blockHeight: {{callHistory.request.height}})</h4>  
             <div>
                 <h5 class="title">

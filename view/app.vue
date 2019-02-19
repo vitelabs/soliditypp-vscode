@@ -6,36 +6,32 @@
             :contractAddress="contractAddress">
         </base-info>
 
-        <deploy-list v-if="compileResult" :compile-result="compileResult"></deploy-list>
+        <deploy-list v-if="compileResult" :compile-result="compileResult" @deployed="deployed"></deploy-list>
 
-        <method-list v-if="contractAddress" :account="selectedAccount" :abi="abi" :contractAddress="contractAddress"></method-list>
-
-        <result-list 
-            v-if="selectedAccount" 
-            :account="selectedAccount">
-        </result-list>
+        <contract-list v-if="contracts && contracts.length > 0" :compile-result="compileResult" :contracts="contracts" :selected-account="selectedAccount">
+        </contract-list>
     </div>
 </template>
 
 <script>
 import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
-import resultList from 'components/resultList';
+
 import baseInfo from 'components/baseInfo';
+import contractList from 'components/contractList';
 import deployList from 'components/deployList';
-import methodList from 'components/methodList';
 import throwError from 'utils/throwError';
 
 export default {
     components: {
-        resultList,
         baseInfo,
-        methodList,
+        contractList,
         deployList
     },
 
     data () {
         return {
+            contracts: [],
             compileResult: undefined,
             selectedAccount: undefined,
             contractAddress: undefined
@@ -55,8 +51,12 @@ export default {
         }
     },
     methods: {
-        deployed (contractAddress) {
-            this.contractAddress = contractAddress;
+        deployed (contractAddress, abi, contractName) {
+            this.contracts.push({
+                contractAddress,
+                abi,
+                contractName
+            });
         }
     }
     
