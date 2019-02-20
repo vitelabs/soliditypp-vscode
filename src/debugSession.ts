@@ -128,7 +128,7 @@ export default class SolidityppDebugSession extends DebugSession {
 
         this._viteChildProcess.stderr.on('data', (stderr) => {
             // init vite failed
-            this.aborted(`Init vite faild, error is ${stderr}`, 1);
+            this.aborted(`An error occurred on the node vite node , error is ${stderr}`, 1);
         });
 
         this._viteChildProcess.on('close', (code) => {

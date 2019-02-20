@@ -8,19 +8,21 @@
                     <i class="el-icon-caret-right"  @click="showRequest(callHistory)" v-else></i>
                     Request
                 </h5>
-                <account-block v-if="callHistory.isShowRequest" :data="callHistory.request"></account-block>
+                <div v-if="callHistory.isShowRequest" class="block-wrapper">
+                    <account-block :data="callHistory.request"></account-block>
+                </div>
             </div>
             <div>
                 <h5 class="title">
                     <i class="el-icon-caret-bottom" @click="hideResponseList(callHistory)" v-if="callHistory.isShowResponseList"></i>
                     <i class="el-icon-caret-right" @click="showResponseList(callHistory)" v-else></i>
                     Response
-                </h5> 
+                </h5>
                 <template v-if="callHistory.isShowResponseList">
                     <template v-if="callHistory.responseList && callHistory.responseList.length > 0">
-                        <div :key="index" v-for="(response, index) in callHistory.responseList">
+                        <div class="block-wrapper" :key="index" v-for="(response, index) in callHistory.responseList">
                             <account-block :data="response"></account-block>
-                        </div>                        
+                        </div>
                     </template>
                     <div 
                         class="waiting-response"
@@ -43,7 +45,7 @@ import throwError from 'utils/throwError';
 
 export default {
     props: [
-        'account'
+        'contractAddress'
     ],
     components: {
         accountBlock
@@ -64,12 +66,6 @@ export default {
         reverseCallHistory () {
             return this.callHistoryList.slice(0).reverse();
         }
-    },
-
-    mounted () {
-        new Task(async () => {
-            return await this.updateCallHistoryList();
-        }, 500).start();
     },
 
     methods: {
@@ -93,61 +89,50 @@ export default {
             callHistory.isShowResponseList = false;
             this.updateView();
         },
-        async updateCallHistoryList () {
-            try {
-                if (!this.account) {
-                    return true;
-                }
-                let client = vite.getVite();
 
-                if (this.status === 'QUERY_SEND_BLOCK') {
-                    let nextBlockHeight = this.blockHeight + 1;
-                    let block = await client.request('ledger_getBlockByHeight', this.account.address, nextBlockHeight.toString());
-                
+        onSendContractTx (contractTx) {
+            let client = vite.getVite();
+
+            let callHistory = {
+                isShowRequest: false,
+                isShowResponseList: false,
+
+                request: contractTx,
+                responseList: []
+            };
+            
+            this.callHistoryList.push(callHistory);
+
+            new Task(async () => {
+                try {
+                    let block = await client.request('ledger_getBlockByHeight', contractTx.accountAddress, contractTx.height);
+                        
                     if (!block) {
                         return true;
                     }
-
-                    this.blockHeight = nextBlockHeight;
-                    
-                    if (block.blockType === 4 || block.blockType === 5) {
-                        // receive block
-                        return true;
-                    }
-
-                    this.callHistoryList.push({
-                        isShowRequest: false,
-                        isShowResponseList: false,
-                        request: block,
-                        responseList: []
-                    });
-                    this.currentSendBlock = block;
-                    this.status = 'QUERY_RESPONSE_BLOCKS';
-                }
-
-                if (this.status === 'QUERY_RESPONSE_BLOCKS') {
-                    let block = await client.request('ledger_getBlockByHeight', this.account.address, this.currentSendBlock.height);
-                    
-                    if (!block) {
-                        return true;
-                    }
-
 
                     let receiveBlockHeights = block.receiveBlockHeights;     
                     if (!receiveBlockHeights || receiveBlockHeights.length <= 0) {
                         return true;
                     }
-
+                    
                     let receiveBlocks = await this.queryReceiveBlocks(block.toAddress, receiveBlockHeights);
-                    this.callHistoryList[this.callHistoryList.length - 1].responseList = receiveBlocks;
-                    this.currentSendBlock = undefined;
-                    this.status = 'QUERY_SEND_BLOCK';
+                    let lastReceiveBlock = receiveBlocks[receiveBlocks.length - 1];
+                    // receive error
+                    if (lastReceiveBlock.blockType === 5) {
+                        return true;
+                    }
+
+                    let sendBlocks = await this.queryContractSendBlocks(block.toAddress, parseInt(lastReceiveBlock.height));
+                    console.log(sendBlocks);
+                    callHistory.responseList = receiveBlocks.concat(sendBlocks);
+                    return false;
+                } catch (err) {
+                    throwError(err);
                 }
-                return true;
-            
-            } catch (err) {
-                throwError(err);
-            }
+                    
+            }, 500).start();
+
         },
             
 
@@ -161,6 +146,31 @@ export default {
                 }
             }
             return blocks;
+        },
+
+        async queryContractSendBlocks (contractAddress, lastReceiveBlockHeight) {
+            let client = vite.getVite();
+            let blocks = [];
+            for (let h = lastReceiveBlockHeight + 1; ; h++) {
+                let block = await client.request('ledger_getBlockByHeight', contractAddress, h.toString());
+                
+                if (!block) {
+                    break;
+                }
+                console.log(block);
+
+                // send block
+                if (block.blockType === 1 || 
+                    block.blockType === 2 ||
+                    block.blockType === 3 ||
+                    block.blockType === 6) {
+                    blocks.push(block);
+                } else {
+                    break;
+                }
+            }
+        
+            return blocks;
         }
     }
 };
@@ -168,6 +178,10 @@ export default {
 <style lang="scss" scoped>
     i {
         cursor: handler;
+    }
+    .block-wrapper {
+        border: 1px solid #999;
+        margin: 10px;
     }
     .waiting-response {
         height: 100px;

@@ -10,16 +10,18 @@
                 {{contract.contractName}} - {{contract.contractAddress}}
             </h5>
 
-            <div class="contract-content" v-if="showContracts[index]">
+            <div class="contract-content" v-show="showContracts[index]">
                 <method-list 
                     class="method-list"
                     :account="selectedAccount" 
                     :abi="contract.abi" 
-                    :contractAddress="contract.contractAddress"></method-list>
+                    :contractAddress="contract.contractAddress"
+                    @sendContractTx="onSendContractTx($event, index)"></method-list>
 
-                <result-list 
+                <result-list
                     class="result-list"
-                    :account="selectedAccount">
+                    ref="resultList"
+                    :contractAddress="contract.contractAddress">
                 </result-list>
             </div>
 
@@ -62,6 +64,10 @@ export default {
 
         hideContract (index) {
             this.$set(this.showContracts, index, false);
+        },
+
+        onSendContractTx (contractTx, index) {
+            this.$refs.resultList[index].onSendContractTx(contractTx);
         }
     }
 };

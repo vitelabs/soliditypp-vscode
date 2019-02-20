@@ -1,7 +1,7 @@
 <template>
     <div class="module-wrapper">
         <h4 class="title">Base information</h4>  
-        <el-row type="flex" justify="center" class="row" v-if="accountList">
+        <el-row type="flex" justify="center" align="middle" class="row" v-if="accountList">
             <el-col class="key-col" :span="4">
                 account
                 <i class="el-icon-circle-plus add-account" @click="addAccount"></i>
@@ -63,7 +63,6 @@ export default {
         addAccount () {
             let account = vite.createAccount();
             this.accountList.push(account);
-            console.log(this.selectedAccount);
         }
     }
 };

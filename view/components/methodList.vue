@@ -38,7 +38,6 @@
 </template>
 <script>
 import * as vite from 'global/vite';
-import throwError from 'utils/throwError';
 
 export default {
     props: ['account', 'abi', 'contractAddress'],
@@ -92,26 +91,35 @@ export default {
             try {
                 functionAbi.status = 'CALLING';
                 this.makeViewUpdate();
-
-                await vite.sendContractTx(
+            
+                let contractTx = await vite.sendContractTx(
                     this.account, 
                     this.contractAddress, 
-                    this.abi, 
+                    functionAbi.abi, 
                     functionAbi.amount, 
-                    functionAbi.abi.name, 
                     functionAbi.params
                 );
 
+                // query complete contract tx
+                let client = vite.getVite();
+
+                let contractBlock = await client.request('ledger_getBlockByHeight', contractTx.accountAddress, contractTx.height);
+                
                 this.$message({
                     message: `Call "${functionAbi.abi.name}" success!`,
                     type: 'success'
                 });
-                functionAbi.status = 'BEFORE_CALL';
-                this.makeViewUpdate();
+
+                this.$emit('sendContractTx', contractBlock);
             } catch (err) {
-                throwError(err);
+                this.$message({
+                    message: `Call "${functionAbi.abi.name}" failed, error is ${JSON.stringify(err)}`,
+                    type: 'error'
+                });
             }
-          
+
+            functionAbi.status = 'BEFORE_CALL';
+            this.makeViewUpdate();
         }
     }
 };

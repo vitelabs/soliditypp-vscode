@@ -1,10 +1,10 @@
 <template>
     <div class="wrapper">
-        <template v-for="(value, key) in data">
+        <template v-for="(value, key, index) in data">
             <el-row :key="key" type="flex" justify="center" class="row"  v-if="!isInDisplayBlackList(key)">
-                <el-col class="key-col col" :span="6">{{key}}</el-col>
+                <el-col class="key-col col" :class="{'no-border': index === 0}" :span="6">{{key}}</el-col>
     
-                <el-col class="col" :span="16">{{value}}</el-col>
+                <el-col class="col" :class="{'no-border': index === 0}" :span="18">{{value}}</el-col>
             </el-row>    
         </template>
         
@@ -34,6 +34,10 @@ export default {
     .col {
         word-break: break-all;
         border-top: 1px dashed #999;
+
+        &.no-border {
+            border: none;
+        }
     }
     .key-col {
         text-align: center;
