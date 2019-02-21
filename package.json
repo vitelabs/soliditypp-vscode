@@ -15,7 +15,9 @@
 	"categories": [
 		"Debuggers",
 		"Programming Languages"
-	],
+    ],
+    "license": "MIT",
+    
 	"keywords": [
 		"soliditypp",
 		"vite",
