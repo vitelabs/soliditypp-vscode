@@ -1,8 +1,8 @@
 {
 	"name": "soliditypp",
 	"displayName": "Soliditypp",
-	"description": "Debugger for soliditypp smart contracts",
-	"version": "0.1.0",
+	"description": "Soliditypp extension for Visual Studio Code",
+	"version": "0.2.0",
 	"publisher": "ViteLabs",
 	"icon": "./images/vscode.png",
 	"repository": {
@@ -19,7 +19,8 @@
 	"keywords": [
 		"soliditypp",
 		"vite",
-		"ViteLabs"
+        "ViteLabs",
+        "Smart contract"
 	],
 	"activationEvents": [
 		"onLanguage:soliditypp",
