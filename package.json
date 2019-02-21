@@ -4,7 +4,7 @@
 	"description": "Soliditypp extension for Visual Studio Code",
 	"version": "0.2.0",
 	"publisher": "ViteLabs",
-	"icon": "./images/vscode.png",
+	"icon": "images/vscode.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/vitelabs/soliditypp-vscode.git"
@@ -17,7 +17,7 @@
 		"Programming Languages"
     ],
     "license": "MIT",
-    
+
 	"keywords": [
 		"soliditypp",
 		"vite",
