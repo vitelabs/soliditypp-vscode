@@ -50,6 +50,7 @@ import throwError from 'utils/throwError';
 export default {
     props: [
         'contractAddress',
+        'abi',
         'sendCreatBlock'
     ],
     components: {
@@ -140,7 +141,10 @@ export default {
                     }
 
                     let sendBlocks = await this.queryContractSendBlocks(block.toAddress, parseInt(lastReceiveBlock.height));
-                    callHistory.responseList = receiveBlocks.concat(sendBlocks);
+                    let responseList = receiveBlocks.concat(sendBlocks);
+                    await this.setVmLogList(responseList);
+                    callHistory.responseList = responseList;
+
                     return false;
                 } catch (err) {
                     throwError(err);
@@ -150,7 +154,14 @@ export default {
 
         },
             
-
+        async setVmLogList (contractBlocks) {
+            for (let i = 0; i < contractBlocks.length; i++) {
+                let contractBlock = contractBlocks[i];
+                let vmLogs = await vite.queryVmLogList(contractBlock, this.abi);
+                contractBlock.logs = vmLogs;
+            }
+        
+        },
         async queryReceiveBlocks (contractAddress, receiveBlockHeights) {
             let client = vite.getVite();
             let blocks = [];

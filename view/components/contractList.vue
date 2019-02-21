@@ -21,6 +21,7 @@
                 <result-list
                     class="result-list"
                     ref="resultList"
+                    :abi="contract.abi" 
                     :sendCreatBlock="contract.contractBlock"
                     :contractAddress="contract.contractAddress">
                 </result-list>

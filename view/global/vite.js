@@ -8,7 +8,6 @@ const GENESIS_PRIVATEKEY = '7488b076b27aec48692230c88cbe904411007b71981057ea47d7
 
 let viteClient;
 let genesisAccount;
-let testAccount;
 
 export async function init() {
     let wsRpc = new WsProvider(WS_SERVER, 30 * 1000);
@@ -60,7 +59,8 @@ export async function createAccount () {
 export async function createContract (account, contract, amount, params) {
     let latestSnapshotHash = await viteClient.ledger.getLatestSnapshotChainHash();
 
-
+    console.log(contract.abi);
+    console.log(params);
     let createContractBlock = await viteClient.buildinTxBlock.createContract({
         accountAddress: account.address,
         tokenId: VITE_TOKEN_ID,
@@ -70,7 +70,8 @@ export async function createContract (account, contract, amount, params) {
         abi: JSON.stringify(contract.abi),
         snapshotHash: latestSnapshotHash,
         params: params
-    }); 
+    });
+    console.log(createContractBlock);
 
     await account.sendRawTx(createContractBlock);
     return createContractBlock;
@@ -83,7 +84,7 @@ export async function sendContractTx (account,contractAddress, abi, amount, para
         accountAddress: account.address,
         tokenId: VITE_TOKEN_ID,
         amount: amount.toString(),
-        jsonInterface: abi,
+        abi: abi,
         snapshotHash: latestSnapshotHash,
         params: params,
         toAddress: contractAddress
@@ -91,4 +92,35 @@ export async function sendContractTx (account,contractAddress, abi, amount, para
 
     await account.sendRawTx(callContractBlock);
     return callContractBlock;
+}
+
+export async function queryVmLogList (contractBlock, abi) {
+    if (!contractBlock.logHash) {
+        return;
+    }
+    
+    let vmLogList = await viteClient.request('ledger_getVmLogList', contractBlock.hash);
+    let vmLogs = [];
+    if (vmLogList) {
+        vmLogList.forEach(vmLog => {
+            let topics = vmLog.topics;
+            for (let j = 0; j < abi.length; j++) {
+                let abiItem = abi[j];
+                
+
+                if (Vitejs.utils.abi.encodeLogSignature(abiItem) === topics[0]) { 
+                    let dataBytes = Vitejs.utils.encoder._Buffer.from(contractBlock.data, 'base64');
+                    console.log(topics.slice(1), dataBytes.toString('hex'), abiItem.inputs);                
+                    vmLogs.push({
+                        topic: topics[0],
+                        args: Vitejs.utils.abi.decodeLog(abiItem.inputs, dataBytes.toString('hex'), topics.slice(1)),
+                        event: abiItem.name
+                    });
+                    break;
+                }
+            }
+        
+        });
+    }
+    return vmLogs;
 }

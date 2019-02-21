@@ -1,17 +1,25 @@
 <template>
     <div class="wrapper">
-        <template v-for="(value, key, index) in data">
-            <el-row :key="key" type="flex" justify="center" class="row"  v-if="!isInDisplayBlackList(key)">
-                <el-col class="key-col col" :class="{'no-border': index === 0}" :span="6">{{key}}</el-col>
+        <el-row type="flex" justify="center" class="row">
+            <el-col class="key-col col no-border" :span="6">status</el-col>
     
-                <el-col class="col" :class="{'no-border': index === 0}" :span="18">{{value}}</el-col>
+            <el-col class="col no-border" :span="18">
+                {{displayStatus()}}
+            </el-col>
+        </el-row>    
+        <template v-for="(value, key) in data">
+            <el-row :key="key" type="flex" justify="center" class="row"  v-if="!isInDisplayBlackList(key)">
+                <el-col class="key-col col" :span="6">{{key}}</el-col>
+    
+                <el-col class="col" :span="18">{{value}}</el-col>
             </el-row>    
         </template>
-        
     </div>
 </template>
   
 <script>
+import * as Vitejs from '@vite/vitejs';
+
 export default {
     props: ['data'],
     data () {
@@ -23,6 +31,38 @@ export default {
         isInDisplayBlackList (attrName) {
             return this.displayBlackList.indexOf(attrName) >= 0;
         },
+
+        resolveData (accountBlock) {
+
+            if ((accountBlock.blockType != 4 &&
+                accountBlock.blockType != 5) || 
+                !accountBlock.data) {
+                return 0;
+            }
+            let bytes = Vitejs.utils.encoder._Buffer.from(accountBlock.data, 'base64');
+            
+            if (bytes.length != 33) {
+                return 0;
+            } 
+            return bytes[32];
+        },
+
+        displayStatus () {
+            let status = this.resolveData(this.data);
+            let statusTxt = '';
+            switch (status) {
+            case 0:
+                statusTxt = '0, Execution succeed';
+                break;
+            case 1: 
+                statusTxt = '1, Execution reverted';
+                break;
+            case 2: 
+                statusTxt = '2, Max call depth exceeded';
+                break;
+            }
+            return statusTxt;
+        }
     }
 };
 </script>

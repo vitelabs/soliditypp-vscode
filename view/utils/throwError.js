@@ -3,9 +3,14 @@ import vscode from 'global/vscode';
 const COMMAND_PREFIX = 'view2extension.';
 
 export default function throwError (err) {
+    let body = err.toString();
+    if (!body) {
+        body = JSON.stringify(err);
+    }
+
     vscode.postMessage({
         command: COMMAND_PREFIX + 'error',
-        body: err.stack
+        body
     });
     throw new Error(err);
 }
