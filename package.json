@@ -4,6 +4,11 @@
 	"description": "Debugger for soliditypp smart contracts",
 	"version": "0.1.0",
 	"publisher": "ViteLabs",
+	"icon":"./images/vscode.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vitelabs/soliditypp-vscode.git"
+	},
 	"engines": {
 		"vscode": "^1.30.0"
 	},
