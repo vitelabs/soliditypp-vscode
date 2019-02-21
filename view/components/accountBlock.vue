@@ -10,8 +10,18 @@
         <template v-for="(value, key) in data">
             <el-row :key="key" type="flex" justify="center" class="row"  v-if="!isInDisplayBlackList(key)">
                 <el-col class="key-col col" :span="6">{{key}}</el-col>
-    
-                <el-col class="col" :span="18">{{value}}</el-col>
+
+                <el-col class="col" :span="18">
+                    <template v-if="key === 'logs'">
+                        
+                        <vue-json-pretty
+                            :data="value">
+                        </vue-json-pretty>
+                    </template>
+                    <template v-else>
+                        {{value}}
+                    </template>
+                </el-col>
             </el-row>    
         </template>
     </div>
@@ -19,9 +29,13 @@
   
 <script>
 import * as Vitejs from '@vite/vitejs';
+import VueJsonPretty from 'vue-json-pretty';
 
 export default {
     props: ['data'],
+    components: {
+        VueJsonPretty
+    },
     data () {
         return {
             displayBlackList: ['receiveBlockHeights', 'tokenInfo', 'confirmedTimes'],
@@ -78,8 +92,16 @@ export default {
         &.no-border {
             border: none;
         }
+
+
     }
     .key-col {
         text-align: center;
+    }
+</style>
+
+<style lang="scss">
+    .vjs__tree {
+        font-size: inherit !important; 
     }
 </style>

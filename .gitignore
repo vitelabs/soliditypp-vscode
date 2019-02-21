@@ -4,3 +4,4 @@ gvite
 .DS_Store
 ledger
 *.vsix
+__MACOSX

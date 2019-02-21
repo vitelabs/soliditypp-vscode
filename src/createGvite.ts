@@ -45,6 +45,7 @@ function checkGviteIsExisted() :boolean{
     return fs.existsSync(getGvitePath());
 }
 
+const PLATFORM_ERROR = "It only works on the MAC for now. The next version will support Windows and Linux"
 async function uncompressGvite () {
     let osPlatform = checkOsPlatform();
     let compressedFilePath = ''
@@ -54,16 +55,22 @@ async function uncompressGvite () {
             break;
         }
         case OS_PLATFORM.LINUX: {
-            compressedFilePath = path.resolve(VITE_DIR, "gvite-linux.zip");
+            // compressedFilePath = path.resolve(VITE_DIR, "gvite-linux.zip");
+            throw PLATFORM_ERROR            
             break;
+
         }
         case OS_PLATFORM.WIN64: {
-            compressedFilePath = path.resolve(VITE_DIR, "gvite-win64.zip");
+            // compressedFilePath = path.resolve(VITE_DIR, "gvite-win64.zip");
+            throw PLATFORM_ERROR                        
             break;
+
         }
         case OS_PLATFORM.WIN32: {
-            compressedFilePath = path.resolve(VITE_DIR, "gvite-win32.zip");
+            // compressedFilePath = path.resolve(VITE_DIR, "gvite-win32.zip");
+            throw PLATFORM_ERROR                        
             break;
+
         }
     }
 
@@ -81,5 +88,5 @@ export default async function createGvite () {
         return
     }
 
-    await uncompressGvite();
+    return await uncompressGvite();
 }

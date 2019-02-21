@@ -79,6 +79,7 @@ export default class SolidityppDebugSession extends DebugSession {
             
             this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'))
             await createGvite()
+            
             // set source file path
             this._sourceFilePath = args.program
     
@@ -90,7 +91,13 @@ export default class SolidityppDebugSession extends DebugSession {
             this.sendEvent(new OutputEvent('Vite is ready!\n', 'stdout'))
             this.sendResponse(response);
         } catch (err) {
-            this.aborted(err.stack, 1)
+            this.sendEvent(new OutputEvent('Vite is terminated!\n', 'stdout'))
+
+            let msg = err.stack;
+            if (!msg) {
+                msg = JSON.stringify(err);
+            }
+            this.aborted(msg, 1)
         }
        
     }
