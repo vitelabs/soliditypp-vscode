@@ -4,7 +4,7 @@ Soliditypp is the smart contract programming language used in Vite. Vite is a DA
 
 ## Features
 * Syntax highlighting
-* Keyword autofilling
+* Code completion
 * Auto compilation when saving the contract
 * Compilation error highlighting
 * Detailed error message displaying when mouse over 
