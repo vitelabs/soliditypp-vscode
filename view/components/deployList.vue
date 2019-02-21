@@ -10,6 +10,7 @@
             
             <deploy 
                 v-if="showContractDeployList[index]"
+                :account="account"
                 :abi="abi" 
                 :bytecodes="compileResult.bytecodesList[index]" 
                 @deployed="deployed($event, abi, compileResult.contractNameList[index])"> 
@@ -25,7 +26,8 @@ export default {
         deploy
     },
     props: [
-        'compileResult'
+        'compileResult',
+        'account'
     ],
     data () {
         return {
@@ -39,12 +41,14 @@ export default {
         });
     },
     methods: {
-        deployed (contractAddress, abi, contractName) {
-            this.$emit('deployed', contractAddress, abi, contractName);
+        deployed (contractBlock, abi, contractName) {
+            this.$emit('deployed', contractBlock, abi, contractName);
         },
+
         showDeploy (index) {
             this.$set(this.showContractDeployList, index, true);
         },
+
         hideDeploy (index) {
             this.$set(this.showContractDeployList, index, false);
         }

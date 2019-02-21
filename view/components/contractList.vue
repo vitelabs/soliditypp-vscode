@@ -21,6 +21,7 @@
                 <result-list
                     class="result-list"
                     ref="resultList"
+                    :sendCreatBlock="contract.contractBlock"
                     :contractAddress="contract.contractAddress">
                 </result-list>
             </div>
@@ -65,9 +66,14 @@ export default {
         hideContract (index) {
             this.$set(this.showContracts, index, false);
         },
-
-        onSendContractTx (contractTx, index) {
-            this.$refs.resultList[index].onSendContractTx(contractTx);
+        findIndexByContractAddress (contractAddress) {
+            return this.contracts.findIndex(function (contract) {
+                return contract.contractAddress === contractAddress;
+            });
+        },
+        onSendContractTx (event, index) {
+        
+            this.$refs.resultList[index].onSendContractTx(event.abi, event.contractBlock);
         }
     }
 };

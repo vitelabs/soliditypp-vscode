@@ -6,9 +6,9 @@
             :contractAddress="contractAddress">
         </base-info>
 
-        <deploy-list v-if="compileResult" :compile-result="compileResult" @deployed="deployed"></deploy-list>
+        <deploy-list :account="selectedAccount" v-if="compileResult" :compile-result="compileResult" @deployed="deployed"></deploy-list>
 
-        <contract-list v-if="contracts && contracts.length > 0" :compile-result="compileResult" :contracts="contracts" :selected-account="selectedAccount">
+        <contract-list ref="contractList" v-show="contracts && contracts.length > 0" :compile-result="compileResult" :contracts="contracts" :selected-account="selectedAccount">
         </contract-list>
     </div>
 </template>
@@ -51,14 +51,24 @@ export default {
         }
     },
     methods: {
-        deployed (contractAddress, abi, contractName) {
+        deployed (contractBlock, abi, contractName) {
             this.contracts.push({
-                contractAddress,
+                contractAddress: contractBlock.toAddress,
+                contractBlock,
                 abi,
                 contractName
             });
+        
+            //  findIndexByContractAddress (contractAddress) {
+            //     return this.contracts.findIndex(function (contract) {
+            //         return contract.contractAddress === contractAddress;
+            //     });
+            //  },
+
+        //  onSendContractTx (contractTx, index) {
+        //     this.$refs.resultList[index].onSendContractTx(contractTx);
+        //  }
         }
-    }
-    
+    }  
 };
 </script>

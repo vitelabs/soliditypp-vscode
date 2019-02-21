@@ -1,7 +1,10 @@
 <template>
     <div>
         <div :key="index" v-for="(callHistory, index) in reverseCallHistory">
-            <h4 class="title">Result(blockHeight: {{callHistory.request.height}})</h4>  
+            <h4 class="title">
+                <template v-if="callHistory.methodName">Call "{{callHistory.methodName}}" ({{formatTimestamp(callHistory.request.timestamp)}}):</template>   
+                <template v-else>Deploy ({{formatTimestamp(callHistory.request.timestamp)}}):</template>   
+            </h4>  
             <div>
                 <h5 class="title">
                     <i class="el-icon-caret-bottom" @click="hideRequest(callHistory)" v-if="callHistory.isShowRequest"></i>
@@ -38,6 +41,7 @@
 </template>
 
 <script>
+import * as moment from 'moment';
 import accountBlock from './accountBlock';
 import * as vite from 'global/vite.js';
 import Task from 'utils/task';
@@ -45,7 +49,8 @@ import throwError from 'utils/throwError';
 
 export default {
     props: [
-        'contractAddress'
+        'contractAddress',
+        'sendCreatBlock'
     ],
     components: {
         accountBlock
@@ -62,6 +67,10 @@ export default {
         };
     },
 
+    mounted () {
+        this.onSendContractTx(undefined, this.sendCreatBlock);
+    },
+
     computed: {
         reverseCallHistory () {
             return this.callHistoryList.slice(0).reverse();
@@ -69,6 +78,9 @@ export default {
     },
 
     methods: {
+        formatTimestamp (timestamp) {
+            return moment(timestamp * 1000).format('YYYY-MM-DD HH:mm:ss');
+        }, 
         updateView () {
             this.callHistoryList = this.callHistoryList.slice(0);
         },
@@ -90,7 +102,7 @@ export default {
             this.updateView();
         },
 
-        onSendContractTx (contractTx) {
+        onSendContractTx (methodAbi, contractTx) {
             let client = vite.getVite();
 
             let callHistory = {
@@ -100,6 +112,10 @@ export default {
                 request: contractTx,
                 responseList: []
             };
+
+            if (methodAbi) {
+                callHistory.methodName = methodAbi.name;
+            }
             
             this.callHistoryList.push(callHistory);
 
@@ -124,7 +140,6 @@ export default {
                     }
 
                     let sendBlocks = await this.queryContractSendBlocks(block.toAddress, parseInt(lastReceiveBlock.height));
-                    console.log(sendBlocks);
                     callHistory.responseList = receiveBlocks.concat(sendBlocks);
                     return false;
                 } catch (err) {
@@ -157,7 +172,6 @@ export default {
                 if (!block) {
                     break;
                 }
-                console.log(block);
 
                 // send block
                 if (block.blockType === 1 || 

@@ -27,10 +27,9 @@
 
 <script>
 import * as vite from 'global/vite';
-import throwError from 'utils/throwError';
 
 export default {
-    props: ['abi', 'bytecodes'],
+    props: ['abi', 'bytecodes', 'account'],
     data () {
         return {
             amount: '0',
@@ -71,20 +70,28 @@ export default {
         async deploy () {
             try {
                 this.status = 'DEPLOYING';
-                let createContractBlock = await vite.createContract(vite.getTestAccount(), {
+                
+                let createContractTx = await vite.createContract(this.account, {
                     bytecodes: this.bytecodes,
                     abi: this.abi
                 }, this.amount, this.params); 
-        
-                this.status = 'BEFORE_DEPLOY';
+
+                let client = vite.getVite();
+                let createContractBlock = await client.request('ledger_getBlockByHeight', createContractTx.accountAddress, createContractTx.height);
+                                
                 this.$message({
                     message: 'Contract has been deployed!',
                     type: 'success'
                 });
-                this.$emit('deployed', createContractBlock.toAddress);
+                
+                this.$emit('deployed', createContractBlock);
             } catch (err ){ 
-                throwError(err);
+                this.$message({
+                    message: `Deploy failed, error is ${JSON.stringify(err)}`,
+                    type: 'error'
+                });
             }
+            this.status = 'BEFORE_DEPLOY';
         }
     }
 };

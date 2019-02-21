@@ -86,6 +86,7 @@ export default {
                 }
             });
             return params;
+
         },
         async callContract (functionAbi) {
             try {
@@ -110,7 +111,10 @@ export default {
                     type: 'success'
                 });
 
-                this.$emit('sendContractTx', contractBlock);
+                this.$emit('sendContractTx', {
+                    abi: functionAbi.abi,
+                    contractBlock: contractBlock
+                });
             } catch (err) {
                 this.$message({
                     message: `Call "${functionAbi.abi.name}" failed, error is ${JSON.stringify(err)}`,
