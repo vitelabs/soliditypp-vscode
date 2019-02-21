@@ -1,6 +1,18 @@
-# development
-`src/extension.ts` is the main file
+# Soliditypp extension for Visual Studio Code
 
-1. npm install (If the installation process is slow, you can switch download source run `npm config set registry https://registry.npm.taobao.org`)
+Soliditypp is the smart contract programming language used in Vite. Vite is a DAG-based, asynchronous, high-performance and fee-less dApp platform where transactions can be executed quickly and confirmed in seconds. The extension contains following features:
 
-2. Debug(in the left sidebar of vscode) -> `Run Extension`
+## Features
+* Syntax highlighting
+* Keyword autofilling
+* Auto compilation when saving the contract
+* Compilation error highlighting
+* Detailed error message displaying when mouse over 
+* One-click smart contract deployment and debugging
+* Support for multiple smart contracts
+* Deployment / debugging result displaying
+* Examples
+
+## Tutorial
+See the [Vite Wiki](https://vite.wiki/tutorial/contract/debug.html) for details.
+  
