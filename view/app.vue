@@ -2,13 +2,14 @@
     <div>
         <base-info  
             v-if="selectedAccount"
-            v-bind:selected-account.sync="selectedAccount" 
+            @onSelectAccount="onSelectAccount"
+            :selected-account="selectedAccount" 
             :contractAddress="contractAddress">
         </base-info>
 
         <deploy-list :account="selectedAccount" v-if="compileResult" :compile-result="compileResult" @deployed="deployed"></deploy-list>
 
-        <contract-list ref="contractList" v-show="contracts && contracts.length > 0" :compile-result="compileResult" :contracts="contracts" :selected-account="selectedAccount">
+        <contract-list ref="contractList" v-show="contracts && contracts.length > 0" :compile-result="compileResult" :contracts="contracts" :account="selectedAccount">
         </contract-list>
     </div>
 </template>
@@ -45,12 +46,18 @@ export default {
             
             await vite.init(compileResult);
 
-            this.selectedAccount = vite.getTestAccount();
+            this.selectedAccount = await vite.createAccount();
         } catch (err) {
             throwError(err);
         }
     },
     methods: {
+        onSelectAccount (selectedAccount) {
+            if (!selectedAccount) {
+                return;
+            }
+            this.selectedAccount = selectedAccount;
+        },
         deployed (contractBlock, abi, contractName) {
             this.contracts.push({
                 contractAddress: contractBlock.toAddress,
@@ -58,16 +65,6 @@ export default {
                 abi,
                 contractName
             });
-        
-            //  findIndexByContractAddress (contractAddress) {
-            //     return this.contracts.findIndex(function (contract) {
-            //         return contract.contractAddress === contractAddress;
-            //     });
-            //  },
-
-        //  onSendContractTx (contractTx, index) {
-        //     this.$refs.resultList[index].onSendContractTx(contractTx);
-        //  }
         }
     }  
 };

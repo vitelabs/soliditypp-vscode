@@ -48,9 +48,10 @@ export default {
                 return this.selectedAccount.address;
             },
             set (val) {
-                this.selectedAccount = this.accountList.find(function (account) {
+                let selectedAccount = this.accountList.find(function (account) {
                     return account.address === val;
                 });
+                this.$emit('onSelectAccount', selectedAccount);
             }
         }
     },
@@ -60,8 +61,8 @@ export default {
         }
     },
     methods: {
-        addAccount () {
-            let account = vite.createAccount();
+        async addAccount () {
+            let account = await vite.createAccount();
             this.accountList.push(account);
         }
     }

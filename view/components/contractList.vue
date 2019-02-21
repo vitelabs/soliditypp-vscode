@@ -13,7 +13,7 @@
             <div class="contract-content" v-show="showContracts[index]">
                 <method-list 
                     class="method-list"
-                    :account="selectedAccount" 
+                    :account="account" 
                     :abi="contract.abi" 
                     :contractAddress="contract.contractAddress"
                     @sendContractTx="onSendContractTx($event, index)"></method-list>
@@ -36,7 +36,7 @@ import resultList from 'components/resultList';
 import methodList from 'components/methodList';
 
 export default {
-    props: ['compileResult', 'contracts', 'selectedAccount'],
+    props: ['compileResult', 'contracts', 'account'],
     components: {
         resultList,
         methodList

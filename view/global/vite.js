@@ -18,7 +18,6 @@ export async function init() {
     });
 
         
-    let keyPair = Vitejs.utils.ed25519.keyPair();
     genesisAccount = new Vitejs.wallet.account({
         privateKey: GENESIS_PRIVATEKEY,
         client: viteClient
@@ -26,21 +25,6 @@ export async function init() {
 
     // genesis account receive onroad blocks
     await receiveAllOnroadTx(viteClient, genesisAccount);
-
-    // create test account
-    testAccount = new Vitejs.wallet.account({
-        privateKey: keyPair.secretKey,
-        client: viteClient
-    });
-        
-    // send money to test accout
-    await genesisAccount.sendTx({
-        toAddress: testAccount.address,
-        tokenId: VITE_TOKEN_ID,
-        amount: '1'
-    });
-
-    await receiveAllOnroadTx(viteClient, testAccount);
 
     return viteClient;
 }
@@ -53,16 +37,24 @@ export function getGenesisAccount () {
     return genesisAccount;
 }
 
-export function getTestAccount () {
-    return testAccount;
-}
+export async function createAccount () {
+    let genesisAccount = getGenesisAccount();
 
-export function createAccount () {
     let keyPair = Vitejs.utils.ed25519.keyPair();
-    return new Vitejs.wallet.account({
+    let account = new Vitejs.wallet.account({
         privateKey: keyPair.secretKey,
         client: viteClient
     });
+            
+    // send money to test accout
+    await genesisAccount.sendTx({
+        toAddress: account.address,
+        tokenId: VITE_TOKEN_ID,
+        amount: '1'
+    });
+    
+    await receiveAllOnroadTx(viteClient, account);
+    return account;
 }
 
 export async function createContract (account, contract, amount, params) {
