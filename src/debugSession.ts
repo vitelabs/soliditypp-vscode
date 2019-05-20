@@ -103,7 +103,7 @@ export default class SolidityppDebugSession extends DebugSession {
     }
     
     private async compileSource ():Promise<boolean> {
-        const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solc')} --bin --abi ${this.sourceFilePath}`)
+        const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solppc')} --bin --abi ${this.sourceFilePath}`)
 
         if (code > 0) {
             // compile failed   

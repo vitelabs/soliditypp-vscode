@@ -15,7 +15,13 @@
     "wallet",
     "testapi",
     "dashboard",
-    "vmdebug"
+    "vmdebug",
+    "pledge",
+    "register",
+    "vote",
+    "mintage",
+    "consensusGroup",
+    "subscribe"
   ],
   "Port": 8487,
   "RPCEnabled": true,
@@ -34,5 +40,6 @@
   "VMTestEnabled":true,
   "VMDebug":true,
   "DataDir":"ledger",
-  "KeyStoreDir":"ledger"
+  "KeyStoreDir":"ledger",
+  "SubscribeEnabled":true
 }

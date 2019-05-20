@@ -186,7 +186,7 @@ async function compileSource(textDocument: vscode.TextDocument) {
         return;
     }
     diagnosticCollection.clear();
-    const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solc')} --bin --abi ${textDocument.fileName}`)
+    const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solppc')} --bin --abi ${textDocument.fileName}`)
     if (code > 0) {
         let lines = stderr.split(textDocument.fileName + ':');
         if (lines && lines.length > 1) {

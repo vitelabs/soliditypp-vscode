@@ -57,16 +57,15 @@ export async function createAccount () {
 }
 
 export async function createContract (account, contract, amount, params) {
-    let latestSnapshotHash = await viteClient.ledger.getLatestSnapshotChainHash();
-    
     let createContractBlock = await viteClient.buildinTxBlock.createContract({
         accountAddress: account.address,
         tokenId: VITE_TOKEN_ID,
         amount: amount.toString(),
         fee: '10000000000000000000',
         hexCode: contract.bytecodes,
+        confirmTimes:1,
+        quotaRatio:10,
         abi: contract.abi,
-        snapshotHash: latestSnapshotHash,
         params: params
     });
 
@@ -75,14 +74,11 @@ export async function createContract (account, contract, amount, params) {
 }
 
 export async function sendContractTx (account,contractAddress, abi, amount, params) {
-    let latestSnapshotHash = await viteClient.ledger.getLatestSnapshotChainHash();
-
     let callContractBlock = await viteClient.buildinTxBlock.callContract({
         accountAddress: account.address,
         tokenId: VITE_TOKEN_ID,
         amount: amount.toString(),
         abi: abi,
-        snapshotHash: latestSnapshotHash,
         params: params,
         toAddress: contractAddress
     });
