@@ -2,8 +2,8 @@
     <div>
         <div :key="index" v-for="(callHistory, index) in reverseCallHistory">
             <h4 class="title">
-                <template v-if="callHistory.methodName">Call "{{callHistory.methodName}}" ({{formatTimestamp(callHistory.request.timestamp)}}):</template>   
-                <template v-else>Deploy ({{formatTimestamp(callHistory.request.timestamp)}}):</template>   
+                <template v-if="callHistory.methodName">Call "{{callHistory.methodName}}" ({{getCurrentTime()}}):</template>   
+                <template v-else>Deploy ({{getCurrentTime()}}):</template>   
             </h4>  
             <div>
                 <h5 class="title">
@@ -79,9 +79,11 @@ export default {
     },
 
     methods: {
-        formatTimestamp (timestamp) {
-            return moment(timestamp * 1000).format('YYYY-MM-DD HH:mm:ss');
-        }, 
+        getCurrentTime () {
+            var curr = new Date();
+            return moment(curr.getTime()).format('YYYY-MM-DD HH:mm:ss')
+        },
+
         updateView () {
             this.callHistoryList = this.callHistoryList.slice(0);
         },
@@ -128,20 +130,18 @@ export default {
                         return true;
                     }
 
-                    let receiveBlockHeights = block.receiveBlockHeights;     
-                    if (!receiveBlockHeights || receiveBlockHeights.length <= 0) {
+                    let receiveBlockHash = block.receiveBlockHash;     
+                    if (!receiveBlockHash) {
                         return true;
                     }
                     
-                    let receiveBlocks = await this.queryReceiveBlocks(block.toAddress, receiveBlockHeights);
-                    let lastReceiveBlock = receiveBlocks[receiveBlocks.length - 1];
-                    // receive error
-                    if (lastReceiveBlock.blockType === 5) {
+                    let receiveBlock = await this.queryReceiveBlock(receiveBlockHash);
+                    if (!receiveBlock) {
                         return true;
                     }
 
-                    let sendBlocks = await this.queryContractSendBlocks(block.toAddress, parseInt(lastReceiveBlock.height));
-                    let responseList = receiveBlocks.concat(sendBlocks);
+                    let responseList = [];
+                    responseList.push(receiveBlock);
                     await this.setVmLogList(responseList);
                     callHistory.responseList = responseList;
 
@@ -162,41 +162,10 @@ export default {
             }
         
         },
-        async queryReceiveBlocks (contractAddress, receiveBlockHeights) {
+        async queryReceiveBlock (receiveBlockHash) {
             let client = vite.getVite();
-            let blocks = [];
-            for (let i = 0; i < receiveBlockHeights.length; i++) {
-                let block = await client.request('ledger_getBlockByHeight', contractAddress, receiveBlockHeights[i].toString());
-                if (block) {
-                    blocks.push(block);
-                }
-            }
-            return blocks;
+            return await client.request('ledger_getBlockByHash', receiveBlockHash);
         },
-
-        async queryContractSendBlocks (contractAddress, lastReceiveBlockHeight) {
-            let client = vite.getVite();
-            let blocks = [];
-            for (let h = lastReceiveBlockHeight + 1; ; h++) {
-                let block = await client.request('ledger_getBlockByHeight', contractAddress, h.toString());
-                
-                if (!block) {
-                    break;
-                }
-
-                // send block
-                if (block.blockType === 1 || 
-                    block.blockType === 2 ||
-                    block.blockType === 3 ||
-                    block.blockType === 6) {
-                    blocks.push(block);
-                } else {
-                    break;
-                }
-            }
-        
-            return blocks;
-        }
     }
 };
 </script>
