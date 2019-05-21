@@ -28,7 +28,7 @@
 </template>
   
 <script>
-import * as Vitejs from '@vite/vitejs';
+import { utils } from '@vite/vitejs';
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
@@ -53,7 +53,7 @@ export default {
                 !accountBlock.data) {
                 return 0;
             }
-            let bytes = Vitejs.utils.encoder._Buffer.from(accountBlock.data, 'base64');
+            let bytes = utils._Buffer.from(accountBlock.data, 'base64');
             
             if (bytes.length != 33) {
                 return 0;
