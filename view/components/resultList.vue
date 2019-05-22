@@ -81,7 +81,7 @@ export default {
     methods: {
         getCurrentTime () {
             var curr = new Date();
-            return moment(curr.getTime()).format('YYYY-MM-DD HH:mm:ss')
+            return moment(curr.getTime()).format('YYYY-MM-DD HH:mm:ss');
         },
 
         updateView () {

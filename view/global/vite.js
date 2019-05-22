@@ -15,8 +15,8 @@ let genesisAccount;
 export async function init() {
     let provider = new WS_RPC(WS_SERVER, 30 * 1000);
 
-    viteClient = new client(provider, (_myClient) => {
-        console.log("Already connected.");
+    viteClient = new client(provider, () => {
+        console.log('Already connected.');
     });
     
     genesisAccount = new viteaccount({
