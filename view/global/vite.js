@@ -1,5 +1,8 @@
-import WsProvider  from '@vite/vitejs/dist/es5/provider/WS';
-import * as Vitejs from '@vite/vitejs';
+import WS_RPC from '@vite/vitejs-ws';
+import { account as viteaccount} from '@vite/vitejs';
+import { abi as abiutils } from '@vite/vitejs';
+import { utils } from '@vite/vitejs';
+import { client } from '@vite/vitejs';
 import receiveAllOnroadTx from 'utils/receiveAllOnroadTx';
 
 const VITE_TOKEN_ID = 'tti_5649544520544f4b454e6e40';
@@ -10,18 +13,17 @@ let viteClient;
 let genesisAccount;
 
 export async function init() {
-    let wsRpc = new WsProvider(WS_SERVER, 30 * 1000);
+    let provider = new WS_RPC(WS_SERVER, 30 * 1000);
 
-    viteClient = new Vitejs.client(wsRpc, function () {
-        console.log('Already connected.');
+    viteClient = new client(provider, (_myClient) => {
+        console.log("Already connected.");
     });
-
-        
-    genesisAccount = new Vitejs.wallet.account({
+    
+    genesisAccount = new viteaccount({
         privateKey: GENESIS_PRIVATEKEY,
         client: viteClient
     });
-
+    
     // genesis account receive onroad blocks
     await receiveAllOnroadTx(viteClient, genesisAccount);
 
@@ -39,8 +41,8 @@ export function getGenesisAccount () {
 export async function createAccount () {
     let genesisAccount = getGenesisAccount();
 
-    let keyPair = Vitejs.utils.ed25519.keyPair();
-    let account = new Vitejs.wallet.account({
+    let keyPair = utils.ed25519.keyPair();
+    let account = new viteaccount({
         privateKey: keyPair.secretKey,
         client: viteClient
     });
@@ -57,37 +59,25 @@ export async function createAccount () {
 }
 
 export async function createContract (account, contract, amount, params) {
-    let latestSnapshotHash = await viteClient.ledger.getLatestSnapshotChainHash();
-    
-    let createContractBlock = await viteClient.buildinTxBlock.createContract({
-        accountAddress: account.address,
-        tokenId: VITE_TOKEN_ID,
+    let createContractBlock = await account.createContract({
         amount: amount.toString(),
-        fee: '10000000000000000000',
         hexCode: contract.bytecodes,
+        times:10,
+        confirmTimes:1,
         abi: contract.abi,
-        snapshotHash: latestSnapshotHash,
         params: params
     });
-
-    await account.sendRawTx(createContractBlock);
     return createContractBlock;
 }
 
 export async function sendContractTx (account,contractAddress, abi, amount, params) {
-    let latestSnapshotHash = await viteClient.ledger.getLatestSnapshotChainHash();
-
-    let callContractBlock = await viteClient.buildinTxBlock.callContract({
-        accountAddress: account.address,
+    let callContractBlock = await account.callContract({
         tokenId: VITE_TOKEN_ID,
         amount: amount.toString(),
         abi: abi,
-        snapshotHash: latestSnapshotHash,
         params: params,
         toAddress: contractAddress
     });
-
-    await account.sendRawTx(callContractBlock);
     return callContractBlock;
 }
 
@@ -105,14 +95,14 @@ export async function queryVmLogList (contractBlock, abi) {
                 let abiItem = abi[j];
                 
 
-                if (Vitejs.utils.abi.encodeLogSignature(abiItem) === topics[0]) { 
-                    let dataBytes = Vitejs.utils.encoder._Buffer.from(contractBlock.data, 'base64');
-                    console.log(topics.slice(1), dataBytes.toString('hex'), abiItem.inputs);                
-                    vmLogs.push({
+                if (abiutils.encodeLogSignature(abiItem) === topics[0]) { 
+                    let dataBytes = utils._Buffer.from(vmLog.data, 'base64');
+                    let log ={
                         topic: topics[0],
-                        args: Vitejs.utils.abi.decodeLog(abiItem.inputs, dataBytes.toString('hex'), topics.slice(1)),
+                        args: abiutils.decodeLog(abiItem.inputs, dataBytes.toString('hex'), topics.slice(1)),
                         event: abiItem.name
-                    });
+                    };       
+                    vmLogs.push(log);
                     break;
                 }
             }

@@ -15,14 +15,13 @@
 	"categories": [
 		"Debuggers",
 		"Programming Languages"
-    ],
-    "license": "MIT",
-
+	],
+	"license": "MIT",
 	"keywords": [
 		"soliditypp",
 		"vite",
-        "ViteLabs",
-        "Smart contract"
+		"ViteLabs",
+		"Smart contract"
 	],
 	"activationEvents": [
 		"onLanguage:soliditypp",
@@ -138,14 +137,17 @@
 		"webpack-cli": "^3.2.3"
 	},
 	"dependencies": {
-		"@vite/vitejs": "^1.1.5-8",
+		"@vite/vitejs": "^2.1.1",
+		"@vite/vitejs-ws": "^2.1.0",
 		"babel-polyfill": "^6.26.0",
 		"decompress": "^4.2.0",
 		"decompress-unzip": "^4.0.1",
 		"element-ui": "^2.5.4",
 		"events": "^3.0.0",
+		"jsonrpc-lite": "^2.0.7",
 		"moment": "^2.24.0",
 		"shelljs": "^0.8.3",
+		"ts-node": "^8.1.0",
 		"vscode-debugadapter": "^1.33.0",
 		"vue": "^2.6.6",
 		"vue-json-pretty": "^1.4.1"
