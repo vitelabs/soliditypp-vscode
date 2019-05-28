@@ -96,7 +96,10 @@ export async function queryVmLogList (contractBlock, abi) {
                 
 
                 if (abiutils.encodeLogSignature(abiItem) === topics[0]) { 
-                    let dataBytes = utils._Buffer.from(vmLog.data, 'base64');
+                    let dataBytes = '';
+                    if (vmLog.data) {
+                        dataBytes = utils._Buffer.from(vmLog.data, 'base64');
+                    }
                     let log ={
                         topic: topics[0],
                         args: abiutils.decodeLog(abiItem.inputs, dataBytes.toString('hex'), topics.slice(1)),
