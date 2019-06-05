@@ -5,3 +5,5 @@ gvite
 ledger
 *.vsix
 __MACOSX
+bin/vite/gvite-*.zip
+gvite-v*/

@@ -83,7 +83,8 @@ export default class SolidityppDebugSession extends DebugSession {
             await vscode.commands.executeCommand("workbench.debug.panel.action.clearReplAction")
             
             this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'))
-            await createGvite()
+
+            await createGvite(this)
             
             // set source file path
             this._sourceFilePath = args.program
