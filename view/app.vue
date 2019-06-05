@@ -58,12 +58,13 @@ export default {
             }
             this.selectedAccount = selectedAccount;
         },
-        deployed (contractBlock, abi, contractName) {
+        deployed (contractBlock, abi, contractName, offchainCode) {
             this.contracts.push({
                 contractAddress: contractBlock.toAddress,
                 contractBlock,
                 abi,
-                contractName
+                contractName,
+                offchainCode
             });
         }
     }  

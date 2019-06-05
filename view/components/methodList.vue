@@ -10,15 +10,22 @@
             <h5 class="title">
                 <i class="el-icon-caret-bottom" @click="hideFunctionAbi(functionAbi)" v-if="functionAbi.isShow"></i>
                 <i class="el-icon-caret-right"  @click="showFunctionAbi(functionAbi)" v-else></i>
-                {{functionAbi.abi.name}}
+                <template v-if="functionAbi.abi.type === 'offchain'">
+                    offchain {{functionAbi.abi.name}}
+                </template>
+                <template v-else>
+                    {{functionAbi.abi.name}}
+                </template>
             </h5>
             <template v-if="functionAbi.isShow">
-                <el-row class="row" type="flex" justify="center" align="middle">
-                    <el-col  :span="4" class="label">amount: </el-col>
-                    <el-col  :span="18">
-                        <el-input v-model="functionAbi.amount"></el-input>
-                    </el-col>
-                </el-row>
+                <template v-if="functionAbi.hasAmount">
+                    <el-row class="row" type="flex" justify="center" align="middle">
+                        <el-col  :span="4" class="label">amount: </el-col>
+                        <el-col  :span="18">
+                            <el-input v-model="functionAbi.amount"></el-input>
+                        </el-col>
+                    </el-row>
+                </template>
 
                 <el-row class="row" type="flex" justify="center" align="middle" :key="input.name" v-for="(input, index) in functionAbi.abi.inputs">
                     <el-col :span="4" class="label">{{input.name}}</el-col>
@@ -28,9 +35,24 @@
                     </el-col>
                 </el-row>
 
-                <div class="call-button-wrapper">
-                    <el-button @click="callContract(functionAbi)">call "{{functionAbi.abi.name}}"</el-button>
-                </div>
+                <template v-if="functionAbi.abi.type === 'offchain'">
+                    <div class="call-button-wrapper">
+                        <el-button @click="callOffchain(functionAbi)">call offchain "{{functionAbi.abi.name}}"</el-button>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="call-button-wrapper">
+                        <el-button @click="callContract(functionAbi)">call "{{functionAbi.abi.name}}"</el-button>
+                    </div>
+                </template>
+                <template v-if="functionAbi.result">
+                    <el-row class="row" type="flex" justify="center" align="middle" :key="item.name" v-for="item in functionAbi.result">
+                        <template v-if="item.name">
+                            <div>{{item.name}}:</div>
+                        </template>
+                        <div>{{item.value}}</div>
+                    </el-row>
+                </template>
             </template>
 
         </div>
@@ -40,7 +62,7 @@
 import * as vite from 'global/vite';
 
 export default {
-    props: ['account', 'abi', 'contractAddress'],
+    props: ['account', 'abi', 'contractAddress','offchainCode'],
     data () {
         return {
             functionAbiList: []
@@ -54,10 +76,23 @@ export default {
             if (methodAbi.type === 'function') {
                 this.functionAbiList.push({
                     isShow: false,
+                    hasAmount:true,
                     status: 'BEFORE_CALL',
                     abi: methodAbi,
                     params: this.getParams(methodAbi),
-                    amount: '0'
+                    amount: '0',
+                    result:[]
+                });
+            }
+
+            if (methodAbi.type === 'offchain') {
+                this.functionAbiList.push({
+                    isShow: false,
+                    hasAmount:false,
+                    status: 'BEFORE_CALL',
+                    abi: methodAbi,
+                    params: this.getParams(methodAbi),
+                    result:[]
                 });
             }
         }
@@ -86,7 +121,6 @@ export default {
                 }
             });
             return params;
-
         },
         async callContract (functionAbi) {
             try {
@@ -118,6 +152,34 @@ export default {
             } catch (err) {
                 this.$message({
                     message: `Call "${functionAbi.abi.name}" failed, error is ${JSON.stringify(err)}`,
+                    type: 'error'
+                });
+            }
+
+            functionAbi.status = 'BEFORE_CALL';
+            this.makeViewUpdate();
+        },
+        async callOffchain (functionAbi) {
+            try {
+                functionAbi.status = 'CALLING';
+                this.makeViewUpdate();
+            
+                let offchainResult = await vite.callOffchainMethod(
+                    this.contractAddress, 
+                    functionAbi.abi, 
+                    this.offchainCode,
+                    functionAbi.params
+                );
+
+                this.$message({
+                    message: `Call offchain "${functionAbi.abi.name}" success!"${offchainResult}"`,
+                    type: 'success'
+                });
+
+                functionAbi.result = offchainResult;
+            } catch (err) {
+                this.$message({
+                    message: `Call offchain "${functionAbi.abi.name}" failed, error is ${JSON.stringify(err)}`,
                     type: 'error'
                 });
             }

@@ -22,6 +22,7 @@ export default class ExtensionRequestProcessor {
     public getCompileResult ():any {
         return {
             bytecodesList: this.debugSession.bytecodesList,
+            offchainCodesList: this.debugSession.offchainCodesList,
             abiList: this.debugSession.abiList
         }
 

@@ -16,6 +16,7 @@
                     :account="account" 
                     :abi="contract.abi" 
                     :contractAddress="contract.contractAddress"
+                    :offchainCode="contract.offchainCode"
                     @sendContractTx="onSendContractTx($event, index)"></method-list>
 
                 <result-list

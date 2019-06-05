@@ -29,7 +29,7 @@
 import * as vite from 'global/vite';
 
 export default {
-    props: ['abi', 'bytecodes', 'account'],
+    props: ['abi', 'bytecodes','offchainCodes', 'account'],
     data () {
         return {
             amount: '0',

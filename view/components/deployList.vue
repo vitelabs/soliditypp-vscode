@@ -13,7 +13,8 @@
                 :account="account"
                 :abi="abi" 
                 :bytecodes="compileResult.bytecodesList[index]" 
-                @deployed="deployed($event, abi, compileResult.contractNameList[index])"> 
+                :offchainCodes="compileResult.offchainCodesList[index]" 
+                @deployed="deployed($event, abi, compileResult.contractNameList[index], compileResult.offchainCodesList[index])"> 
             </deploy>            
         </div>
     </div>
@@ -41,8 +42,8 @@ export default {
         });
     },
     methods: {
-        deployed (contractBlock, abi, contractName) {
-            this.$emit('deployed', contractBlock, abi, contractName);
+        deployed (contractBlock, abi, contractName, offchainCode) {
+            this.$emit('deployed', contractBlock, abi, contractName, offchainCode);
         },
 
         showDeploy (index) {

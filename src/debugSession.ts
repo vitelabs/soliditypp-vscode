@@ -41,6 +41,11 @@ export default class SolidityppDebugSession extends DebugSession {
 		return this._bytecodesList;
     }
 
+    private _offchainCodesList: string[] = [];
+    public get offchainCodesList() {
+		return this._offchainCodesList;
+    }
+
     private _abiList: any[][] = [];
     public get abiList() {
 		return this._abiList;
@@ -118,9 +123,14 @@ export default class SolidityppDebugSession extends DebugSession {
                 line = line.slice("======= ".length, -(" =======".length)).split(":")[1]; 
                 this._contractNameList.push(line);
             } else if (line.startsWith("Binary:")) {
-                this._bytecodesList.push(lines[i+1]);
+                i++;
+                this._bytecodesList.push(lines[i]);
+            } else if (line.startsWith("OffChain Binary:")) {
+                i++;
+                this._offchainCodesList.push(lines[i]);
             } else if (line.startsWith("Contract JSON ABI")) {
-                this._abiList.push(JSON.parse(lines[i+1]));
+                i++;
+                this._abiList.push(JSON.parse(lines[i]));
             }
         }
 
