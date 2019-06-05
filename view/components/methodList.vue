@@ -172,14 +172,16 @@ export default {
                 );
 
                 this.$message({
-                    message: `Call offchain "${functionAbi.abi.name}" success!"${offchainResult}"`,
+                    dangerouslyUseHTMLString: true,
+                    message: `<div style="overflow-wrap: break-word;">Call offchain "${functionAbi.abi.name}" success!"${offchainResult}"</div>`,
                     type: 'success'
                 });
 
                 functionAbi.result = offchainResult;
             } catch (err) {
                 this.$message({
-                    message: `Call offchain "${functionAbi.abi.name}" failed, error is ${JSON.stringify(err)}`,
+                    dangerouslyUseHTMLString: true,
+                    message: `<div style="overflow-wrap: break-word;">Call offchain "${functionAbi.abi.name}" failed, error is ${JSON.stringify(err)}</div>`,
                     type: 'error'
                 });
             }

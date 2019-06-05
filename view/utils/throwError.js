@@ -4,7 +4,7 @@ const COMMAND_PREFIX = 'view2extension.';
 
 export default function throwError (err) {
     let body = err.toString();
-    if (!body) {
+    if (!body || body === '[object Object]') {
         body = JSON.stringify(err);
     }
 

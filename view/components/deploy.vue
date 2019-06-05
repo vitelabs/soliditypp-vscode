@@ -87,8 +87,10 @@ export default {
                 this.$emit('deployed', createContractBlock);
             } catch (err ){ 
                 this.$message({
-                    message: `Deploy failed, error is ${JSON.stringify(err)}`,
-                    type: 'error'
+                    dangerouslyUseHTMLString: true,
+                    message: `<div class="overflow-wrap: break-word; word-break:break-all;">Deploy failed, error is ${JSON.stringify(err)}</div>`,
+                    type: 'error',
+                    duration: 100000,
                 });
             }
             this.status = 'BEFORE_DEPLOY';

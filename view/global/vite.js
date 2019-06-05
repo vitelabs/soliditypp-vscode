@@ -84,14 +84,13 @@ export async function sendContractTx (account,contractAddress, abi, amount, para
 export async function callOffchainMethod (contractAddress, abi, offchaincode, params) {
     let data = abiutils.encodeFunctionCall(abi,params);
     let dataBase64 = Buffer.from(data, 'hex').toString('base64');
-    let result = await viteClient.request('contract_callOffChainMethod',
-        {
-            'selfAddr':contractAddress,
-            'offChainCode':offchaincode,
-            'data':dataBase64
-        })
+    let result = await viteClient.request('contract_callOffChainMethod',{
+        'selfAddr':contractAddress,
+        'offChainCode':offchaincode,
+        'data':dataBase64
+    });
     if (result) {
-        let resultBytes = Buffer.from(result, 'base64').toString('hex');;
+        let resultBytes = Buffer.from(result, 'base64').toString('hex');
         let outputs = [];
         for (let i = 0; i < abi.outputs.length; i++) {
             outputs.push(abi.outputs[i].type);
@@ -107,7 +106,7 @@ export async function callOffchainMethod (contractAddress, abi, offchaincode, pa
         }
         return resultList;
     }
-    return "";
+    return '';
 }
 
 export async function queryVmLogList (contractBlock, abi) {

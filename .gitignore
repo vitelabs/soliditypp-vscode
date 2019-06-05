@@ -4,6 +4,8 @@ gvite
 .DS_Store
 ledger
 *.vsix
+bin/solppc/solppc
+solppc_*.zip
 __MACOSX
 bin/vite/gvite-*.zip
 gvite-v*/

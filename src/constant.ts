@@ -1,4 +1,8 @@
 import * as vscode from 'vscode';
+import * as process from 'process';
+import * as os from 'os';
+import * as path from 'path';
+
 
 export const extensionId = "ViteLabs.soliditypp";
 
@@ -11,3 +15,41 @@ export const extensionPath = _extensionPath;
 
 export const debuggerType = "soliditypp"
 export const languageId = "soliditypp"
+export const BIN_DIR = path.resolve(extensionPath, "bin/");
+export const VITE_DIR = path.resolve(BIN_DIR, "vite/");
+export const SOLPPC_DIR = path.resolve(BIN_DIR, "solppc/");
+export const PLATFORM_ERROR = "don't support win32"
+
+export enum OS_PLATFORM {
+    WIN32 = 1,
+    WIN64 = 2,
+    DARWIN=3,
+    LINUX = 4,
+}
+export function getOsPlatform ():OS_PLATFORM {
+    let platform = process.platform;
+    let arch = os.arch()
+    if(platform === 'darwin') {
+        return OS_PLATFORM.DARWIN
+    } else if (platform === 'win32') {
+        if (arch === 'ia32') {
+            return OS_PLATFORM.WIN32
+        } else if (arch === 'x64') {
+            return OS_PLATFORM.WIN64
+        }
+    } 
+    return OS_PLATFORM.LINUX
+}
+function getSolppcName ():string {
+    let osPlatform = getOsPlatform();
+
+    if (osPlatform === OS_PLATFORM.WIN32 || osPlatform === OS_PLATFORM.WIN64) {
+        return "solppc.exe"
+    } else {
+        return "solppc"
+    }
+}
+
+export  function getSolppcPath () :string {
+    return path.resolve(SOLPPC_DIR, getSolppcName())
+}

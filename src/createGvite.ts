@@ -1,7 +1,6 @@
-import * as process from 'process';
-import * as os from 'os';
+
 import * as path from 'path';
-import { extensionPath } from './constant';
+import { VITE_DIR, getOsPlatform, OS_PLATFORM, PLATFORM_ERROR } from './constant';
 import * as fs from 'fs';
 import  uri from './uri';
 import * as request from 'request';
@@ -15,37 +14,26 @@ import {
 const decompressTargz = require('decompress-targz');
 
 
-const VITE_DIR = path.resolve(extensionPath, "bin/vite/");
-
-enum OS_PLATFORM {
-    WIN32 = 1,
-    WIN64 = 2,
-    DARWIN=3,
-    LINUX = 4,
-}
-
-function checkOsPlatform ():OS_PLATFORM {
-    let platform = process.platform;
-    let arch = os.arch()
-    if(platform === 'darwin') {
-        return OS_PLATFORM.DARWIN
-    } else if (platform === 'win32') {
-        if (arch === 'ia32') {
-            return OS_PLATFORM.WIN32
-        } else if (arch === 'x64') {
-            return OS_PLATFORM.WIN64
-        }
-    } 
-    return OS_PLATFORM.LINUX
-}
 
 function getGviteName ():string {
-    let osPlatform = checkOsPlatform();
+    let osPlatform = getOsPlatform();
 
     if (osPlatform === OS_PLATFORM.WIN32 || osPlatform === OS_PLATFORM.WIN64) {
         return "gvite.exe"
     } else {
         return "gvite"
+    }
+}
+
+function getOrigGviteName ():string {
+    let osPlatform = getOsPlatform();
+    switch (osPlatform) {
+        case OS_PLATFORM.WIN32:
+            throw PLATFORM_ERROR
+        case OS_PLATFORM.WIN64:
+            return "gvite-windows-amd64.exe"
+        default:
+            return "gvite"
     }
 }
 
@@ -55,7 +43,7 @@ function getGvitePath () :string {
 
 
 function getGviteCompressedPath () :string{
-    let osPlatform = checkOsPlatform();
+    let osPlatform = getOsPlatform();
     let compressedFilePath = ''
     switch (osPlatform) {
         case OS_PLATFORM.DARWIN: {
@@ -73,8 +61,7 @@ function getGviteCompressedPath () :string{
 
         }
         case OS_PLATFORM.WIN32: {
-            compressedFilePath = path.resolve(VITE_DIR, "gvite-win32.zip");                    
-            break;
+            throw PLATFORM_ERROR
 
         }
     }
@@ -89,51 +76,8 @@ function checkCompressedGviteIsExisted() :boolean{
     return fs.existsSync(getGviteCompressedPath());
 }
 
-
-// function showDownloadProgress () {
-
-// }
-
-// function hideDownloadProgress () {
-    
-// }
-
-// async function uncompressGvite () {
-//     let osPlatform = checkOsPlatform();
-//     let compressedFilePath = ''
-//     switch (osPlatform) {
-//         case OS_PLATFORM.DARWIN: {
-//             compressedFilePath = path.resolve(VITE_DIR, "gvite-darwin.zip");
-//             break;
-//         }
-//         case OS_PLATFORM.LINUX: {
-//             // compressedFilePath = path.resolve(VITE_DIR, "gvite-linux.zip");
-//             throw PLATFORM_ERROR            
-//             break;
-
-//         }
-//         case OS_PLATFORM.WIN64: {
-//             // compressedFilePath = path.resolve(VITE_DIR, "gvite-win64.zip");
-//             throw PLATFORM_ERROR                        
-//             break;
-
-//         }
-//         case OS_PLATFORM.WIN32: {
-//             // compressedFilePath = path.resolve(VITE_DIR, "gvite-win32.zip");
-//             throw PLATFORM_ERROR                        
-//             break;
-
-//         }
-//     }
-
-
- 
-
-// }
-
-
 async function downloadGvite (ds: SolidityppDebugSession) {
-    let osPlatform = checkOsPlatform();
+    let osPlatform = getOsPlatform();
     let downloadUri = ""
 
     switch (osPlatform) {
@@ -154,9 +98,8 @@ async function downloadGvite (ds: SolidityppDebugSession) {
 
         }
         case OS_PLATFORM.WIN32: {
-            downloadUri = uri.gviteDownload.win32
-            // compressedFilePath = path.resolve(VITE_DIR, "gvite-win32.zip");                
-            break;
+            throw PLATFORM_ERROR
+            // compressedFilePath = path.resolve(VITE_DIR, "gvite-win32.zip");
         }
     }
 
@@ -196,19 +139,18 @@ async function uncompressGvite () {
         ]
     }).then(files => {
         let gviteName = getGviteName()
+        let origGviteName = getOrigGviteName()
         let directory = files[0].path
         for (let i = 1; i < files.length; i++) {
             let filePath = files[i].path
             let fileName = filePath.replace(directory, "")
-            if (fileName === gviteName) {
-                fs.renameSync(path.join(VITE_DIR, filePath), path.join(VITE_DIR, fileName))
+            if (fileName === origGviteName) {
+                fs.renameSync(path.join(VITE_DIR, filePath), path.join(VITE_DIR, gviteName))
                 break;
             }
         }
         return files;
     });
-
-
 }
 
 export default async function createGvite (ds: SolidityppDebugSession) {

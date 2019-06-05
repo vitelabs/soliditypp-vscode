@@ -5,6 +5,8 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import ViewRequestProcessor from './viewRequestProcessor';
 import { exec }  from 'shelljs';
 
+import { getSolppcPath } from './constant';
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
@@ -13,6 +15,7 @@ import { ChildProcess, spawn, spawnSync} from 'child_process';
 import ExtensionRequestProcessor from './extensionRequestProcessor';
 import { extensionPath } from './constant';
 import createGvite from './createGvite';
+import createSolppc from './createSolppc';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -85,6 +88,7 @@ export default class SolidityppDebugSession extends DebugSession {
             this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'))
 
             await createGvite(this)
+            await createSolppc(this)
             
             // set source file path
             this._sourceFilePath = args.program
@@ -109,7 +113,7 @@ export default class SolidityppDebugSession extends DebugSession {
     }
     
     private async compileSource ():Promise<boolean> {
-        const { code, stdout, stderr } = await exec(`${path.resolve(extensionPath, 'bin/solppc')} --bin --abi ${this.sourceFilePath}`)
+        const { code, stdout, stderr } = await exec(`${getSolppcPath()} --bin --abi ${this.sourceFilePath}`)
 
         if (code > 0) {
             // compile failed   
