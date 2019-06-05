@@ -143,7 +143,6 @@
 		"babel-polyfill": "^6.26.0",
 		"decompress": "^4.2.0",
 		"decompress-targz": "^4.1.1",
-		"decompress-unzip": "^4.0.1",
 		"element-ui": "^2.5.4",
 		"events": "^3.0.0",
 		"jsonrpc-lite": "^2.0.7",
