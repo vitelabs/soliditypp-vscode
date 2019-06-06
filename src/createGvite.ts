@@ -72,9 +72,9 @@ function checkGviteIsExisted() :boolean{
     return fs.existsSync(getGvitePath());
 }
 
-function checkCompressedGviteIsExisted() :boolean{
-    return fs.existsSync(getGviteCompressedPath());
-}
+// function checkCompressedGviteIsExisted() :boolean{
+//     return fs.existsSync(getGviteCompressedPath());
+// }
 
 async function downloadGvite (ds: SolidityppDebugSession) {
     let osPlatform = getOsPlatform();

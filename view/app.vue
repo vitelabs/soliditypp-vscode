@@ -43,13 +43,26 @@ export default {
         try {
             let compileResult = await getCompileResult();
             this.compileResult = compileResult;
-            
             await vite.init(compileResult);
-
-            this.selectedAccount = await vite.createAccount();
         } catch (err) {
             throwError(err);
         }
+
+        var newRandomAccount = async () => {
+            try {
+                this.selectedAccount = await vite.createAccount();
+            } catch (err) {
+                await new Promise((resolve) => {
+                    setTimeout(() => {
+                        console.log('delay');
+                        resolve();
+                    }, 100);
+                }).then(() => newRandomAccount());
+            }
+        };
+
+        await newRandomAccount();
+
     },
     methods: {
         onSelectAccount (selectedAccount) {

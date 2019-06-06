@@ -27,6 +27,7 @@
 
 <script>
 import * as vite from 'global/vite';
+import throwError from 'utils/throwError';
 
 export default {
     props: ['abi', 'bytecodes','offchainCodes', 'account'],
@@ -86,12 +87,7 @@ export default {
                 
                 this.$emit('deployed', createContractBlock);
             } catch (err ){ 
-                this.$message({
-                    dangerouslyUseHTMLString: true,
-                    message: `<div class="overflow-wrap: break-word; word-break:break-all;">Deploy failed, error is ${JSON.stringify(err)}</div>`,
-                    type: 'error',
-                    duration: 100000,
-                });
+                throwError(err);
             }
             this.status = 'BEFORE_DEPLOY';
         }
