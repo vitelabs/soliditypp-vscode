@@ -1,5 +1,10 @@
 # Soliditypp extension for Visual Studio Code
 
+## v0.4.2
+
+### Features
+1. Remove unused files to reduce plugin size
+
 ## v0.4.0
 
 ### Features

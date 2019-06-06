@@ -7,16 +7,13 @@
 view/**/*
 *.vsix
 .gitignore
-__MACOSX
+bin/vite/__MACOSX
 
-# data
 bin/vite/ledger
 
-# solppc
 bin/solppc/solppc
 solppc_*.zip
 
-# gvite
 bin/vite/gvite-*.zip
-gvite-v*/
-gvite
+bin/vite/gvite-v*/
+bin/vite/gvite
