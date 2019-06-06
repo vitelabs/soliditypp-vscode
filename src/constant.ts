@@ -40,6 +40,16 @@ export function getOsPlatform ():OS_PLATFORM {
     } 
     return OS_PLATFORM.LINUX
 }
+export function getGviteName ():string {
+    let osPlatform = getOsPlatform();
+
+    if (osPlatform === OS_PLATFORM.WIN32 || osPlatform === OS_PLATFORM.WIN64) {
+        return "gvite.exe"
+    } else {
+        return "gvite"
+    }
+}
+
 function getSolppcName ():string {
     let osPlatform = getOsPlatform();
 

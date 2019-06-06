@@ -11,9 +11,10 @@ bin/vite/__MACOSX
 
 bin/vite/ledger
 
-bin/solppc/solppc
+bin/solppc/*
 solppc_*.zip
 
 bin/vite/gvite-*.zip
 bin/vite/gvite-v*/
 bin/vite/gvite
+bin/vite/gvite.exe

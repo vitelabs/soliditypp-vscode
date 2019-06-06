@@ -1,6 +1,6 @@
 
 import * as path from 'path';
-import { VITE_DIR, getOsPlatform, OS_PLATFORM, PLATFORM_ERROR } from './constant';
+import { VITE_DIR, getOsPlatform, getGviteName, OS_PLATFORM, PLATFORM_ERROR } from './constant';
 import * as fs from 'fs';
 import  uri from './uri';
 import * as request from 'request';
@@ -13,15 +13,7 @@ import {
 // const decompressUnzip = require( 'decompress-unzip');
 const decompressTargz = require('decompress-targz');
 
-function getGviteName ():string {
-    let osPlatform = getOsPlatform();
 
-    if (osPlatform === OS_PLATFORM.WIN32 || osPlatform === OS_PLATFORM.WIN64) {
-        return "gvite.exe"
-    } else {
-        return "gvite"
-    }
-}
 
 function getOrigGviteName ():string {
     let osPlatform = getOsPlatform();

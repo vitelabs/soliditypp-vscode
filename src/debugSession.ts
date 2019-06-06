@@ -3,23 +3,23 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import ViewRequestProcessor from './viewRequestProcessor';
-import { exec }  from 'shelljs';
+import { exec } from 'shelljs';
 
-import { getSolppcPath } from './constant';
+import { getSolppcPath, getGviteName } from './constant';
 
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
 
-import { ChildProcess, spawn, spawnSync} from 'child_process';
+import { ChildProcess, spawn, spawnSync } from 'child_process';
 import ExtensionRequestProcessor from './extensionRequestProcessor';
 import { extensionPath } from './constant';
 import createGvite from './createGvite';
 import createSolppc from './createSolppc';
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-	/** An absolute path to the "program" to debug. */
-	program: string;
+    /** An absolute path to the "program" to debug. */
+    program: string;
 }
 
 const VIEW_COMMAND_PREFIX = "view2debugAdapter."
@@ -30,9 +30,9 @@ export default class SolidityppDebugSession extends DebugSession {
     private extensionRequestProcessor: ExtensionRequestProcessor
 
     // the initial (and one and only) file we are 'debugging'
-	private _sourceFilePath: string = "";
-	public get sourceFilePath() {
-		return this._sourceFilePath;
+    private _sourceFilePath: string = "";
+    public get sourceFilePath() {
+        return this._sourceFilePath;
     }
     private _contractNameList: string[] = [];
     public get contractNameList() {
@@ -41,23 +41,23 @@ export default class SolidityppDebugSession extends DebugSession {
 
     private _bytecodesList: string[] = [];
     public get bytecodesList() {
-		return this._bytecodesList;
+        return this._bytecodesList;
     }
 
     private _offchainCodesList: string[] = [];
     public get offchainCodesList() {
-		return this._offchainCodesList;
+        return this._offchainCodesList;
     }
 
     private _abiList: any[][] = [];
     public get abiList() {
-		return this._abiList;
+        return this._abiList;
     }
 
     private _viteChildProcess: ChildProcess | undefined
 
     public constructor() {
-        super();        
+        super();
         this.viewRequestProcessor = new ViewRequestProcessor(this);
         this.extensionRequestProcessor = new ExtensionRequestProcessor(this);
         return this;
@@ -73,8 +73,8 @@ export default class SolidityppDebugSession extends DebugSession {
         }
     }
 
-    protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments):void {
-        response.body = <DebugProtocol.Capabilities> {
+    protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+        response.body = <DebugProtocol.Capabilities>{
             supportsTerminateRequest: true
         }
 
@@ -84,19 +84,19 @@ export default class SolidityppDebugSession extends DebugSession {
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
         try {
             await vscode.commands.executeCommand("workbench.debug.panel.action.clearReplAction")
-            
+
             this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'))
 
             await createGvite(this)
             await createSolppc(this)
-            
+
             // set source file path
             this._sourceFilePath = args.program
-    
+
             if (!(await this.compileSource())) {
                 return;
             }
-    
+
             this.initVite()
             this.sendEvent(new OutputEvent('Vite is ready!\n', 'stdout'))
             this.sendResponse(response);
@@ -109,10 +109,10 @@ export default class SolidityppDebugSession extends DebugSession {
             }
             this.aborted(msg, 1)
         }
-       
+
     }
-    
-    private async compileSource ():Promise<boolean> {
+
+    private async compileSource(): Promise<boolean> {
         const { code, stdout, stderr } = await exec(`${getSolppcPath()} --bin --abi ${this.sourceFilePath}`)
 
         if (code > 0) {
@@ -125,7 +125,7 @@ export default class SolidityppDebugSession extends DebugSession {
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (line.startsWith("======= ")) {
-                line = line.slice("======= ".length, -(" =======".length)).split(":")[1]; 
+                line = line.slice("======= ".length, -(" =======".length)).split(":")[1];
                 this._contractNameList.push(line);
             } else if (line.startsWith("Binary:")) {
                 i++;
@@ -142,9 +142,9 @@ export default class SolidityppDebugSession extends DebugSession {
         return true;
     }
 
-    private initVite (){
+    private initVite() {
         this.cleanVite();
-        this._viteChildProcess = spawn('./run.sh', [], {
+        this._viteChildProcess = spawn(`./${getGviteName()}`, [], {
             cwd: path.resolve(extensionPath, 'bin/vite/')
         });
 
@@ -159,23 +159,24 @@ export default class SolidityppDebugSession extends DebugSession {
                 this.sendEvent(<DebugProtocol.OutputEvent>{
                     event: 'output',
                     body: {
-                        category: 'stderr', 
+                        category: 'stderr',
                         output: `vite exited with code ${code}`
                     }
                 });
-            } 
-           
+            }
+
             this.terminateSession(code)
         })
     }
 
-    private cleanVite () {
+    private cleanVite() {
         if (this._viteChildProcess && !this._viteChildProcess.killed) {
             this._viteChildProcess.kill('SIGKILL')
         }
 
         spawnSync('./clean.sh', [], {
-            cwd: path.resolve(extensionPath, 'bin/vite/')
+            cwd: path.resolve(extensionPath, 'bin/vite/'),
+            shell: true
         })
     }
 
@@ -184,23 +185,23 @@ export default class SolidityppDebugSession extends DebugSession {
         this.sendResponse(response);
     }
 
-    protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {   
+    protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
         this.cleanVite();
         this.sendResponse(response);
     }
 
-    public aborted (errorMsg:string="", code:number =0) {
+    public aborted(errorMsg: string = "", code: number = 0) {
         this.sendEvent(<DebugProtocol.OutputEvent>{
             event: 'output',
             body: {
-                category: 'stderr', 
+                category: 'stderr',
                 output: errorMsg
             }
         });
         this.terminateSession(code)
     }
 
-    public terminateSession (code:number = 0) {
+    public terminateSession(code: number = 0) {
         this.cleanVite();
 
         this.sendEvent(<DebugProtocol.TerminatedEvent>{

@@ -40,6 +40,6 @@
   "VMTestEnabled":true,
   "VMDebug":true,
   "DataDir":"ledger",
-  "KeyStoreDir":"ledger",
+  "KeyStoreDir":"./",
   "SubscribeEnabled":true
 }

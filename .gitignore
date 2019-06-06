@@ -1,10 +1,11 @@
 node_modules
 out
 gvite
+gvite.exe
 .DS_Store
 ledger
 *.vsix
-bin/solppc/solppc
+bin/solppc/*
 solppc_*.zip
 __MACOSX
 bin/vite/gvite-*.zip
