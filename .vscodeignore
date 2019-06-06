@@ -11,6 +11,7 @@ bin/vite/__MACOSX
 
 bin/vite/ledger
 
+!bin/solppc/.keep
 bin/solppc/*
 solppc_*.zip
 

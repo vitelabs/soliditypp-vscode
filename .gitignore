@@ -6,6 +6,7 @@ gvite.exe
 ledger
 *.vsix
 bin/solppc/*
+!bin/solppc/.keep
 solppc_*.zip
 __MACOSX
 bin/vite/gvite-*.zip

@@ -71,7 +71,7 @@ export default {
         async deploy () {
             try {
                 this.status = 'DEPLOYING';
-                
+
                 let createContractTx = await vite.createContract(this.account, {
                     bytecodes: this.bytecodes,
                     abi: this.abi

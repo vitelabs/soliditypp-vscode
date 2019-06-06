@@ -1,5 +1,9 @@
 # Soliditypp extension for Visual Studio Code
 
+## v0.4.3
+### Fixes
+1. Fix that fail to run `gvite` on windows.
+
 ## v0.4.2
 
 ### Features
