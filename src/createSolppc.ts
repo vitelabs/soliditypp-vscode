@@ -12,8 +12,6 @@ import {
 const decompressTargz = require('decompress-targz');
 
 
-
-
 function getSolppcCompressedPath () :string{
     let osPlatform = getOsPlatform();
     let compressedFilePath = ''

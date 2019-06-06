@@ -58,15 +58,17 @@
           "RewardTime":1,
           "CancelTime":0,
           "HisAddrList":["vite_e41be57d38c796984952fad618a9bc91637329b5255cb18906"]
-        },
-        "s2":{
-            "NodeAddr":"vite_0acbb1335822c8df4488f3eea6e9000eabb0f19d8802f57c87",
-            "PledgeAddr":"vite_0acbb1335822c8df4488f3eea6e9000eabb0f19d8802f57c87",
+        }
+      },
+      "00000000000000000002": {
+        "s1":{
+            "NodeAddr":"vite_e41be57d38c796984952fad618a9bc91637329b5255cb18906",
+            "PledgeAddr":"vite_e41be57d38c796984952fad618a9bc91637329b5255cb18906",
             "Amount":500000000000000000000000,
             "WithdrawHeight":7776000,
             "RewardTime":1,
             "CancelTime":0,
-            "HisAddrList":["vite_0acbb1335822c8df4488f3eea6e9000eabb0f19d8802f57c87"]
+            "HisAddrList":["vite_e41be57d38c796984952fad618a9bc91637329b5255cb18906"]
           }
       }
     }

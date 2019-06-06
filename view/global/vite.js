@@ -8,6 +8,7 @@ import receiveAllOnroadTx from 'utils/receiveAllOnroadTx';
 const VITE_TOKEN_ID = 'tti_5649544520544f4b454e6e40';
 const WS_SERVER = 'ws://localhost:23457';
 const GENESIS_PRIVATEKEY = '7488b076b27aec48692230c88cbe904411007b71981057ea47d757c1e7f7ef24f4da4390a6e2618bec08053a86a6baf98830430cbefc078d978cf396e1c43e3a';
+const ACCOUNT_INIT_AMOUNT = '100000000000000000000000';
 
 let viteClient;
 let genesisAccount;
@@ -51,7 +52,7 @@ export async function createAccount () {
     await genesisAccount.sendTx({
         toAddress: account.address,
         tokenId: VITE_TOKEN_ID,
-        amount: '1'
+        amount: ACCOUNT_INIT_AMOUNT,
     });
     
     await receiveAllOnroadTx(viteClient, account);

@@ -5,3 +5,4 @@
 ### Features
 1. Support for offchain querying
 2. Adapt to multiple platforms(Linux、Darwin、Win64)
+3. Compatible with gvite@2.1.4

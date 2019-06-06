@@ -13,8 +13,6 @@ import {
 // const decompressUnzip = require( 'decompress-unzip');
 const decompressTargz = require('decompress-targz');
 
-
-
 function getGviteName ():string {
     let osPlatform = getOsPlatform();
 

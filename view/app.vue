@@ -54,9 +54,8 @@ export default {
             } catch (err) {
                 await new Promise((resolve) => {
                     setTimeout(() => {
-                        console.log('delay');
                         resolve();
-                    }, 100);
+                    }, 200);
                 }).then(() => newRandomAccount());
             }
         };
