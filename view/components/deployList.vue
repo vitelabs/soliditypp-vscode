@@ -6,6 +6,29 @@
             :key="index"
             v-for="(deployInfo, index) in deployInfoList"
         >
+            <el-collapse class="deploy-list-collapse">
+                <el-collapse-item title="select address">
+                    address:
+                    <el-select size="small">
+                        <!-- <el-option
+                    v-for="account in accountList"
+                    :key="account.address"
+                    :label="account.address"
+                    :value="account.address"
+            ></el-option>-->
+                    </el-select>
+                </el-collapse-item>
+
+                <el-collapse-item title="deploy"></el-collapse-item>
+            </el-collapse>
+            <!-- <el-select v-model="selectedAccountAddress" size="small">
+                <el-option
+                    v-for="account in accountList"
+                    :key="account.address"
+                    :label="account.address"
+                    :value="account.address"
+                ></el-option>
+      </el-select>-->
             <!-- <base-info
                 v-if="selectedAccount"
                 @onSelectAccount="onSelectAccount"
@@ -99,4 +122,12 @@ export default {
 </script>
 
 <style lang="scss">
+.deploy-list-collapse {
+  .el-collapse-item__header {
+    padding-left: 10px;
+  }
+  .el-collapse-item__wrap {
+    padding-left: 10px;
+  }
+}
 </style>

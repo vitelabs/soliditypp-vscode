@@ -3,7 +3,6 @@ import 'babel-polyfill';
 import './index.scss';
 
 import Vue from 'vue';
-import Vuex from 'vuex';
 import store from 'store/store';
 import App from './app.vue';
 import './theme/index.css';
@@ -21,7 +20,9 @@ import {
     Select,
     Option,
     Tabs,
-    TabPane
+    TabPane,
+    Collapse,
+    CollapseItem
 } from 'element-ui';
 
 Vue.use(Form);
@@ -36,6 +37,8 @@ Vue.use(Col);
 Vue.use(Loading.directive);
 Vue.use(Select);
 Vue.use(Option);
+Vue.use(Collapse);
+Vue.use(CollapseItem);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;
