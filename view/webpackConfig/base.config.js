@@ -7,7 +7,10 @@ const STATIC_PATH = path.join(__dirname, '../../out/view');
 let development = ['dev', 'test'];
 
 let config = {
-    mode: development.indexOf(process.env.NODE_ENV) > -1 ? 'development' : 'production',
+    mode:
+    development.indexOf(process.env.NODE_ENV) > -1
+        ? 'development'
+        : 'production',
     devtool: 'source-map',
 
     entry: {
@@ -18,51 +21,61 @@ let config = {
     },
     plugins,
     module: {
-        rules: [{
-            test: /\.vue$/,
-            use: [{
-                loader: 'vue-loader'
-            }]
-        }, {
-            test: /\.(svg|png|jpg|gif)$/,
-            loader: 'url-loader',
-            query: {
-                limit: 10 * 1024 //10KB
-            }
-        }, {
-            test: /\.js$/,
-            exclude: /node_modules/,
-            use: {
-                loader: 'babel-loader',
-                options: {
-                    presets: [
-                        '@babel/preset-env'
-                    ],
-                    plugins: [
-                        '@babel/plugin-proposal-class-properties',
-                        [ 
-                            'component',
-                            {
-                                'libraryName': 'element-ui',
-                                'styleLibraryName': 'theme-chalk'
-                            }
-                        ]
-                    ]
+        rules: [
+            {
+                test: /\.vue$/,
+                use: [
+                    {
+                        loader: 'vue-loader'
+                    }
+                ]
+            },
+            {
+                test: /\.(svg|png|jpg|gif)$/,
+                loader: 'url-loader',
+                query: {
+                    limit: 10 * 1024 //10KB
                 }
+            },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env'],
+                        plugins: [
+                            '@babel/plugin-proposal-class-properties'
+                            // [
+                            //     'component',
+                            //     {
+                            //         'libraryName': 'element-ui',
+                            //         'styleLibraryName': 'theme-chalk'
+                            //     }
+                            // ]
+                        ]
+                    }
+                }
+            },
+            {
+                test: /(\.scss$|\.css$|\.sass$)/,
+                use: [
+                    {
+                        loader: 'style-loader'
+                    },
+                    {
+                        loader: 'css-loader'
+                    },
+                    {
+                        loader: 'sass-loader'
+                    }
+                ]
+            },
+            {
+                test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+                loader: 'url-loader'
             }
-        }, {
-            test: /(\.scss$|\.css$|\.sass$)/,
-            use: [{
-                loader: 'style-loader'
-            }, {
-                loader: 'css-loader'
-            }, {
-                loader: 'sass-loader'
-            }]
-        }, {
-            test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-            loader: 'url-loader'
-        }]
+        ]
     },
     resolve: {
         alias: {

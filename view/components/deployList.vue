@@ -1,6 +1,25 @@
 <template>
-    <div class="module-wrapper">
-        <h4 class="title">Deploy contract</h4>    
+    <!-- <div class="module-wrapper"> -->
+    <el-tabs type="card" @tab-click="contractSelect">
+        <el-tab-pane
+            :label="compileResult.contractNameList[index]"
+            :key="index"
+            v-for="(abi, index) in compileResult.abiList"
+        >
+            <deploy
+                :account="account"
+                :abi="abi"
+                :bytecodes="compileResult.bytecodesList[index]"
+                :offchainCodes="compileResult.offchainCodesList[index]"
+                @deployed="deployed($event, abi, compileResult.contractNameList[index], compileResult.offchainCodesList[index])"
+            ></deploy>
+        </el-tab-pane>
+    <!-- <el-tab-pane label="配置管理" name="second">配置管理</el-tab-pane>
+            <el-tab-pane label="角色管理" name="third">角色管理</el-tab-pane>
+    <el-tab-pane label="定时任务补偿" name="fourth">定时任务补偿</el-tab-pane>-->
+    </el-tabs>
+
+    <!-- <h4 class="title">Deploy contract</h4>    
         <div :key="index" v-for = "(abi, index) in compileResult.abiList" >
             <h5 class="title">
                 <i class="el-icon-caret-bottom" @click="hideDeploy(index)" v-if="showContractDeployList[index]"></i>
@@ -16,8 +35,8 @@
                 :offchainCodes="compileResult.offchainCodesList[index]" 
                 @deployed="deployed($event, abi, compileResult.contractNameList[index], compileResult.offchainCodesList[index])"> 
             </deploy>            
-        </div>
-    </div>
+  </div>-->
+    <!-- </div> -->
 </template>
     
 <script>
@@ -26,31 +45,32 @@ export default {
     components: {
         deploy
     },
-    props: [
-        'compileResult',
-        'account'
-    ],
-    data () {
+    props: ['compileResult', 'account'],
+    data() {
         return {
-            showContractDeployList: []
+            showContractDeployList: [],
+            activeTabName: ''
         };
     },
 
-    created () {
+    created() {
         this.compileResult.abiList.forEach((abi, index) => {
             this.showContractDeployList[index] = false;
         });
     },
     methods: {
-        deployed (contractBlock, abi, contractName, offchainCode) {
+        contractSelect(tab, event) {
+            console.log(tab, event);
+        },
+        deployed(contractBlock, abi, contractName, offchainCode) {
             this.$emit('deployed', contractBlock, abi, contractName, offchainCode);
         },
 
-        showDeploy (index) {
+        showDeploy(index) {
             this.$set(this.showContractDeployList, index, true);
         },
 
-        hideDeploy (index) {
+        hideDeploy(index) {
             this.$set(this.showContractDeployList, index, false);
         }
     }
@@ -58,5 +78,4 @@ export default {
 </script>
 
 <style lang="scss">
-    
 </style>
