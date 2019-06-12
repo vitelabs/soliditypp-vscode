@@ -2,21 +2,24 @@
     <!-- <div class="module-wrapper"> -->
     <el-tabs type="card" @tab-click="contractSelect">
         <el-tab-pane
-            :label="compileResult.contractNameList[index]"
+            :label="deployInfo.compileInfo.contractName"
             :key="index"
-            v-for="(abi, index) in compileResult.abiList"
+            v-for="(deployInfo, index) in deployInfoList"
         >
+            <!-- <base-info
+                v-if="selectedAccount"
+                @onSelectAccount="onSelectAccount"
+                :selected-account="selectedAccount"
+                :contractAddress="contractAddress"
+            ></base-info>
             <deploy
                 :account="account"
                 :abi="abi"
                 :bytecodes="compileResult.bytecodesList[index]"
                 :offchainCodes="compileResult.offchainCodesList[index]"
                 @deployed="deployed($event, abi, compileResult.contractNameList[index], compileResult.offchainCodesList[index])"
-            ></deploy>
+      ></deploy>-->
         </el-tab-pane>
-    <!-- <el-tab-pane label="配置管理" name="second">配置管理</el-tab-pane>
-            <el-tab-pane label="角色管理" name="third">角色管理</el-tab-pane>
-    <el-tab-pane label="定时任务补偿" name="fourth">定时任务补偿</el-tab-pane>-->
     </el-tabs>
 
     <!-- <h4 class="title">Deploy contract</h4>    
@@ -40,39 +43,57 @@
 </template>
     
 <script>
-import deploy from './deploy';
+// import deploy from './deploy';
+// import baseInfo from 'components/baseInfo';
+import { mapState } from 'vuex';
+
 export default {
     components: {
-        deploy
+    // baseInfo,
+    // deploy
     },
-    props: ['compileResult', 'account'],
+    props: ['compileResult'],
     data() {
         return {
-            showContractDeployList: [],
-            activeTabName: ''
+            // showContractDeployList: [],
+            activeTabName: '',
+            selectedAccount: undefined
         };
+    },
+    computed: {
+        ...mapState(['deployInfoList'])
     },
 
     created() {
-        this.compileResult.abiList.forEach((abi, index) => {
-            this.showContractDeployList[index] = false;
-        });
+    // this.compileResult.abiList.forEach((abi, index) => {
+    //     this.showContractDeployList[index] = false;
+    // });
+
+        // init the deployInfoList
+        this.$store.commit('init', this.compileResult);
     },
     methods: {
+        onSelectAccount(selectedAccount) {
+            if (!selectedAccount) {
+                return;
+            }
+            this.selectedAccount = selectedAccount;
+        },
+
         contractSelect(tab, event) {
             console.log(tab, event);
         },
         deployed(contractBlock, abi, contractName, offchainCode) {
             this.$emit('deployed', contractBlock, abi, contractName, offchainCode);
-        },
-
-        showDeploy(index) {
-            this.$set(this.showContractDeployList, index, true);
-        },
-
-        hideDeploy(index) {
-            this.$set(this.showContractDeployList, index, false);
         }
+
+        // showDeploy(index) {
+        //     this.$set(this.showContractDeployList, index, true);
+        // },
+
+    // hideDeploy(index) {
+    //     this.$set(this.showContractDeployList, index, false);
+    // }
     }
 };
 </script>

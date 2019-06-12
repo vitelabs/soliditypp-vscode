@@ -1,158 +1,158 @@
 {
-	"name": "soliditypp",
-	"displayName": "Soliditypp",
-	"description": "Soliditypp extension for Visual Studio Code",
-	"version": "0.4.3",
-	"publisher": "ViteLabs",
-	"icon": "images/vscode.png",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/vitelabs/soliditypp-vscode.git"
-	},
-	"engines": {
-		"vscode": "^1.30.0"
-	},
-	"categories": [
-		"Debuggers",
-		"Programming Languages"
-	],
-	"license": "MIT",
-	"keywords": [
-		"soliditypp",
-		"vite",
-		"ViteLabs",
-		"Smart contract"
-	],
-	"activationEvents": [
-		"onLanguage:soliditypp",
-		"onDebug",
-		"onCommand:soliditypp.generateHelloWorld"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"languages": [
-			{
-				"id": "soliditypp",
-				"extensions": [
-					".solpp"
-				],
-				"aliases": [
-					"Soliditypp",
-					"soliditypp"
-				],
-				"configuration": "./soliditypp-configuration.json"
-			}
-		],
-		"debuggers": [
-			{
-				"type": "soliditypp",
-				"label": "Soliditypp",
-				"configurationAttributes": {
-					"required": [
-						"program"
-					],
-					"properties": {
-						"program": {
-							"type": "string",
-							"description": "Path to a soliditypp file.",
-							"default": "${file}"
-						}
-					}
-				},
-				"initialConfigurations": [
-					{
-						"type": "soliditypp",
-						"request": "launch",
-						"name": "Soliditypp Debug",
-						"program": "${file}"
-					}
-				],
-				"configurationSnippets": [
-					{
-						"label": "Soliditypp Debug: Launch",
-						"description": "A new configuration for 'debugging' a user selected soliditypp project.",
-						"body": {
-							"type": "soliditypp",
-							"request": "launch",
-							"name": "Soliditypp Debug",
-							"program": "${file}"
-						}
-					}
-				]
-			}
-		],
-		"grammars": [
-			{
-				"language": "soliditypp",
-				"scopeName": "source.soliditypp",
-				"path": "./syntax/soliditypp.json"
-			}
-		],
-		"commands": [
-			{
-				"command": "soliditypp.generateHelloWorld",
-				"title": "soliditypp: Generate HelloWorld.solpp"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "npm run lint && tsc -p ./ && npm run view:build:prod",
-		"watch": "tsc -watch -p ./ & npm run view:build:watch",
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "npm run compile && node ./node_modules/vscode/bin/test",
-		"view:clean": "rm -rf out/view",
-		"lint": "eslint --ext .js,.vue ./",
-		"view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out/view/index.js",
-		"view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js",
-		"view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"
-	},
-	"devDependencies": {
-		"@babel/core": "^7.3.3",
-		"@babel/plugin-proposal-class-properties": "^7.3.3",
-		"@babel/preset-env": "^7.3.1",
-		"@types/decompress": "^4.2.3",
-		"@types/mocha": "^2.2.42",
-		"@types/node": "^8.10.40",
-		"@types/shelljs": "^0.8.3",
-		"babel-eslint": "^10.0.1",
-		"babel-loader": "^8.0.5",
-		"babel-plugin-component": "^1.1.1",
-		"css-loader": "^2.1.0",
-		"element-theme-chalk": "^2.9.1",
-		"eslint": "^5.14.1",
-		"eslint-plugin-vue": "^5.2.2",
-		"html-webpack-inline-source-plugin": "0.0.10",
-		"html-webpack-plugin": "^3.2.0",
-		"node-sass": "^4.11.0",
-		"sass-loader": "^7.1.0",
-		"style-loader": "^0.23.1",
-		"tslint": "^5.8.0",
-		"typescript": "^3.3.3",
-		"uglifyjs-webpack-plugin": "^2.1.1",
-		"url-loader": "^1.1.2",
-		"vscode": "^1.1.29",
-		"vue-loader": "^15.6.3",
-		"vue-template-compiler": "^2.6.6",
-		"webpack": "^4.29.5",
-		"webpack-cli": "^3.2.3"
-	},
-	"dependencies": {
-		"@types/request": "^2.48.1",
-		"@vite/vitejs": "^2.1.1",
-		"@vite/vitejs-ws": "^2.1.0",
-		"babel-polyfill": "^6.26.0",
-		"decompress": "^4.2.0",
-		"decompress-targz": "^4.1.1",
-		"element-ui": "^2.5.4",
-		"events": "^3.0.0",
-		"jsonrpc-lite": "^2.0.7",
-		"moment": "^2.24.0",
-		"request": "^2.88.0",
-		"shelljs": "^0.8.3",
-		"ts-node": "^8.1.0",
-		"vscode-debugadapter": "^1.33.0",
-		"vue": "^2.6.6",
-		"vue-json-pretty": "^1.4.1"
-	}
+  "name": "soliditypp",
+  "displayName": "Soliditypp",
+  "description": "Soliditypp extension for Visual Studio Code",
+  "version": "0.4.3",
+  "publisher": "ViteLabs",
+  "icon": "images/vscode.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vitelabs/soliditypp-vscode.git"
+  },
+  "engines": {
+    "vscode": "^1.30.0"
+  },
+  "categories": [
+    "Debuggers",
+    "Programming Languages"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "soliditypp",
+    "vite",
+    "ViteLabs",
+    "Smart contract"
+  ],
+  "activationEvents": [
+    "onLanguage:soliditypp",
+    "onDebug",
+    "onCommand:soliditypp.generateHelloWorld"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "soliditypp",
+        "extensions": [
+          ".solpp"
+        ],
+        "aliases": [
+          "Soliditypp",
+          "soliditypp"
+        ],
+        "configuration": "./soliditypp-configuration.json"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "soliditypp",
+        "label": "Soliditypp",
+        "configurationAttributes": {
+          "required": [
+            "program"
+          ],
+          "properties": {
+            "program": {
+              "type": "string",
+              "description": "Path to a soliditypp file.",
+              "default": "${file}"
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "soliditypp",
+            "request": "launch",
+            "name": "Soliditypp Debug",
+            "program": "${file}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Soliditypp Debug: Launch",
+            "description": "A new configuration for 'debugging' a user selected soliditypp project.",
+            "body": {
+              "type": "soliditypp",
+              "request": "launch",
+              "name": "Soliditypp Debug",
+              "program": "${file}"
+            }
+          }
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "soliditypp",
+        "scopeName": "source.soliditypp",
+        "path": "./syntax/soliditypp.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "soliditypp.generateHelloWorld",
+        "title": "soliditypp: Generate HelloWorld.solpp"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "npm run lint && tsc -p ./ && npm run view:build:prod",
+    "watch": "tsc -watch -p ./ & npm run view:build:watch",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test",
+    "view:clean": "rm -rf out/view",
+    "lint": "eslint --ext .js,.vue ./",
+    "view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out/view/index.js",
+    "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js",
+    "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.3",
+    "@babel/plugin-proposal-class-properties": "^7.3.3",
+    "@babel/preset-env": "^7.3.1",
+    "@types/decompress": "^4.2.3",
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^8.10.40",
+    "@types/shelljs": "^0.8.3",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "babel-plugin-component": "^1.1.1",
+    "css-loader": "^2.1.0",
+    "eslint": "^5.14.1",
+    "eslint-plugin-vue": "^5.2.2",
+    "html-webpack-inline-source-plugin": "0.0.10",
+    "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.11.0",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.1",
+    "tslint": "^5.8.0",
+    "typescript": "^3.3.3",
+    "uglifyjs-webpack-plugin": "^2.1.1",
+    "url-loader": "^1.1.2",
+    "vscode": "^1.1.29",
+    "vue-loader": "^15.6.3",
+    "vue-template-compiler": "^2.6.6",
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3"
+  },
+  "dependencies": {
+    "@types/request": "^2.48.1",
+    "@vite/vitejs": "^2.1.1",
+    "@vite/vitejs-ws": "^2.1.0",
+    "babel-polyfill": "^6.26.0",
+    "decompress": "^4.2.0",
+    "decompress-targz": "^4.1.1",
+    "element-ui": "^2.5.4",
+    "events": "^3.0.0",
+    "jsonrpc-lite": "^2.0.7",
+    "moment": "^2.24.0",
+    "request": "^2.88.0",
+    "shelljs": "^0.8.3",
+    "ts-node": "^8.1.0",
+    "vscode-debugadapter": "^1.33.0",
+    "vue": "^2.6.6",
+    "vue-json-pretty": "^1.4.1",
+    "vuex": "^3.1.1"
+  }
 }

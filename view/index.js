@@ -3,6 +3,8 @@ import 'babel-polyfill';
 import './index.scss';
 
 import Vue from 'vue';
+import Vuex from 'vuex';
+import store from 'store/store';
 import App from './app.vue';
 import './theme/index.css';
 
@@ -40,6 +42,7 @@ Vue.prototype.$loading = Loading.service;
 
 new Vue({
     el: '#app',
+    store: store,
     components: { App },
     template: '<App/>'
 });

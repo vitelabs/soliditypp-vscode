@@ -84,7 +84,8 @@ let config = {
             components: path.join(SRC_PATH, '/components'),
             services: path.join(SRC_PATH, '/services'),
             utils: path.join(SRC_PATH, '/utils'),
-            global: path.join(SRC_PATH, '/global')
+            global: path.join(SRC_PATH, '/global'),
+            store: path.join(SRC_PATH, '/store')
         },
         extensions: ['.js', '.scss', '.vue', '.json']
     }
