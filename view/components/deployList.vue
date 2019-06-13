@@ -7,16 +7,32 @@
             v-for="(deployInfo, index) in deployInfoList"
         >
             <el-collapse class="deploy-list-collapse">
-                <el-collapse-item title="select address">
-                    address:
-                    <el-select size="small">
-                        <!-- <el-option
-                    v-for="account in accountList"
-                    :key="account.address"
-                    :label="account.address"
-                    :value="account.address"
-            ></el-option>-->
-                    </el-select>
+                <el-collapse-item title="select account">
+                    <el-row>
+                        address:
+                        <el-select
+                            class="address-input"
+                            size="small"
+                            :value="deployInfo.selectedAccount"
+                            @change="selectAccount(index, $event)"
+                        >
+                            <el-option
+                                v-for="account in deployInfo.accounts"
+                                :key="account.address"
+                                :label="account.address"
+                                :value="account"
+                            ></el-option>
+                        </el-select>
+                        <el-button
+                            @click="addAccount(index)"
+                            icon="el-icon-plus"
+                            class="add-account-button"
+                            size="mini"
+                            circle
+                        ></el-button>
+                    </el-row>
+
+                    <!-- <i class="el-icon-circle-plus add-account"></i> -->
                 </el-collapse-item>
 
                 <el-collapse-item title="deploy"></el-collapse-item>
@@ -68,7 +84,28 @@
 <script>
 // import deploy from './deploy';
 // import baseInfo from 'components/baseInfo';
+import * as vite from 'global/vite';
 import { mapState } from 'vuex';
+
+async function createAccounts(count) {
+    var newRandomAccount = async () => {
+        try {
+            return await vite.createAccount();
+        } catch (err) {
+            return await new Promise(resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, 200);
+            }).then(() => newRandomAccount());
+        }
+    };
+    let tasks = [];
+    for (let i = 0; i < count; i++) {
+        tasks.push(newRandomAccount());
+    }
+
+    return await Promise.all(tasks);
+}
 
 export default {
     components: {
@@ -79,33 +116,56 @@ export default {
     data() {
         return {
             // showContractDeployList: [],
-            activeTabName: '',
-            selectedAccount: undefined
+            // activeTabName: ''
         };
     },
     computed: {
         ...mapState(['deployInfoList'])
     },
 
-    created() {
+    async created() {
     // this.compileResult.abiList.forEach((abi, index) => {
     //     this.showContractDeployList[index] = false;
     // });
+    // init a account
 
         // init the deployInfoList
-        this.$store.commit('init', this.compileResult);
+        let initAccounts = await createAccounts(this.compileResult.abiList.length);
+        this.$store.commit('init', {
+            compileResult: this.compileResult,
+            initAccounts
+        });
     },
     methods: {
-        onSelectAccount(selectedAccount) {
-            if (!selectedAccount) {
-                return;
-            }
-            this.selectedAccount = selectedAccount;
+        async addAccount(index) {
+            // add account
+            let newAccounts = await createAccounts(1);
+
+            let newAccount = newAccounts[0];
+
+            this.$store.commit('addAccount', {
+                index,
+                account: newAccount
+            });
+
+            this.selectAccount(index, newAccount);
+        },
+
+        selectAccount(index, account) {
+            this.$store.commit('selectAccount', {
+                index,
+                account
+            });
+        },
+
+        onSelectAccount(index, event) {
+            console.log(index, event);
         },
 
         contractSelect(tab, event) {
             console.log(tab, event);
         },
+
         deployed(contractBlock, abi, contractName, offchainCode) {
             this.$emit('deployed', contractBlock, abi, contractName, offchainCode);
         }
@@ -129,5 +189,20 @@ export default {
   .el-collapse-item__wrap {
     padding-left: 10px;
   }
+}
+
+.add-account-button.el-button--mini.is-circle {
+  padding: 1px;
+  width: 16px;
+  height: 16px;
+  i {
+    vertical-align: middle;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+.address-input {
+  width: 80%;
 }
 </style>
