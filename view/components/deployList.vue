@@ -13,16 +13,17 @@
                         <el-select
                             class="address-input"
                             size="small"
-                            :value="deployInfo.selectedAccount"
                             @change="selectAccount(index, $event)"
+                            v-model="deployInfo.selectedAccountAddress"
                         >
                             <el-option
                                 v-for="account in deployInfo.accounts"
                                 :key="account.address"
                                 :label="account.address"
-                                :value="account"
+                                :value="account.address"
                             ></el-option>
                         </el-select>
+
                         <el-button
                             @click="addAccount(index)"
                             icon="el-icon-plus"
@@ -30,6 +31,7 @@
                             size="mini"
                             circle
                         ></el-button>
+                        {{deployInfo.selectedAccount.address}}
                     </el-row>
 
                     <!-- <i class="el-icon-circle-plus add-account"></i> -->
@@ -148,18 +150,14 @@ export default {
                 account: newAccount
             });
 
-            this.selectAccount(index, newAccount);
+            this.selectAccount(index, newAccount.address);
         },
 
-        selectAccount(index, account) {
+        selectAccount(index, address) {
             this.$store.commit('selectAccount', {
                 index,
-                account
+                address
             });
-        },
-
-        onSelectAccount(index, event) {
-            console.log(index, event);
         },
 
         contractSelect(tab, event) {

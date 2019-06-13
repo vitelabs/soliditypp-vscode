@@ -5,6 +5,7 @@ import Vuex from 'vuex';
 // var deployInfo = {
 //     compileInfo: '',
 //     selectedAccount: '',
+//     selectedAccountAddress: '',
 //     accounts: [], // [viteAccount]
 //     contractList: [] // [contractList]
 // };
@@ -18,7 +19,7 @@ const store = new Vuex.Store({
     mutations: {
         init(state, { compileResult, initAccounts }) {
             let deployInfoList = [];
-            console.log(initAccounts);
+
             for (let i = 0; i < compileResult.abiList.length; i++) {
                 let compileInfo = {
                     abi: compileResult.abiList[i],
@@ -30,7 +31,8 @@ const store = new Vuex.Store({
                 deployInfoList.push({
                     compileInfo,
                     accounts: [initAccounts[i]],
-                    selectedAccount: initAccounts[i]
+                    selectedAccount: initAccounts[i],
+                    selectedAccountAddress: initAccounts[i].address
                 });
             }
 
@@ -41,8 +43,16 @@ const store = new Vuex.Store({
             state.deployInfoList[index].accounts.push(account);
         },
 
-        selectAccount(state, { index, account }) {
-            state.deployInfoList[index].selectedAccount = account;
+        selectAccount(state, { index, address }) {
+            let deployInfo = state.deployInfoList[index];
+            let accounts = deployInfo.accounts;
+            for (let account of accounts) {
+                if (address === account.address) {
+                    deployInfo.selectedAccountAddress = address;
+                    deployInfo.selectedAccount = account;
+                    break;
+                }
+            }
         }
     }
 });
