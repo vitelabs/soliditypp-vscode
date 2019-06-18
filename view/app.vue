@@ -40,10 +40,10 @@ export default {
     },
 
     async created () { 
+        let compileResult = '';
         try {
-            let compileResult = await getCompileResult();
-            this.compileResult = compileResult;
-            await vite.init(compileResult);
+            compileResult = await getCompileResult();
+            await vite.init();
         } catch (err) {
             throwError(err);
         }
@@ -61,6 +61,12 @@ export default {
         };
 
         await newRandomAccount();
+
+        try {
+            this.compileResult = compileResult;
+        } catch (err) {
+            throwError(err);
+        }
 
     },
     methods: {
