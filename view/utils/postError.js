@@ -2,7 +2,7 @@ import vscode from 'global/vscode';
 
 const COMMAND_PREFIX = 'view2extension.';
 
-export default function throwError (err) {
+export default function postError(err) {
     let body = err.toString();
     if (!body || body === '[object Object]') {
         body = JSON.stringify(err);
@@ -12,5 +12,4 @@ export default function throwError (err) {
         command: COMMAND_PREFIX + 'error',
         body
     });
-    throw new Error(err);
 }

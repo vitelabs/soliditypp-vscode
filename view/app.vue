@@ -1,21 +1,6 @@
 <template>
     <div>
         <deploy-list v-if="compileResult" :compile-result="compileResult"></deploy-list>
-
-    <!-- <deploy-list
-            :account="selectedAccount"
-            v-if="compileResult"
-            :compile-result="compileResult"
-            @deployed="deployed"
-    ></deploy-list>-->
-
-    <!-- <contract-list
-            ref="contractList"
-            v-show="contracts && contracts.length > 0"
-            :compile-result="compileResult"
-            :contracts="contracts"
-            :account="selectedAccount"
-    ></contract-list>-->
     </div>
 </template>
 
@@ -23,13 +8,11 @@
 import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
 
-// import contractList from 'components/contractList';
 import deployList from 'components/deployList';
-import throwError from 'utils/throwError';
+import postError from 'utils/postError';
 
 export default {
     components: {
-    // contractList,
         deployList
     },
 
@@ -47,7 +30,7 @@ export default {
             this.compileResult = compileResult;
             await vite.init(compileResult);
         } catch (err) {
-            throwError(err);
+            postError(err);
         }
 
         // var newRandomAccount = async () => {

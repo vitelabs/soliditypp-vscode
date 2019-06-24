@@ -103,6 +103,8 @@
     "test": "npm run compile && node ./node_modules/vscode/bin/test",
     "view:clean": "rm -rf out/view",
     "lint": "eslint --ext .js,.vue ./",
+    "build:style": "et -c view/element-variables.scss -o view/theme",
+    "watch:style": "et -c view/element-variables.scss -o view/theme -w",
     "view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out/view/index.js",
     "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out/view/index.js",
     "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out/view/index.js"

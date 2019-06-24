@@ -142,7 +142,7 @@ export function activate(context: vscode.ExtensionContext) {
               );
             }
 
-            await terminateDA();
+            // await terminateDA();
           }
         }
       },

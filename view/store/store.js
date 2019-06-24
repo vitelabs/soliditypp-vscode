@@ -8,6 +8,7 @@ import Vuex from 'vuex';
 //     selectedAccountAddress: '',
 //     accounts: [], // [viteAccount]
 //     contractList: [] // [contractList]
+//     logs: []
 // };
 
 Vue.use(Vuex);
@@ -29,10 +30,13 @@ const store = new Vuex.Store({
                 };
 
                 deployInfoList.push({
+                    index: i,
                     compileInfo,
                     accounts: [initAccounts[i]],
                     selectedAccount: initAccounts[i],
-                    selectedAccountAddress: initAccounts[i].address
+                    selectedAccountAddress: initAccounts[i].address,
+                    sendCreateBlocks: [],
+                    logs: []
                 });
             }
 
@@ -53,6 +57,19 @@ const store = new Vuex.Store({
                     break;
                 }
             }
+        },
+        // deployInfo: this.deployInfo,
+        // sendCreateBlock: createContractBlock
+        deployed(state, { deployInfo, sendCreateBlock }) {
+            //             contractAddress: contractBlock.toAddress,
+            //             contractBlock,
+            //             abi,
+            //             contractName,
+            //             offchainCode
+            deployInfo.sendCreateBlocks.push(sendCreateBlock);
+        },
+        addLog(state, { deployInfo, log }) {
+            deployInfo.logs.push(log);
         }
     }
 });

@@ -7,7 +7,7 @@
             v-for="(deployInfo, index) in deployInfoList"
         >
             <el-collapse class="deploy-list-collapse">
-                <el-collapse-item title="select account">
+                <el-collapse-item title="Select Account">
                     <el-row>
                         address:
                         <el-select
@@ -37,8 +37,19 @@
                     <!-- <i class="el-icon-circle-plus add-account"></i> -->
                 </el-collapse-item>
 
-                <el-collapse-item title="deploy"></el-collapse-item>
+                <el-collapse-item title="Deploy">
+                    <deploy :deploy-info="deployInfo"></deploy>
+                </el-collapse-item>
             </el-collapse>
+
+            <template v-if="deployInfo.sendCreateBlocks.length > 0">
+                <div class="title">Deployed Contracts</div>
+                <contract-list :deploy-info="deployInfo"></contract-list>
+            </template>
+            <!-- :account="selectedAccount"
+                        v-if="compileResult"
+                        :compile-result="compileResult"
+      @deployed="deployed"-->
             <!-- <el-select v-model="selectedAccountAddress" size="small">
                 <el-option
                     v-for="account in accountList"
@@ -84,8 +95,12 @@
 </template>
     
 <script>
-// import deploy from './deploy';
+import deploy from './deploy';
+import contractList from 'components/contractList';
+
 // import baseInfo from 'components/baseInfo';
+// import contractList from 'components/contractList';
+
 import * as vite from 'global/vite';
 import { mapState } from 'vuex';
 
@@ -112,7 +127,8 @@ async function createAccounts(count) {
 export default {
     components: {
     // baseInfo,
-    // deploy
+        contractList,
+        deploy
     },
     props: ['compileResult'],
     data() {
@@ -162,11 +178,11 @@ export default {
 
         contractSelect(tab, event) {
             console.log(tab, event);
-        },
-
-        deployed(contractBlock, abi, contractName, offchainCode) {
-            this.$emit('deployed', contractBlock, abi, contractName, offchainCode);
         }
+
+        // deployed(contractBlock, abi, contractName, offchainCode) {
+        //     this.$emit('deployed', contractBlock, abi, contractName, offchainCode);
+        // }
 
         // showDeploy(index) {
         //     this.$set(this.showContractDeployList, index, true);

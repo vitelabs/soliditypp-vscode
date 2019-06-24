@@ -1,37 +1,47 @@
 <template>
-    <div v-loading="status === 'DEPLOYING'"
-         element-loading-text="deploying"
-         element-loading-background="rgba(0, 0, 0, 0.8)"
+    <div
+        v-loading="status === 'DEPLOYING'"
+        element-loading-text="deploying"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
     >
-        <el-row class="row" type="flex" justify="center" align="middle">
-            <el-col  :span="4" class="label">amount </el-col>
-            <el-col  :span="18">
-                <el-input v-model="amount"></el-input>
+        <el-row class="row" type="flex" align="middle">
+            <el-col :span="3" class="label">amount</el-col>
+            <el-col :span="19">
+                <el-input v-model="amount" size="small"></el-input>
             </el-col>
         </el-row>
         <template v-if="constructAbi && constructAbi.inputs">
-            <el-row  class="row" type="flex" justify="center" align="middle" :key="index" v-for="(input, index) in constructAbi.inputs">
+            <el-row
+                class="row"
+                type="flex"
+                justify="center"
+                align="middle"
+                :key="index"
+                v-for="(input, index) in constructAbi.inputs"
+            >
                 <el-col :span="4" class="label">{{input.name}}</el-col>
-    
+
                 <el-col :span="18">
                     <el-input v-model="params[index]"></el-input>
                 </el-col>
-            </el-row>    
+            </el-row>
         </template>
-            
+
         <div class="deploy-button-wrapper">
-            <el-button @click="deploy">deploy</el-button>
+            <el-button @click="deploy" size="small">deploy</el-button>
         </div>
     </div>
 </template>
 
 <script>
 import * as vite from 'global/vite';
-import throwError from 'utils/throwError';
+import postError from 'utils/postError';
 
 export default {
-    props: ['abi', 'bytecodes','offchainCodes', 'account'],
-    data () {
+    // props: ['abi', 'bytecodes', 'offchainCodes', 'account'],
+
+    props: ['deployInfo'],
+    data() {
         return {
             amount: '0',
             params: [],
@@ -39,14 +49,15 @@ export default {
         };
     },
     computed: {
-        constructAbi () {
-            if (!this.abi) {
+        constructAbi() {
+            let abi = this.deployInfo.compileInfo.abi;
+            if (!abi) {
                 return undefined;
             }
 
-            for (let i = 0; i < this.abi.length; i++) {
-                let methodAbi = this.abi[i];
-            
+            for (let i = 0; i < abi.length; i++) {
+                let methodAbi = abi[i];
+
                 if (methodAbi.type === 'constructor') {
                     return methodAbi;
                 }
@@ -55,39 +66,62 @@ export default {
             return undefined;
         }
     },
-    created () {
+    created() {
         this.params = [];
         if (this.constructAbi) {
-            this.constructAbi.inputs.forEach((input) => {
+            this.constructAbi.inputs.forEach(input => {
                 if (input.type === 'address') {
-                    this.params.push('vite_0000000000000000000000000000000000000000a4f3a0cb58');
+                    this.params.push(
+                        'vite_0000000000000000000000000000000000000000a4f3a0cb58'
+                    );
                 } else {
                     this.params.push('');
                 }
-            });    
+            });
         }
     },
     methods: {
-        async deploy () {
+        async deploy() {
             try {
                 this.status = 'DEPLOYING';
 
-                let createContractTx = await vite.createContract(this.account, {
-                    bytecodes: this.bytecodes,
-                    abi: this.abi
-                }, this.amount, this.params); 
+                let createContractTx = await vite.createContract(
+                    this.deployInfo.selectedAccount,
+                    {
+                        bytecodes: this.deployInfo.compileInfo.bytecodes,
+                        abi: this.deployInfo.compileInfo.abi
+                    },
+                    this.amount,
+                    this.params
+                );
 
                 let client = vite.getVite();
-                let createContractBlock = await client.request('ledger_getBlockByHeight', createContractTx.accountAddress, createContractTx.height);
-                                
+                let createContractBlock = await client.request(
+                    'ledger_getBlockByHeight',
+                    createContractTx.accountAddress,
+                    createContractTx.height
+                );
+
                 this.$message({
-                    message: 'Contract has been deployed!',
+                    message: 'Contract has been deployed.',
                     type: 'success'
                 });
-                
-                this.$emit('deployed', createContractBlock);
-            } catch (err ){ 
-                throwError(err);
+
+                this.$store.commit('deployed', {
+                    deployInfo: this.deployInfo,
+                    sendCreateBlock: createContractBlock
+                });
+
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+                    log: createContractBlock
+                });
+            } catch (err) {
+                this.$message({
+                    message: 'Contract deployed failed. Get details in the debug console',
+                    type: 'failed'
+                });
+                postError(err);
             }
             this.status = 'BEFORE_DEPLOY';
         }
@@ -95,14 +129,14 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-    .label {
-        text-align: center;    
-    }
-    .row {
-        margin-bottom: 10px;
-    }
-    .deploy-button-wrapper {
-        margin: 10px 0;
-        text-align: center;            
-    }
+.label {
+  text-align: center;
+}
+.row {
+  margin-bottom: 10px;
+}
+.deploy-button-wrapper {
+  margin: 10px 0;
+  text-align: center;
+}
 </style>
