@@ -1,7 +1,7 @@
 <template>
-    <div class="terminal">
+    <div class="terminal" ref="terminal">
         <div class="log-item" v-for="(log, index) in deployInfo.logs" :key="index">
-            <log-item :show="true" :log="log"></log-item>
+            <log-item :log="log"></log-item>
         </div>
     <!-- <div :key="index" v-for="(callHistory, index) in reverseCallHistory">
             <h4 class="title">
@@ -64,6 +64,28 @@ export default {
 
     components: {
         logItem
+    },
+    watch: {
+        'deployInfo.logs': function() {
+            console.log(this.$refs.terminal);
+
+            if (this.isBetweenBottom('50')) {
+                this.scrollToBottom();
+            }
+        }
+    },
+    methods: {
+        scrollToBottom() {
+            this.$refs.terminal.scrollTop = this.$refs.terminal.scrollHeight;
+        },
+        isBetweenBottom(gap) {
+            return (
+                this.$refs.terminal.scrollTop +
+          gap +
+          this.$refs.terminal.clientHeight >=
+        this.$refs.terminal.scrollHeight
+            );
+        }
     }
     // data() {
     //     return {
@@ -165,15 +187,14 @@ export default {
 <style lang="scss" scoped>
 .terminal {
   background: #000;
-  .log-item {
-    border-top: 1px solid #666;
-    border-bottom: 1px solid #666;
-    .log-created-time {
-      color: #00ff7f;
-    }
-    .log-content {
-    }
-  }
+  position: fixed;
+  bottom: 0;
+  //   bottom: 0;
+  width: 100%;
+  height: 300px;
+  box-sizing: border-box;
+  border-top: 1px solid #fff;
+  overflow: auto;
 }
 // i {
 //   cursor: handler;

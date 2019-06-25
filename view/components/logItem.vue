@@ -1,8 +1,8 @@
 <template>
     <div>
         <div class="log-header" @click="toggle">
-            <i class="el-icon-caret-right" v-if="show"></i>
-            <i class="el-icon-caret-bottom" v-else></i>
+            <i class="el-icon-caret-bottom" v-if="show"></i>
+            <i class="el-icon-caret-right" v-else></i>
 
             <span class="log-created-time">{{log.createdTime.format('YYYY-MM-DD HH:mm:ss.SSS')}}</span>
         </div>
@@ -16,9 +16,14 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-    props: ['show', 'log'],
+    props: ['log'],
     components: {
         VueJsonPretty
+    },
+    data() {
+        return {
+            show: false
+        };
     },
     methods: {
         toggle() {
