@@ -47,6 +47,7 @@
                 <div class="title">Deployed Contracts</div>
                 <contract-list :deploy-info="deployInfo"></contract-list>
             </template>
+            <result-list :deploy-info="deployInfo"></result-list>
             <!-- :account="selectedAccount"
                         v-if="compileResult"
                         :compile-result="compileResult"
@@ -98,6 +99,7 @@
 <script>
 import deploy from './deploy';
 import contractList from 'components/contractList';
+import resultList from 'components/resultList';
 
 // import baseInfo from 'components/baseInfo';
 // import contractList from 'components/contractList';
@@ -129,7 +131,8 @@ export default {
     components: {
     // baseInfo,
         contractList,
-        deploy
+        deploy,
+        resultList
     },
     props: ['compileResult'],
     data() {

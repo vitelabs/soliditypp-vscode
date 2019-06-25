@@ -134,15 +134,15 @@ export function activate(context: vscode.ExtensionContext) {
             VIEW_TO_EXTENSION_COMMAND_PREFIX,
             ""
           );
-          if (actualCommand === "error") {
-            let debugConsole = vscode.debug.activeDebugConsole;
-            if (debugConsole) {
-              debugConsole.appendLine(
-                "Soliditypp debugger error:\n" + message.body
-              );
-            }
-
-            // await terminateDA();
+          switch (actualCommand) {
+            case "error":
+              let debugConsole = vscode.debug.activeDebugConsole;
+              if (debugConsole) {
+                debugConsole.appendLine(
+                  "Soliditypp debugger error:\n" + message.body
+                );
+              }
+              break;
           }
         }
       },

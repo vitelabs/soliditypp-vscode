@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-
+import dayjs from 'dayjs';
 // deployInfo:
 // var deployInfo = {
 //     compileInfo: '',
@@ -69,7 +69,10 @@ const store = new Vuex.Store({
             deployInfo.sendCreateBlocks.push(sendCreateBlock);
         },
         addLog(state, { deployInfo, log }) {
-            deployInfo.logs.push(log);
+            deployInfo.logs.push({
+                createdTime: dayjs(),
+                content: log
+            });
         }
     }
 });
