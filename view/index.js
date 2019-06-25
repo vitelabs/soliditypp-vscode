@@ -22,7 +22,8 @@ import {
     Tabs,
     TabPane,
     Collapse,
-    CollapseItem
+    CollapseItem,
+    Tag
 } from 'element-ui';
 
 Vue.use(Form);
@@ -39,6 +40,7 @@ Vue.use(Select);
 Vue.use(Option);
 Vue.use(Collapse);
 Vue.use(CollapseItem);
+Vue.use(Tag);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;

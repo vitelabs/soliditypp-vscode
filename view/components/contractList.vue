@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-collapse class="deploy-list-collapse">
+        <el-collapse class="deployed-contract-list">
             <el-collapse-item
                 v-for="(sendCreateBlock,index) in deployInfo.sendCreateBlocks"
                 :key="index"
@@ -19,18 +19,79 @@
                     </el-col>
         </el-row>-->
 
-                <el-row class="select-row" type="flex" align="middle" justify="center">
-                    <el-col :span="4" class="label">Methods:</el-col>
-                    <el-col :span="18">
-                        <el-select size="small" class="selector">
+                <el-row class="select-row" type="flex" align="middle" v-if="callType">
+                    <el-col :span="5" class="label">
+                        <el-select size="small" v-model="callType" class="selector">
+                            <el-option value="function" v-if="functions.length > 0">function</el-option>
+                            <el-option value="offchain" v-if="offchains.length > 0">offchain</el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="17" :offset="1" class="content">
+                        <el-select
+                            size="small"
+                            v-model="callingFunction"
+                            class="selector"
+                            v-if="callType === 'function'"
+                        >
                             <el-option
                                 v-for="(abi, abiIndex) in functions"
                                 :key="abiIndex"
                                 :value="abi.name"
-                            >{{functionSignature(abi)}}</el-option>
+                            >{{abi.name}}</el-option>
+                        </el-select>
+                        <el-select
+                            size="small"
+                            v-model="callingOffchain"
+                            class="selector"
+                            v-if="callType === 'offchain'"
+                        >
+                            <el-option
+                                v-for="(abi, abiIndex) in offchains"
+                                :key="abiIndex"
+                                :value="abi.name"
+                            >{{abi.name}}</el-option>
                         </el-select>
                     </el-col>
                 </el-row>
+
+                <!-- params -->
+                <div class="params">
+                    <div class="minor-title">Parameters:</div>
+                    <!-- amount -->
+                    <el-row
+                        class="select-row"
+                        v-if="callType === 'function' "
+                        type="flex"
+                        align="middle"
+                        justify="center"
+                    >
+                        <el-col :span="4">amount:</el-col>
+                        <el-col :span="17" :offset="1">
+                            <el-input size="small"></el-input>
+                        </el-col>
+                    </el-row>
+
+                    <!-- other params -->
+                    <el-row
+                        class="select-row"
+                        type="flex"
+                        justify="center"
+                        align="middle"
+                        :key="index"
+                        v-for="(input, index) in callingDeclaration.inputs"
+                    >
+                        <el-col :span="4" class="label">{{input.name}}:</el-col>
+
+                        <el-col :span="17" :offset="1">
+                            <el-input size="small"></el-input>
+                        </el-col>
+                    </el-row>
+                </div>
+
+                <!-- call -->
+                <div class="button-wrapper">
+                    <el-button size="small">call</el-button>
+                </div>
             </el-collapse-item>
         </el-collapse>
     </div>
@@ -77,36 +138,53 @@ export default {
     // methodList
     },
     created() {
-        console.log(this.deployInfo);
+    // init calling offchain
+        if (this.functions.length > 0) {
+            this.callingFunction = this.functions[0].name;
+        }
+        if (this.offchains.length > 0) {
+            this.callingOffchain = this.offchains[0].name;
+        }
+        if (this.callingFunction) {
+            this.callType = 'function';
+        } else if (this.callingOffchain) {
+            this.callType = 'offchain';
+        }
     },
     computed: {
         constructors() {
-            if (!this.deployInfo) {
-                return [];
-            }
-            let constructors = [];
-
-            this.deployInfo.compileInfo.abi.forEach(function(item) {
-                if (item.type === 'constructor') {
-                    constructors.push(item);
-                }
-            });
-
-            return constructors;
+            return this.getFunctionDeclarations('constructor');
         },
         functions() {
-            if (!this.deployInfo) {
-                return [];
+            return this.getFunctionDeclarations('function');
+        },
+        offchains() {
+            return this.getFunctionDeclarations('offchain');
+        },
+        callingDeclaration() {
+            if (!this.callType) {
+                return null;
             }
-            let functions = [];
+            let declarations = this.getFunctionDeclarations(this.callType);
+            let callingName;
+            switch (this.callType) {
+            case 'function':
+                callingName = this.callingFunction;
+                break;
 
-            this.deployInfo.compileInfo.abi.forEach(function(item) {
-                if (item.type === 'function') {
-                    functions.push(item);
+            case 'offchain':
+                callingName = this.callingOffchain;
+                break;
+            }
+            if (!callingName) {
+                return null;
+            }
+            for (let i = 0; i < declarations.length; i++) {
+                if (declarations[i].name === callingName) {
+                    return declarations[i];
                 }
-            });
-
-            return functions;
+            }
+            return null;
         }
     },
     methods: {
@@ -124,13 +202,30 @@ export default {
             });
 
             return signature + ')';
+        },
+
+        getFunctionDeclarations(declarationType) {
+            if (!this.deployInfo) {
+                return [];
+            }
+            let declarations = [];
+
+            this.deployInfo.compileInfo.abi.forEach(function(item) {
+                if (item.type === declarationType) {
+                    declarations.push(item);
+                }
+            });
+
+            return declarations;
         }
+    },
+    data() {
+        return {
+            callingFunction: '',
+            callingOffchain: '',
+            callType: ''
+        };
     }
-    // data() {
-    //     return {
-    //         showContracts: []
-    //     };
-    // },
     // watch: {
     //     contracts() {
     //         if (!this.sendCreateBlocks) {
@@ -167,19 +262,38 @@ export default {
 </script>
 
 <style lang="scss">
-.contract-content {
-  margin: 0 10px 10px 10px;
-  border-left: 1px solid #999;
-  border-right: 1px solid #999;
-  border-bottom: 1px solid #999;
-
-  .method-list {
-    border-top: 1px solid #999;
-  }
-  .result-list {
-    border-top: 1px solid #999;
+.deployed-contract-list {
+  .el-collapse-item__header,
+  .el-collapse-item__wrap {
+    padding: 0 10px;
   }
 }
+// .contract-content {
+//   margin: 0 10px 10px 10px;
+//   border-left: 1px solid #999;
+//   border-right: 1px solid #999;
+//   border-bottom: 1px solid #999;
+
+//   .method-list {
+//     border-top: 1px solid #999;
+//   }
+//   .result-list {
+//     border-top: 1px solid #999;
+//   }
+// }
+.button-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+.params {
+  .minor-title {
+    font-weight: 600;
+    border-bottom: 1px solid #fff;
+    line-height: 30px;
+    margin-bottom: 10px;
+  }
+}
+
 .selector {
   width: 100%;
 }

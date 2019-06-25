@@ -1,11 +1,12 @@
 <template>
     <!-- <div class="module-wrapper"> -->
-    <el-tabs type="card" @tab-click="contractSelect">
+    <el-tabs type="card" class="deploy-list-tabs" @tab-click="contractSelect">
         <el-tab-pane
             :label="deployInfo.compileInfo.contractName"
             :key="index"
             v-for="(deployInfo, index) in deployInfoList"
         >
+            <div class="title">Deploy</div>
             <el-collapse class="deploy-list-collapse">
                 <el-collapse-item title="Select Account">
                     <el-row>
@@ -196,6 +197,11 @@ export default {
 </script>
 
 <style lang="scss">
+.deploy-list-tabs {
+  .el-tabs__header {
+    margin: 0;
+  }
+}
 .deploy-list-collapse {
   .el-collapse-item__header {
     padding-left: 10px;
