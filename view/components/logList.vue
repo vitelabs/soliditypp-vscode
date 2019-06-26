@@ -187,13 +187,8 @@ export default {
 <style lang="scss" scoped>
 .terminal {
   background: #000;
-  position: fixed;
-  bottom: 0;
+  flex: 1;
   //   bottom: 0;
-  width: 100%;
-  height: 300px;
-  box-sizing: border-box;
-  border-top: 1px solid #fff;
   overflow: auto;
 }
 // i {

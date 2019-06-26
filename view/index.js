@@ -43,8 +43,6 @@ Vue.use(CollapseItem);
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;
 
-console.log({ a: 1, b: 2 });
-
 new Vue({
     el: '#app',
     store: store,

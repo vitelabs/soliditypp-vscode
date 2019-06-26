@@ -65,9 +65,12 @@
                         align="middle"
                         justify="center"
                     >
-                        <el-col :span="4">amount:</el-col>
+                        <el-col :span="4">
+                            <div>amount</div>
+                            <div>(uint256)</div>
+                        </el-col>
                         <el-col :span="17" :offset="1">
-                            <el-input size="small"></el-input>
+                            <el-input size="small" v-model="callingParams['amount']"></el-input>
                         </el-col>
                     </el-row>
 
@@ -80,17 +83,20 @@
                         :key="index"
                         v-for="(input, index) in callingDeclaration.inputs"
                     >
-                        <el-col :span="4" class="label">{{input.name}}:</el-col>
+                        <el-col :span="4" class="label">
+                            <div>{{input.name}}</div>
+                            <div>({{input.type}})</div>
+                        </el-col>
 
                         <el-col :span="17" :offset="1">
-                            <el-input size="small"></el-input>
+                            <el-input size="small" v-model="callingParams[input.name]"></el-input>
                         </el-col>
                     </el-row>
                 </div>
 
                 <!-- call -->
                 <div class="button-wrapper">
-                    <el-button size="small">call</el-button>
+                    <el-button size="small" @click="callFunction">call</el-button>
                 </div>
             </el-collapse-item>
         </el-collapse>
@@ -130,13 +136,22 @@
 <script>
 // import resultList from 'components/resultList';
 // import methodList from 'components/methodList';
+function inputDefaultValue(/** type **/) {
+    return '';
+    // if (type.indexOf('uint') === 0 || type.indexOf('int') === 0) {
+    //     return 0;
+    // } else if (type === 'bool') {
+    //     return true;
+    // } else if (type === 'tokenid') {
+    //     return 'tti_5649544520544f4b454e6e40';
+    // } else if (type === 'gid') {
+    //     return '';
+    // }
+    // return '';
+}
 
 export default {
     props: ['deployInfo'],
-    components: {
-    // resultList,
-    // methodList
-    },
     created() {
     // init calling offchain
         if (this.functions.length > 0) {
@@ -187,6 +202,20 @@ export default {
             return null;
         }
     },
+    watch: {
+        callingDeclaration: function() {
+            if (!this.callingDeclaration) {
+                return;
+            }
+            let inputs = this.callingDeclaration.inputs;
+            if (this.callType === 'function') {
+                this.callingParams['amount'] = inputDefaultValue('uint256');
+            }
+            inputs.forEach(function(input) {
+                this.callingParams[input.name] = inputDefaultValue(input.type);
+            });
+        }
+    },
     methods: {
         functionSignature(f) {
             let name = f.name;
@@ -217,12 +246,16 @@ export default {
             });
 
             return declarations;
+        },
+        callFunction() {
+            console.log(this.callingParams);
         }
     },
     data() {
         return {
             callingFunction: '',
             callingOffchain: '',
+            callingParams: {},
             callType: ''
         };
     }

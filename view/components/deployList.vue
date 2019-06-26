@@ -2,52 +2,57 @@
     <!-- <div class="module-wrapper"> -->
     <el-tabs type="card" class="deploy-list-tabs" @tab-click="contractSelect">
         <el-tab-pane
+            class="deploy-panel"
             :label="deployInfo.compileInfo.contractName"
             :key="index"
             v-for="(deployInfo, index) in deployInfoList"
         >
-            <div class="title">Deploy</div>
-            <el-collapse class="deploy-list-collapse">
-                <el-collapse-item title="Select Account">
-                    <el-row>
-                        address:
-                        <el-select
-                            class="address-input"
-                            size="small"
-                            @change="selectAccount(index, $event)"
-                            v-model="deployInfo.selectedAccountAddress"
-                        >
-                            <el-option
-                                v-for="account in deployInfo.accounts"
-                                :key="account.address"
-                                :label="account.address"
-                                :value="account.address"
-                            ></el-option>
-                        </el-select>
+            <div class="left-panel">
+                <div class="title">Deploy</div>
+                <el-collapse class="deploy-list-collapse">
+                    <el-collapse-item title="Select Account">
+                        <el-row>
+                            address:
+                            <el-select
+                                class="address-input"
+                                size="small"
+                                @change="selectAccount(index, $event)"
+                                v-model="deployInfo.selectedAccountAddress"
+                            >
+                                <el-option
+                                    v-for="account in deployInfo.accounts"
+                                    :key="account.address"
+                                    :label="account.address"
+                                    :value="account.address"
+                                ></el-option>
+                            </el-select>
 
-                        <el-button
-                            @click="addAccount(index)"
-                            icon="el-icon-plus"
-                            class="add-account-button"
-                            size="mini"
-                            circle
-                        ></el-button>
-                        {{deployInfo.selectedAccount.address}}
-                    </el-row>
+                            <el-button
+                                @click="addAccount(index)"
+                                icon="el-icon-plus"
+                                class="add-account-button"
+                                size="mini"
+                                circle
+                            ></el-button>
+                        </el-row>
 
-                    <!-- <i class="el-icon-circle-plus add-account"></i> -->
-                </el-collapse-item>
+                        <!-- <i class="el-icon-circle-plus add-account"></i> -->
+                    </el-collapse-item>
 
-                <el-collapse-item title="Deploy">
-                    <deploy :deploy-info="deployInfo"></deploy>
-                </el-collapse-item>
-            </el-collapse>
+                    <el-collapse-item title="Deploy">
+                        <deploy :deploy-info="deployInfo"></deploy>
+                    </el-collapse-item>
+                </el-collapse>
 
-            <template v-if="deployInfo.sendCreateBlocks.length > 0">
-                <div class="title">Deployed Contracts</div>
-                <contract-list :deploy-info="deployInfo"></contract-list>
-            </template>
-            <result-list :deploy-info="deployInfo"></result-list>
+                <template v-if="deployInfo.sendCreateBlocks.length > 0">
+                    <div class="title">Deployed Contracts</div>
+                    <contract-list :deploy-info="deployInfo"></contract-list>
+                </template>
+            </div>
+            <div class="right-panel" v-if="deployInfo && deployInfo.logs && deployInfo.logs.length > 0">
+                <log-list :deploy-info="deployInfo"></log-list>
+            </div>
+
             <!-- :account="selectedAccount"
                         v-if="compileResult"
                         :compile-result="compileResult"
@@ -99,8 +104,7 @@
 <script>
 import deploy from './deploy';
 import contractList from 'components/contractList';
-import resultList from 'components/resultList';
-
+import logList from 'components/logList';
 // import baseInfo from 'components/baseInfo';
 // import contractList from 'components/contractList';
 
@@ -132,7 +136,7 @@ export default {
     // baseInfo,
         contractList,
         deploy,
-        resultList
+        logList
     },
     props: ['compileResult'],
     data() {
@@ -225,6 +229,13 @@ export default {
 </style>
 
 <style lang="scss" scoped>
+.deploy-panel {
+  display: flex;
+  align-content: stretch;
+  .left-panel {
+    flex: 1;
+  }
+}
 .address-input {
   width: 80%;
 }
