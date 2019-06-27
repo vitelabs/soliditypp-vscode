@@ -67,8 +67,6 @@ export default {
     },
     watch: {
         'deployInfo.logs': function() {
-            console.log(this.$refs.terminal);
-
             if (this.isBetweenBottom('50')) {
                 this.scrollToBottom();
             }

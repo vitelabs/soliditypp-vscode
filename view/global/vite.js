@@ -76,7 +76,7 @@ export async function sendContractTx(
     account,
     contractAddress,
     abi,
-    amount,
+    amount = 0,
     params
 ) {
     let callContractBlock = await account.callContract({

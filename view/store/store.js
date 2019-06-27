@@ -68,10 +68,11 @@ const store = new Vuex.Store({
             //             offchainCode
             deployInfo.sendCreateBlocks.push(sendCreateBlock);
         },
-        addLog(state, { deployInfo, log }) {
+        addLog(state, { deployInfo, log, type = 'info' }) {
             deployInfo.logs.push({
                 createdTime: dayjs(),
-                content: log
+                content: log,
+                type
             });
         }
     }

@@ -55,22 +55,22 @@
                 </el-row>
 
                 <!-- params -->
-                <div class="params">
+                <div class="params" v-if="hasCallingParams">
                     <div class="minor-title">Parameters:</div>
                     <!-- amount -->
                     <el-row
                         class="select-row"
-                        v-if="callType === 'function' "
+                        v-if="callType === 'function' && callingParams"
                         type="flex"
                         align="middle"
                         justify="center"
                     >
                         <el-col :span="4">
-                            <div>amount</div>
+                            <div>transfer</div>
                             <div>(uint256)</div>
                         </el-col>
                         <el-col :span="17" :offset="1">
-                            <el-input size="small" v-model="callingParams['amount']"></el-input>
+                            <el-input size="small" v-model="callingParams.$$transfer"></el-input>
                         </el-col>
                     </el-row>
 
@@ -83,20 +83,22 @@
                         :key="index"
                         v-for="(input, index) in callingDeclaration.inputs"
                     >
-                        <el-col :span="4" class="label">
-                            <div>{{input.name}}</div>
-                            <div>({{input.type}})</div>
-                        </el-col>
+                        <template v-if="callingParams">
+                            <el-col :span="4" class="label">
+                                <div>{{input.name}}</div>
+                                <div>({{input.type}})</div>
+                            </el-col>
 
-                        <el-col :span="17" :offset="1">
-                            <el-input size="small" v-model="callingParams[input.name]"></el-input>
-                        </el-col>
+                            <el-col :span="17" :offset="1">
+                                <el-input size="small" v-model="callingParams[input.name]"></el-input>
+                            </el-col>
+                        </template>
                     </el-row>
                 </div>
 
                 <!-- call -->
                 <div class="button-wrapper">
-                    <el-button size="small" @click="callFunction">call</el-button>
+                    <el-button size="small" @click="call(sendCreateBlock.toAddress)">call</el-button>
                 </div>
             </el-collapse-item>
         </el-collapse>
@@ -136,10 +138,15 @@
 <script>
 // import resultList from 'components/resultList';
 // import methodList from 'components/methodList';
-function inputDefaultValue(/** type **/) {
+import Vue from 'vue';
+import * as vite from 'global/vite';
+
+function inputDefaultValue(type) {
+    if (type.indexOf('uint') === 0 || type.indexOf('int') === 0) {
+        return 0;
+    }
     return '';
-    // if (type.indexOf('uint') === 0 || type.indexOf('int') === 0) {
-    //     return 0;
+
     // } else if (type === 'bool') {
     //     return true;
     // } else if (type === 'tokenid') {
@@ -148,6 +155,14 @@ function inputDefaultValue(/** type **/) {
     //     return '';
     // }
     // return '';
+}
+
+function toParamsArray(abi, paramsObject) {
+    let paramsArray = [];
+    abi.inputs.forEach(function(input) {
+        paramsArray.push(paramsObject[input.name]);
+    });
+    return paramsArray;
 }
 
 export default {
@@ -200,19 +215,34 @@ export default {
                 }
             }
             return null;
+        },
+        hasCallingParams() {
+            if (!this.callType) {
+                return false;
+            }
+            if (this.callType === 'function') {
+                return true;
+            }
+
+            if (Object.keys(this.callingParams).length > 0) {
+                return true;
+            }
+            return false;
         }
     },
     watch: {
         callingDeclaration: function() {
+            this.callingParams = {};
             if (!this.callingDeclaration) {
                 return;
             }
+
             let inputs = this.callingDeclaration.inputs;
             if (this.callType === 'function') {
-                this.callingParams['amount'] = inputDefaultValue('uint256');
+                Vue.set(this.callingParams, '$$transfer', inputDefaultValue('uint256'));
             }
-            inputs.forEach(function(input) {
-                this.callingParams[input.name] = inputDefaultValue(input.type);
+            inputs.forEach(input => {
+                Vue.set(this.callingParams, input.name, inputDefaultValue(input.type));
             });
         }
     },
@@ -247,8 +277,85 @@ export default {
 
             return declarations;
         },
-        callFunction() {
-            console.log(this.callingParams);
+        async call(contractAddress) {
+            if (this.callType === 'function') {
+                return await this.callFunction(contractAddress);
+            } else if (this.callType === 'offchain') {
+                return await this.callOffchain(contractAddress);
+            }
+        },
+
+        async callFunction(contractAddress) {
+            let contractTx;
+
+            try {
+                contractTx = await vite.sendContractTx(
+                    this.deployInfo.selectedAccount,
+                    contractAddress,
+                    this.callingDeclaration,
+                    this.callingParams.$$transfer,
+                    toParamsArray(this.callingDeclaration, this.callingParams)
+                );
+            } catch (err) {
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+
+                    log: `send contract tx: ${err.toString()}`,
+                    type: 'error'
+                });
+
+                return;
+            }
+
+            // query complete contract tx
+            let client = vite.getVite();
+
+            let contractBlock;
+            try {
+                contractBlock = await client.request(
+                    'ledger_getBlockByHeight',
+                    contractTx.accountAddress,
+                    contractTx.height
+                );
+            } catch (err) {
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+                    log: `ledger_getBlockByHeight: ${err.toString()}`,
+                    type: 'error'
+                });
+                return;
+            }
+
+            this.$store.commit('addLog', {
+                deployInfo: this.deployInfo,
+                log: contractBlock
+            });
+        },
+
+        async callOffchain(contractAddress) {
+            let offchainResult;
+
+            try {
+                offchainResult = await vite.callOffchainMethod(
+                    contractAddress,
+                    this.callingDeclaration,
+                    this.deployInfo.compileInfo.offchainCode,
+                    toParamsArray(this.callingDeclaration, this.callingParams)
+                );
+            } catch (err) {
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+
+                    log: `call offchain method: ${err.toString()}`,
+                    type: 'error'
+                });
+                return;
+            }
+
+            this.$store.commit('addLog', {
+                deployInfo: this.deployInfo,
+                log: offchainResult
+            });
         }
     },
     data() {

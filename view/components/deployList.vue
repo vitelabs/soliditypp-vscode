@@ -1,6 +1,6 @@
 <template>
     <!-- <div class="module-wrapper"> -->
-    <el-tabs type="card" class="deploy-list-tabs" @tab-click="contractSelect">
+    <el-tabs type="card" class="deploy-list-tabs">
         <el-tab-pane
             class="deploy-panel"
             :label="deployInfo.compileInfo.contractName"
@@ -105,6 +105,8 @@
 import deploy from './deploy';
 import contractList from 'components/contractList';
 import logList from 'components/logList';
+import postError from 'utils/postError';
+
 // import baseInfo from 'components/baseInfo';
 // import contractList from 'components/contractList';
 
@@ -156,6 +158,8 @@ export default {
     // init a account
 
         // init the deployInfoList
+        await this.subscribeNewAccountBlocks();
+
         let initAccounts = await createAccounts(this.compileResult.abiList.length);
         this.$store.commit('init', {
             compileResult: this.compileResult,
@@ -184,8 +188,18 @@ export default {
             });
         },
 
-        contractSelect(tab, event) {
-            console.log(tab, event);
+        async subscribeNewAccountBlocks() {
+            let listener;
+            try {
+                listener = await vite.getVite().subscribe('newAccountBlocks');
+            } catch (err) {
+                postError(err);
+                return;
+            }
+
+            listener.on(result => {
+                console.log('123', result);
+            });
         }
 
         // deployed(contractBlock, abi, contractName, offchainCode) {
