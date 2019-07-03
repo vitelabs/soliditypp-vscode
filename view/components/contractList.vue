@@ -286,10 +286,8 @@ export default {
         },
 
         async callFunction(contractAddress) {
-            let contractTx;
-
             try {
-                contractTx = await vite.sendContractTx(
+                await vite.sendContractTx(
                     this.deployInfo.selectedAccount,
                     contractAddress,
                     this.callingDeclaration,
@@ -308,35 +306,33 @@ export default {
             }
 
             // query complete contract tx
-            let client = vite.getVite();
+            // let client = vite.getVite();
 
-            let contractBlock;
-            try {
-                contractBlock = await client.request(
-                    'ledger_getBlockByHeight',
-                    contractTx.accountAddress,
-                    contractTx.height
-                );
-            } catch (err) {
-                this.$store.commit('addLog', {
-                    deployInfo: this.deployInfo,
-                    log: `ledger_getBlockByHeight: ${err.toString()}`,
-                    type: 'error'
-                });
-                return;
-            }
+            // let contractBlock;
+            // try {
+            //     contractBlock = await client.request(
+            //         'ledger_getBlockByHeight',
+            //         contractTx.accountAddress,
+            //         contractTx.height
+            //     );
+            // } catch (err) {
+            //     this.$store.commit('addLog', {
+            //         deployInfo: this.deployInfo,
+            //         log: `ledger_getBlockByHeight: ${err.toString()}`,
+            //         type: 'error'
+            //     });
+            //     return;
+            // }
 
-            this.$store.commit('addLog', {
-                deployInfo: this.deployInfo,
-                log: contractBlock
-            });
+            // this.$store.commit('addLog', {
+            //     deployInfo: this.deployInfo,
+            //     log: contractBlock
+            // });
         },
 
         async callOffchain(contractAddress) {
-            let offchainResult;
-
             try {
-                offchainResult = await vite.callOffchainMethod(
+                await vite.callOffchainMethod(
                     contractAddress,
                     this.callingDeclaration,
                     this.deployInfo.compileInfo.offchainCode,
@@ -349,13 +345,13 @@ export default {
                     log: `call offchain method: ${err.toString()}`,
                     type: 'error'
                 });
-                return;
+                // return;
             }
 
-            this.$store.commit('addLog', {
-                deployInfo: this.deployInfo,
-                log: offchainResult
-            });
+            // this.$store.commit('addLog', {
+            //     deployInfo: this.deployInfo,
+            //     log: offchainResult
+            // });
         }
     },
     data() {

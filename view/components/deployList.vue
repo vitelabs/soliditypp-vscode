@@ -1,9 +1,10 @@
 <template>
     <!-- <div class="module-wrapper"> -->
-    <el-tabs type="card" class="deploy-list-tabs">
+    <el-tabs type="card" class="deploy-list-tabs" v-model="selectedDeployIndex">
         <el-tab-pane
             class="deploy-panel"
             :label="deployInfo.compileInfo.contractName"
+            :value="index"
             :key="index"
             v-for="(deployInfo, index) in deployInfoList"
         >
@@ -49,6 +50,7 @@
                     <contract-list :deploy-info="deployInfo"></contract-list>
                 </template>
             </div>
+
             <div class="right-panel" v-if="deployInfo && deployInfo.logs && deployInfo.logs.length > 0">
                 <log-list :deploy-info="deployInfo"></log-list>
             </div>
@@ -113,25 +115,30 @@ import postError from 'utils/postError';
 import * as vite from 'global/vite';
 import { mapState } from 'vuex';
 
-async function createAccounts(count) {
-    var newRandomAccount = async () => {
-        try {
-            return await vite.createAccount();
-        } catch (err) {
-            return await new Promise(resolve => {
-                setTimeout(() => {
-                    resolve();
-                }, 200);
-            }).then(() => newRandomAccount());
-        }
-    };
-    let tasks = [];
-    for (let i = 0; i < count; i++) {
-        tasks.push(newRandomAccount());
-    }
+// async function createAccounts(count) {
+//     let accounts = [];
+//     for (let i = 0; i < count; i++) {
+//         accounts.push(vite.createAccount());
+//     }
+//     return accounts;
+// var newRandomAccount = async () => {
+//     try {
+//         return await vite.createAccount();
+//     } catch (err) {
+//         return await new Promise(resolve => {
+//             setTimeout(() => {
+//                 resolve();
+//             }, 200);
+//         }).then(() => newRandomAccount());
+//     }
+// };
+// let tasks = [];
+// for (let i = 0; i < count; i++) {
+//     tasks.push(newRandomAccount());
+// }
 
-    return await Promise.all(tasks);
-}
+// return await Promise.all(tasks);
+// }
 
 export default {
     components: {
@@ -143,40 +150,49 @@ export default {
     props: ['compileResult'],
     data() {
         return {
-            // showContractDeployList: [],
-            // activeTabName: ''
+            selectedDeployIndex: 0
         };
     },
     computed: {
-        ...mapState(['deployInfoList'])
+        ...mapState(['deployInfoList']),
+        selectedDeployInfo() {
+            return this.deployInfoList[this.selectedDeployIndex];
+        }
     },
 
     async created() {
-    // this.compileResult.abiList.forEach((abi, index) => {
-    //     this.showContractDeployList[index] = false;
-    // });
-    // init a account
-
-        // init the deployInfoList
+    // init the deployInfoList
         await this.subscribeNewAccountBlocks();
 
-        let initAccounts = await createAccounts(this.compileResult.abiList.length);
+        let initAccounts = [];
+
+        for (let i = 0; i < this.compileResult.abiList.length; i++) {
+            initAccounts.push(vite.createAccount());
+        }
+        // let initAccounts = await createAccounts(this.compileResult.abiList.length);
+
         this.$store.commit('init', {
             compileResult: this.compileResult,
             initAccounts
         });
+
+        // init balances
+        for (let i = 0; i < initAccounts.length; i++) {
+            await vite.initBalance(initAccounts[i], vite.ACCOUNT_INIT_AMOUNT);
+        }
     },
     methods: {
         async addAccount(index) {
             // add account
-            let newAccounts = await createAccounts(1);
-
-            let newAccount = newAccounts[0];
+            let newAccount = vite.createAccount();
 
             this.$store.commit('addAccount', {
                 index,
                 account: newAccount
             });
+
+            // init balance
+            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT);
 
             this.selectAccount(index, newAccount.address);
         },
@@ -189,16 +205,74 @@ export default {
         },
 
         async subscribeNewAccountBlocks() {
+            let client = vite.getVite();
+
             let listener;
             try {
-                listener = await vite.getVite().subscribe('newAccountBlocks');
+                listener = await client.subscribe('newAccountBlocks');
             } catch (err) {
                 postError(err);
                 return;
             }
+            let rollbackSet = {};
 
-            listener.on(result => {
-                console.log('123', result);
+            listener.on(async resultList => {
+                if (!this.selectedDeployInfo) {
+                    return;
+                }
+                console.log(12, resultList);
+
+                for (let i = 0; i < resultList.length; i++) {
+                    let result = resultList[i];
+                    if (result.removed) {
+                        rollbackSet[result.hash] = true;
+                        this.$store.commit('addLog', {
+                            deployInfo: this.selectedDeployInfo,
+                            log: `rollback block ${result.hash}`
+                        });
+                        return;
+                    }
+                    if (rollbackSet[result.hash]) {
+                        return;
+                    }
+                    let block;
+                    try {
+                        console.log(`request hash ${result.hash}`);
+                        block = await client.request('ledger_getBlockByHash', result.hash);
+                    } catch (err) {
+                        this.$store.commit('addLog', {
+                            deployInfo: this.selectedDeployInfo,
+                            log: `get block by hash: ${JSON.stringify(err)}`
+                        });
+                        return;
+                    }
+                    if (!block) {
+                        return;
+                    }
+
+                    let relatedDeployInfoList = [];
+                    this.deployInfoList.forEach(deployInfo => {
+                        if (
+                            deployInfo.addressMap[block.toAddress] ||
+              deployInfo.addressMap[block.fromAddress]
+                        ) {
+                            relatedDeployInfoList.push(deployInfo);
+                        }
+                    });
+
+                    console.log(
+                        relatedDeployInfoList,
+                        this.deployInfoList,
+                        block.accountAddress
+                    );
+
+                    relatedDeployInfoList.forEach(relatedDeployInfo => {
+                        this.$store.commit('addLog', {
+                            deployInfo: relatedDeployInfo,
+                            log: block
+                        });
+                    });
+                }
             });
         }
 

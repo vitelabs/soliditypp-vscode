@@ -112,10 +112,10 @@ export default {
                     sendCreateBlock: createContractBlock
                 });
 
-                this.$store.commit('addLog', {
-                    deployInfo: this.deployInfo,
-                    log: createContractBlock
-                });
+                // this.$store.commit('addLog', {
+                //     deployInfo: this.deployInfo,
+                //     log: createContractBlock
+                // });
             } catch (err) {
                 this.$message({
                     message: 'Contract deployed failed. Get details in the debug console',

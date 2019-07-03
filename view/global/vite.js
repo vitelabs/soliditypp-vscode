@@ -9,7 +9,7 @@ const VITE_TOKEN_ID = 'tti_5649544520544f4b454e6e40';
 const WS_SERVER = 'ws://localhost:23457';
 const GENESIS_PRIVATEKEY =
   '7488b076b27aec48692230c88cbe904411007b71981057ea47d757c1e7f7ef24f4da4390a6e2618bec08053a86a6baf98830430cbefc078d978cf396e1c43e3a';
-const ACCOUNT_INIT_AMOUNT = '100000000000000000000000';
+export const ACCOUNT_INIT_AMOUNT = '100000000000000000000000';
 
 let viteClient;
 let genesisAccount;
@@ -40,24 +40,26 @@ export function getGenesisAccount() {
     return genesisAccount;
 }
 
-export async function createAccount() {
-    let genesisAccount = getGenesisAccount();
-
+export function createAccount() {
     let keyPair = utils.ed25519.keyPair();
     let account = new viteAccount({
         privateKey: keyPair.secretKey,
         client: viteClient
     });
 
+    return account;
+}
+
+export async function initBalance(account, balance) {
+    let genesisAccount = getGenesisAccount();
     // send money to test accout
     await genesisAccount.sendTx({
         toAddress: account.address,
         tokenId: VITE_TOKEN_ID,
-        amount: ACCOUNT_INIT_AMOUNT
+        amount: balance
     });
 
     await receiveAllOnroadTx(viteClient, account);
-    return account;
 }
 
 export async function createContract(account, contract, amount, params) {

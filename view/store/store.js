@@ -29,22 +29,30 @@ const store = new Vuex.Store({
                     offchainCode: compileResult.offchainCodesList[i]
                 };
 
-                deployInfoList.push({
+                let deployInfo = {
                     index: i,
                     compileInfo,
+
                     accounts: [initAccounts[i]],
+                    addressMap: {},
+
                     selectedAccount: initAccounts[i],
                     selectedAccountAddress: initAccounts[i].address,
                     sendCreateBlocks: [],
                     logs: []
-                });
+                };
+                deployInfo.addressMap[initAccounts[i].address] = initAccounts[i];
+                deployInfoList.push(deployInfo);
             }
 
             state.deployInfoList = deployInfoList;
         },
 
         addAccount(state, { index, account }) {
-            state.deployInfoList[index].accounts.push(account);
+            let deployInfo = state.deployInfoList[index];
+
+            deployInfo.accounts.push(account);
+            deployInfo.addressMap[account.address] = account;
         },
 
         selectAccount(state, { index, address }) {
