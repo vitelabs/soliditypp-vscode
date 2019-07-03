@@ -1,5 +1,7 @@
 <template>
     <div>
+        <transfer />
+
         <base-info  
             v-if="selectedAccount"
             @onSelectAccount="onSelectAccount"
@@ -18,6 +20,7 @@
 import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
 
+import transfer from 'components/transfer.vue';
 import baseInfo from 'components/baseInfo';
 import contractList from 'components/contractList';
 import deployList from 'components/deployList';
@@ -25,6 +28,7 @@ import throwError from 'utils/throwError';
 
 export default {
     components: {
+        transfer,
         baseInfo,
         contractList,
         deployList

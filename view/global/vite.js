@@ -143,3 +143,13 @@ export async function queryVmLogList (contractBlock, abi) {
     }
     return vmLogs;
 }
+
+export async function transfer(address, amount) {
+    const sendTx = await genesisAccount.sendTx({
+        toAddress: address,
+        tokenId: VITE_TOKEN_ID,
+        amount: amount,
+    });
+
+    return sendTx
+}

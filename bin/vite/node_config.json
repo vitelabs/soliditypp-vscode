@@ -41,5 +41,6 @@
   "VMDebug":true,
   "DataDir":"ledger",
   "KeyStoreDir":"./",
-  "SubscribeEnabled":true
+  "SubscribeEnabled":true,
+  "OpenPlugins": true
 }
