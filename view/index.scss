@@ -15,3 +15,24 @@ body {
   font-size: 16px;
   font-weight: 600;
 }
+
+.minor-title {
+  font-weight: 600;
+  border-bottom: 1px solid #fff;
+  line-height: 30px;
+  margin-bottom: 10px;
+}
+
+.prop-row {
+  height: 36px;
+  line-height: 15px;
+}
+
+.prop-label {
+  text-align: center;
+}
+.dialog {
+  .el-dialog__title {
+    color: #000000;
+  }
+}

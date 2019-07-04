@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <deploy-list v-if="compileResult" :compile-result="compileResult"></deploy-list>
+    <div class="app-wrapper">
+        <deploy-list class="deploy-list" v-if="compileResult" :compile-result="compileResult"></deploy-list>
     </div>
 </template>
 
@@ -61,5 +61,9 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.app-wrapper,
+.deploy-list {
+  height: 100%;
+}
 </style>

@@ -3,6 +3,8 @@ import 'babel-polyfill';
 import './index.scss';
 
 import Vue from 'vue';
+import VueSplit from 'vue-split-panel';
+
 import store from 'store/store';
 import App from './app.vue';
 import './theme/index.css';
@@ -17,12 +19,14 @@ import {
     Col,
     Loading,
     Message,
+    MessageBox,
     Select,
     Option,
     Tabs,
     TabPane,
     Collapse,
-    CollapseItem
+    CollapseItem,
+    Dialog
 } from 'element-ui';
 
 Vue.use(Form);
@@ -39,8 +43,12 @@ Vue.use(Select);
 Vue.use(Option);
 Vue.use(Collapse);
 Vue.use(CollapseItem);
+Vue.use(Dialog);
+
+Vue.use(VueSplit);
 
 Vue.prototype.$message = Message;
+Vue.prototype.$alert = MessageBox.alert;
 Vue.prototype.$loading = Loading.service;
 
 new Vue({

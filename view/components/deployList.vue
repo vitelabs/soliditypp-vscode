@@ -8,52 +8,67 @@
             :key="index"
             v-for="(deployInfo, index) in deployInfoList"
         >
-            <div class="left-panel">
-                <div class="title">Deploy</div>
-                <el-collapse class="deploy-list-collapse">
-                    <el-collapse-item title="Select Account">
-                        <el-row>
-                            address:
-                            <el-select
-                                class="address-input"
-                                size="small"
-                                @change="selectAccount(index, $event)"
-                                v-model="deployInfo.selectedAccountAddress"
-                            >
-                                <el-option
-                                    v-for="account in deployInfo.accounts"
-                                    :key="account.address"
-                                    :label="account.address"
-                                    :value="account.address"
-                                ></el-option>
-                            </el-select>
+            <Split style="height: 100%;">
+                <SplitArea :size="75">
+                    <div class="title">Deploy</div>
+                    <el-collapse class="deploy-list-collapse">
+                        <el-collapse-item :title="deployInfo.selectedAccountAddress">
+                            <div>
+                                <div class="minor-title">BaseInfo</div>
+                                <base-info :deploy-info="deployInfo"></base-info>
+                            </div>
 
-                            <el-button
-                                @click="addAccount(index)"
-                                icon="el-icon-plus"
-                                class="add-account-button"
-                                size="mini"
-                                circle
-                            ></el-button>
-                        </el-row>
+                            <div>
+                                <div class="minor-title">Deploy</div>
+                                <deploy :deploy-info="deployInfo"></deploy>
+                            </div>
+                        </el-collapse-item>
+                        <!-- <el-collapse-item title="Select Account">
+            <el-row>
+              address:
+              <el-select
+                class="address-input"
+                size="small"
+                @change="selectAccount(index, $event)"
+                v-model="deployInfo.selectedAccountAddress"
+              >
+                <el-option
+                  v-for="account in deployInfo.accounts"
+                  :key="account.address"
+                  :label="account.address"
+                  :value="account.address"
+                ></el-option>
+              </el-select>
 
-                        <!-- <i class="el-icon-circle-plus add-account"></i> -->
-                    </el-collapse-item>
+              <el-button
+                @click="addAccount(index)"
+                icon="el-icon-plus"
+                class="add-account-button"
+                size="mini"
+                circle
+              ></el-button>
+            </el-row>
 
-                    <el-collapse-item title="Deploy">
-                        <deploy :deploy-info="deployInfo"></deploy>
-                    </el-collapse-item>
-                </el-collapse>
+          </el-collapse-item>
 
-                <template v-if="deployInfo.sendCreateBlocks.length > 0">
-                    <div class="title">Deployed Contracts</div>
-                    <contract-list :deploy-info="deployInfo"></contract-list>
-                </template>
-            </div>
+          <el-collapse-item title="Deploy">
+            <deploy :deploy-info="deployInfo"></deploy>
+            </el-collapse-item>-->
+                    </el-collapse>
 
-            <div class="right-panel" v-if="deployInfo && deployInfo.logs && deployInfo.logs.length > 0">
-                <log-list :deploy-info="deployInfo"></log-list>
-            </div>
+                    <template v-if="deployInfo.sendCreateBlocks.length > 0">
+                        <div class="title">Deployed Contracts</div>
+                        <contract-list :deploy-info="deployInfo"></contract-list>
+                    </template>
+                </SplitArea>
+
+                <SplitArea :size="25" class="right-panel">
+                    <log-list
+                        v-if="deployInfo && deployInfo.logs && deployInfo.logs.length > 0"
+                        :deploy-info="deployInfo"
+                    ></log-list>
+                </SplitArea>
+            </Split>
 
             <!-- :account="selectedAccount"
                         v-if="compileResult"
@@ -109,7 +124,7 @@ import contractList from 'components/contractList';
 import logList from 'components/logList';
 import postError from 'utils/postError';
 
-// import baseInfo from 'components/baseInfo';
+import baseInfo from 'components/baseInfo';
 // import contractList from 'components/contractList';
 
 import * as vite from 'global/vite';
@@ -142,7 +157,7 @@ import { mapState } from 'vuex';
 
 export default {
     components: {
-    // baseInfo,
+        baseInfo,
         contractList,
         deploy,
         logList
@@ -186,28 +201,6 @@ export default {
     },
 
     methods: {
-        async addAccount(index) {
-            // add account
-            let newAccount = vite.createAccount();
-
-            this.$store.commit('addAccount', {
-                index,
-                account: newAccount
-            });
-
-            // init balance
-            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toString());
-
-            this.selectAccount(index, newAccount.address);
-        },
-
-        selectAccount(index, address) {
-            this.$store.commit('selectAccount', {
-                index,
-                address
-            });
-        },
-
         async subscribeNewAccountBlocks() {
             let client = vite.getVite();
 
@@ -224,7 +217,6 @@ export default {
                 if (!this.selectedDeployInfo) {
                     return;
                 }
-                console.log(12, resultList);
 
                 for (let i = 0; i < resultList.length; i++) {
                     let result = resultList[i];
@@ -318,11 +310,20 @@ export default {
 .deploy-panel {
   display: flex;
   align-content: stretch;
+  height: 100%;
   .left-panel {
     flex: 1;
+    height: 100%;
+  }
+  .right-panel {
+    height: 100%;
   }
 }
-.address-input {
-  width: 80%;
+</style>
+<style lang="scss">
+.deploy-list-tabs {
+  .el-tabs__content {
+    height: calc(100% - 41px);
+  }
 }
 </style>

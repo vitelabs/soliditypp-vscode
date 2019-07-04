@@ -145,6 +145,7 @@
     "@vite/vitejs-ws": "^2.1.0",
     "babel-polyfill": "^6.26.0",
     "big-integer": "^1.6.44",
+    "clipboard": "^2.0.4",
     "dayjs": "^1.8.14",
     "decompress": "^4.2.0",
     "decompress-targz": "^4.1.1",
@@ -157,6 +158,7 @@
     "vscode-debugadapter": "^1.33.0",
     "vue": "^2.6.6",
     "vue-json-pretty": "^1.4.1",
+    "vue-split-panel": "^1.0.4",
     "vuex": "^3.1.1"
   }
 }

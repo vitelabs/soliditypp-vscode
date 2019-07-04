@@ -186,17 +186,7 @@ export default {
 .terminal {
   background: #000;
   flex: 1;
-  //   bottom: 0;
+  height: 100%;
   overflow: auto;
 }
-// i {
-//   cursor: handler;
-// }
-// .block-wrapper {
-//   border: 1px solid #999;
-//   margin: 10px;
-// }
-// .waiting-response {
-//   height: 100px;
-// }
 </style>

@@ -20,7 +20,7 @@
         </el-row>-->
 
                 <el-row class="select-row" type="flex" align="middle" v-if="callType">
-                    <el-col :span="5" class="label">
+                    <el-col :span="5" class="prop-label">
                         <el-select size="small" v-model="callType" class="selector">
                             <el-option value="function" v-if="functions.length > 0">function</el-option>
                             <el-option value="offchain" v-if="offchains.length > 0">offchain</el-option>
@@ -91,7 +91,7 @@
                         v-for="(input, index) in callingDeclaration.inputs"
                     >
                         <template v-if="callingParams">
-                            <el-col :span="4" class="label">
+                            <el-col :span="4" class="prop-label">
                                 <div>{{input.name}}</div>
                                 <div>({{input.type}})</div>
                             </el-col>
@@ -435,14 +435,6 @@ export default {
 .button-wrapper {
   text-align: center;
   margin-top: 20px;
-}
-.params {
-  .minor-title {
-    font-weight: 600;
-    border-bottom: 1px solid #fff;
-    line-height: 30px;
-    margin-bottom: 10px;
-  }
 }
 
 .selector {

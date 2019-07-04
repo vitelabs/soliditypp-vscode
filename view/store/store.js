@@ -48,15 +48,12 @@ const store = new Vuex.Store({
             state.deployInfoList = deployInfoList;
         },
 
-        addAccount(state, { index, account }) {
-            let deployInfo = state.deployInfoList[index];
-
+        addAccount(state, { deployInfo, account }) {
             deployInfo.accounts.push(account);
             deployInfo.addressMap[account.address] = account;
         },
 
-        selectAccount(state, { index, address }) {
-            let deployInfo = state.deployInfoList[index];
+        selectAccount(state, { deployInfo, address }) {
             let accounts = deployInfo.accounts;
             for (let account of accounts) {
                 if (address === account.address) {
