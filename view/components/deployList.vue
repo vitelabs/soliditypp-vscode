@@ -178,9 +178,13 @@ export default {
 
         // init balances
         for (let i = 0; i < initAccounts.length; i++) {
-            await vite.initBalance(initAccounts[i], vite.ACCOUNT_INIT_AMOUNT);
+            await vite.initBalance(
+                initAccounts[i],
+                vite.ACCOUNT_INIT_AMOUNT.toString()
+            );
         }
     },
+
     methods: {
         async addAccount(index) {
             // add account
@@ -192,7 +196,7 @@ export default {
             });
 
             // init balance
-            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT);
+            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toString());
 
             this.selectAccount(index, newAccount.address);
         },
@@ -259,12 +263,6 @@ export default {
                             relatedDeployInfoList.push(deployInfo);
                         }
                     });
-
-                    console.log(
-                        relatedDeployInfoList,
-                        this.deployInfoList,
-                        block.accountAddress
-                    );
 
                     relatedDeployInfoList.forEach(relatedDeployInfo => {
                         this.$store.commit('addLog', {

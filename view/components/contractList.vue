@@ -26,6 +26,7 @@
                             <el-option value="offchain" v-if="offchains.length > 0">offchain</el-option>
                         </el-select>
                     </el-col>
+
                     <el-col :span="17" :offset="1" class="content">
                         <el-select
                             size="small"
@@ -39,6 +40,7 @@
                                 :value="abi.name"
                             >{{abi.name}}</el-option>
                         </el-select>
+
                         <el-select
                             size="small"
                             v-model="callingOffchain"
@@ -69,8 +71,13 @@
                             <div>transfer</div>
                             <div>(uint256)</div>
                         </el-col>
-                        <el-col :span="17" :offset="1">
+
+                        <el-col :span="13" :offset="1">
                             <el-input size="small" v-model="callingParams.$$transfer"></el-input>
+                        </el-col>
+
+                        <el-col :span="4">
+                            <units class="units" v-model="callingParams.$$transferUnits"></units>
                         </el-col>
                     </el-row>
 
@@ -140,6 +147,7 @@
 // import methodList from 'components/methodList';
 import Vue from 'vue';
 import * as vite from 'global/vite';
+import units from 'components/units';
 
 function inputDefaultValue(type) {
     if (type.indexOf('uint') === 0 || type.indexOf('int') === 0) {
@@ -167,6 +175,9 @@ function toParamsArray(abi, paramsObject) {
 
 export default {
     props: ['deployInfo'],
+    components: {
+        units
+    },
     created() {
     // init calling offchain
         if (this.functions.length > 0) {
@@ -240,6 +251,7 @@ export default {
             let inputs = this.callingDeclaration.inputs;
             if (this.callType === 'function') {
                 Vue.set(this.callingParams, '$$transfer', inputDefaultValue('uint256'));
+                Vue.set(this.callingParams, '$$transferUnits', '');
             }
             inputs.forEach(input => {
                 Vue.set(this.callingParams, input.name, inputDefaultValue(input.type));
@@ -291,7 +303,10 @@ export default {
                     this.deployInfo.selectedAccount,
                     contractAddress,
                     this.callingDeclaration,
-                    this.callingParams.$$transfer,
+                    vite.transformBalance(
+                        this.callingParams.$$transfer,
+                        this.callingParams.$$transferUnits
+                    ),
                     toParamsArray(this.callingDeclaration, this.callingParams)
                 );
             } catch (err) {
@@ -432,6 +447,10 @@ export default {
 
 .selector {
   width: 100%;
+}
+
+.units {
+  margin-left: 5px;
 }
 .select-row {
   margin-bottom: 10px;

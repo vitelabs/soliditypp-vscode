@@ -6,23 +6,25 @@
     >
         <el-row class="row" type="flex" align="middle">
             <el-col :span="3" class="label">amount</el-col>
-            <el-col :span="19">
+            <el-col :span="16">
                 <el-input v-model="amount" size="small"></el-input>
+            </el-col>
+            <el-col :span="4">
+                <units class="units" v-model="amountUnits"></units>
             </el-col>
         </el-row>
         <template v-if="constructAbi && constructAbi.inputs">
             <el-row
                 class="row"
                 type="flex"
-                justify="center"
                 align="middle"
                 :key="index"
                 v-for="(input, index) in constructAbi.inputs"
             >
-                <el-col :span="4" class="label">{{input.name}}</el-col>
+                <el-col :span="3" class="label">{{input.name}}</el-col>
 
-                <el-col :span="18">
-                    <el-input v-model="params[index]"></el-input>
+                <el-col :span="20">
+                    <el-input v-model="params[index]" size="small"></el-input>
                 </el-col>
             </el-row>
         </template>
@@ -36,14 +38,19 @@
 <script>
 import * as vite from 'global/vite';
 import postError from 'utils/postError';
+import units from 'components/units';
 
 export default {
     // props: ['abi', 'bytecodes', 'offchainCodes', 'account'],
 
     props: ['deployInfo'],
+    components: {
+        units
+    },
     data() {
         return {
             amount: '0',
+            amountUnits: '',
             params: [],
             status: 'BEFORE_DEPLOY'
         };
@@ -91,7 +98,7 @@ export default {
                         bytecodes: this.deployInfo.compileInfo.bytecodes,
                         abi: this.deployInfo.compileInfo.abi
                     },
-                    this.amount,
+                    vite.transformBalance(this.amount, this.amountUnits),
                     this.params
                 );
 
@@ -134,6 +141,9 @@ export default {
 }
 .row {
   margin-bottom: 10px;
+}
+.units {
+  margin-left: 5px;
 }
 .deploy-button-wrapper {
   margin: 10px 0;

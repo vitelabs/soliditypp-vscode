@@ -4,12 +4,14 @@ import { abi as abiutils } from '@vite/vitejs';
 import { utils } from '@vite/vitejs';
 import { client } from '@vite/vitejs';
 import receiveAllOnroadTx from 'utils/receiveAllOnroadTx';
+import bigInt from 'big-integer';
 
 const VITE_TOKEN_ID = 'tti_5649544520544f4b454e6e40';
 const WS_SERVER = 'ws://localhost:23457';
 const GENESIS_PRIVATEKEY =
   '7488b076b27aec48692230c88cbe904411007b71981057ea47d757c1e7f7ef24f4da4390a6e2618bec08053a86a6baf98830430cbefc078d978cf396e1c43e3a';
-export const ACCOUNT_INIT_AMOUNT = '100000000000000000000000';
+const VITE_DECIMAL = bigInt('1e18');
+export const ACCOUNT_INIT_AMOUNT = VITE_DECIMAL.multiply(1000);
 
 let viteClient;
 let genesisAccount;
@@ -164,4 +166,18 @@ export async function queryVmLogList(contractBlock, abi) {
         });
     }
     return vmLogs;
+}
+
+export function transformBalance(amount, units) {
+    let transformedAmount = amount;
+    switch (units) {
+    case 'vite':
+        transformedAmount = bigInt(transformedAmount)
+            .multiply(VITE_DECIMAL)
+            .toString();
+        break;
+    case 'attov':
+        break;
+    }
+    return transformedAmount;
 }
