@@ -19,6 +19,7 @@ body {
 .minor-title {
   font-weight: 600;
   border-bottom: 1px solid #fff;
+  font-size: 14px;
   line-height: 30px;
   margin-bottom: 10px;
 }
@@ -30,6 +31,8 @@ body {
 
 .prop-label {
   text-align: center;
+  color: #ddd;
+  font-weight: 600;
 }
 .dialog {
   .el-dialog__title {

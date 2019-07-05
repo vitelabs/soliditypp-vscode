@@ -6,19 +6,6 @@
                 :key="index"
                 :title="sendCreateBlock.toAddress"
             >
-                <!-- <el-row class="select-row" type="flex" align="middle" justify="center">
-                    <el-col :span="4" class="label">Constructor:</el-col>
-                    <el-col :span="18">
-                        <el-select size="small" class="selector">
-                            <el-option
-                                v-for="(abi, abiIndex) in constructors"
-                                :key="abiIndex"
-                                :value="abiIndex"
-                            >{{functionSignature(abi)}}</el-option>
-                        </el-select>
-                    </el-col>
-        </el-row>-->
-
                 <el-row class="select-row" type="flex" align="middle" v-if="callType">
                     <el-col :span="5" class="prop-label">
                         <el-select size="small" v-model="callType" class="selector">
@@ -58,7 +45,7 @@
 
                 <!-- params -->
                 <div class="params" v-if="hasCallingParams">
-                    <div class="minor-title">Parameters:</div>
+                    <div class="minor-title">Parameters</div>
                     <!-- amount -->
                     <el-row
                         class="select-row"
@@ -67,7 +54,7 @@
                         align="middle"
                         justify="center"
                     >
-                        <el-col :span="4">
+                        <el-col :span="4" class="prop-label">
                             <div>transfer</div>
                             <div>(uint256)</div>
                         </el-col>
@@ -110,41 +97,9 @@
             </el-collapse-item>
         </el-collapse>
     </div>
-
-    <!-- <div class="module-wrapper">
-        <h4 class="title">Contract List</h4>
-        <div :key="contract.contractAddress" v-for="(contract, index) in contracts">
-            <h5 class="title">
-                <i class="el-icon-caret-bottom" @click="hideContract(index)" v-if="showContracts[index]"></i>
-                <i class="el-icon-caret-right" @click="showContract(index)" v-else></i>
-                {{contract.contractName}} - {{contract.contractAddress}}
-            </h5>
-
-            <div class="contract-content" v-show="showContracts[index]">
-                <method-list
-                    class="method-list"
-                    :account="account"
-                    :abi="contract.abi"
-                    :contractAddress="contract.contractAddress"
-                    :offchainCode="contract.offchainCode"
-                    @sendContractTx="onSendContractTx($event, index)"
-                ></method-list>
-
-                <result-list
-                    class="result-list"
-                    ref="resultList"
-                    :abi="contract.abi"
-                    :sendCreatBlock="contract.contractBlock"
-                    :contractAddress="contract.contractAddress"
-                ></result-list>
-            </div>
-        </div>
-  </div>-->
 </template>
 
 <script>
-// import resultList from 'components/resultList';
-// import methodList from 'components/methodList';
 import Vue from 'vue';
 import * as vite from 'global/vite';
 import units from 'components/units';
@@ -154,15 +109,6 @@ function inputDefaultValue(type) {
         return 0;
     }
     return '';
-
-    // } else if (type === 'bool') {
-    //     return true;
-    // } else if (type === 'tokenid') {
-    //     return 'tti_5649544520544f4b454e6e40';
-    // } else if (type === 'gid') {
-    //     return '';
-    // }
-    // return '';
 }
 
 function toParamsArray(abi, paramsObject) {
@@ -320,30 +266,6 @@ export default {
 
                 return;
             }
-
-            // query complete contract tx
-            // let client = vite.getVite();
-
-            // let contractBlock;
-            // try {
-            //     contractBlock = await client.request(
-            //         'ledger_getBlockByHeight',
-            //         contractTx.accountAddress,
-            //         contractTx.height
-            //     );
-            // } catch (err) {
-            //     this.$store.commit('addLog', {
-            //         deployInfo: this.deployInfo,
-            //         log: `ledger_getBlockByHeight: ${err.toString()}`,
-            //         type: 'error'
-            //     });
-            //     return;
-            // }
-
-            // this.$store.commit('addLog', {
-            //     deployInfo: this.deployInfo,
-            //     log: contractBlock
-            // });
         },
 
         async callOffchain(contractAddress) {
@@ -363,11 +285,6 @@ export default {
                 });
                 // return;
             }
-
-            // this.$store.commit('addLog', {
-            //     deployInfo: this.deployInfo,
-            //     log: offchainResult
-            // });
         }
     },
     data() {
@@ -378,38 +295,6 @@ export default {
             callType: ''
         };
     }
-    // watch: {
-    //     contracts() {
-    //         if (!this.sendCreateBlocks) {
-    //             return;
-    //         }
-
-    //         let gap = this.contracts.length - this.showContracts.length;
-    //         for (let i = 0; i < gap; i++) {
-    //             this.showContracts.push(false);
-    //         }
-    //     }
-    // },
-    // methods: {
-    //     showContract(index) {
-    //         this.$set(this.showContracts, index, true);
-    //     },
-
-    //     hideContract(index) {
-    //         this.$set(this.showContracts, index, false);
-    //     },
-    //     findIndexByContractAddress(contractAddress) {
-    //         return this.contracts.findIndex(function(contract) {
-    //             return contract.contractAddress === contractAddress;
-    //         });
-    //     },
-    //     onSendContractTx(event, index) {
-    //         this.$refs.resultList[index].onSendContractTx(
-    //             event.abi,
-    //             event.contractBlock
-    //         );
-    //     }
-    // }
 };
 </script>
 
@@ -420,19 +305,7 @@ export default {
     padding: 0 10px;
   }
 }
-// .contract-content {
-//   margin: 0 10px 10px 10px;
-//   border-left: 1px solid #999;
-//   border-right: 1px solid #999;
-//   border-bottom: 1px solid #999;
 
-//   .method-list {
-//     border-top: 1px solid #999;
-//   }
-//   .result-list {
-//     border-top: 1px solid #999;
-//   }
-// }
 .button-wrapper {
   text-align: center;
   margin-top: 20px;

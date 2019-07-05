@@ -2,37 +2,40 @@
     <!-- <div class="module-wrapper"> -->
     <el-tabs type="card" class="deploy-list-tabs" v-model="selectedDeployIndex">
         <el-tab-pane
-            class="deploy-panel"
             :label="deployInfo.compileInfo.contractName"
+            class="deploy-panel"
             :value="index"
             :key="index"
             v-for="(deployInfo, index) in deployInfoList"
         >
             <Split style="height: 100%;">
-                <SplitArea :size="75">
-                    <div class="title">Deploy</div>
-                    <el-collapse class="deploy-list-collapse">
-                        <el-collapse-item :title="deployInfo.selectedAccountAddress">
-                            <div>
-                                <div class="minor-title">BaseInfo</div>
-                                <base-info :deploy-info="deployInfo"></base-info>
-                            </div>
+                <SplitArea :size="60" class="left-panel-wrapper">
+                    <div class="left-panel">
+                        <div class="title">Deploy</div>
+                        <el-collapse class="deploy-list-collapse">
+                            <el-collapse-item :title="deployInfo.selectedAccountAddress">
+                                <div>
+                                    <div class="minor-title">BaseInfo</div>
+                                    <base-info :deploy-info="deployInfo"></base-info>
+                                </div>
 
-                            <div>
-                                <div class="minor-title">Deploy</div>
-                                <deploy :deploy-info="deployInfo"></deploy>
-                            </div>
-                        </el-collapse-item>
-                    </el-collapse>
+                                <div class="minor-section">
+                                    <div class="minor-title">Deploy</div>
+                                    <deploy :deploy-info="deployInfo"></deploy>
+                                </div>
+                            </el-collapse-item>
+                        </el-collapse>
 
-                    <template v-if="deployInfo.sendCreateBlocks.length > 0">
-                        <div class="title">Deployed Contracts</div>
-                        <contract-list :deploy-info="deployInfo"></contract-list>
-                    </template>
+                        <template v-if="deployInfo.sendCreateBlocks.length > 0">
+                            <div class="title">Contracts</div>
+                            <contract-list :deploy-info="deployInfo"></contract-list>
+                        </template>
+                    </div>
                 </SplitArea>
 
-                <SplitArea :size="25" class="right-panel">
+                <SplitArea :size="40" class="right-panel-wrapper">
                     <log-list
+                        class="right-panel"
                         v-if="deployInfo && deployInfo.logs && deployInfo.logs.length > 0"
                         :deploy-info="deployInfo"
                     ></log-list>
@@ -52,6 +55,26 @@ import baseInfo from 'components/baseInfo';
 
 import * as vite from 'global/vite';
 import { mapState } from 'vuex';
+
+function parseLogTitle(block, deployInfo) {
+    let isSendCreate = hash => {
+        for (let i = 0; i < deployInfo.sendCreateBlocks.length; i++) {
+            let block = deployInfo.sendCreateBlocks[i];
+            if (block.hash === hash) {
+                return true;
+            }
+        }
+        return false;
+    };
+    let title = `${vite.isSendBlock(block.blockType) ? 'send' : 'receive'} block`;
+    if (
+        block.blockType === 1 ||
+    (block.height === '1' && isSendCreate(block.fromBlockHash))
+    ) {
+        title = `${title} [deploy]`;
+    }
+    return title;
+}
 
 export default {
     components: {
@@ -122,19 +145,22 @@ export default {
                         rollbackSet[result.hash] = true;
                         this.$store.commit('addLog', {
                             deployInfo: this.selectedDeployInfo,
-                            log: `rollback block ${result.hash}`
+                            log: `rollback block ${result.hash}`,
+                            title: 'rollback account block'
                         });
                         return;
                     }
                     if (rollbackSet[result.hash]) {
                         return;
                     }
+
                     let block;
                     try {
                         block = await client.request('ledger_getBlockByHash', result.hash);
                     } catch (err) {
                         this.$store.commit('addLog', {
                             deployInfo: this.selectedDeployInfo,
+                            type: 'error',
                             log: `get block by hash: ${JSON.stringify(err)}`
                         });
                         return;
@@ -156,7 +182,9 @@ export default {
                     relatedDeployInfoList.forEach(relatedDeployInfo => {
                         this.$store.commit('addLog', {
                             deployInfo: relatedDeployInfo,
-                            log: block
+                            log: block,
+                            title: parseLogTitle(block, relatedDeployInfo),
+                            dataType: 'accountBlock'
                         });
                     });
                 }
@@ -189,6 +217,11 @@ export default {
     vertical-align: middle;
   }
 }
+.deploy-list-tabs {
+  .el-tabs__content {
+    height: calc(100% - 41px);
+  }
+}
 </style>
 
 <style lang="scss" scoped>
@@ -196,19 +229,25 @@ export default {
   display: flex;
   align-content: stretch;
   height: 100%;
-  .left-panel {
-    flex: 1;
-    height: 100%;
+  .left-panel-wrapper {
+    overflow: auto;
+    .left-panel {
+      // flex: 1;
+      min-width: 465px;
+      height: 100%;
+    }
   }
-  .right-panel {
-    height: 100%;
+  .right-panel-wrapper {
+    overflow: auto;
+
+    .right-panel {
+      min-width: 300px;
+
+      height: 100%;
+    }
   }
 }
-</style>
-<style lang="scss">
-.deploy-list-tabs {
-  .el-tabs__content {
-    height: calc(100% - 41px);
-  }
+.minor-section {
+  margin-top: 10px;
 }
 </style>

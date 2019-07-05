@@ -181,16 +181,13 @@ export function transformViteBalance(amount, units) {
     }
     return transformedAmount;
 }
-export function transformBalance(amount, decimal) {
-    let transformedAmount = amount;
-    switch (units) {
-    case 'vite':
-        transformedAmount = bigInt(transformedAmount)
-            .multiply(VITE_DECIMAL)
-            .toString();
-        break;
-    case 'attov':
-        break;
-    }
-    return transformedAmount;
+
+export function isSendBlock(blockType) {
+    return (
+        blockType === 1 || blockType === 2 || blockType === 3 || blockType === 6
+    );
+}
+
+export function isReceiveBlock(blockType) {
+    return blockType === 4 || blockType === 5 || blockType === 7;
 }
