@@ -23,37 +23,6 @@
                                 <deploy :deploy-info="deployInfo"></deploy>
                             </div>
                         </el-collapse-item>
-                        <!-- <el-collapse-item title="Select Account">
-            <el-row>
-              address:
-              <el-select
-                class="address-input"
-                size="small"
-                @change="selectAccount(index, $event)"
-                v-model="deployInfo.selectedAccountAddress"
-              >
-                <el-option
-                  v-for="account in deployInfo.accounts"
-                  :key="account.address"
-                  :label="account.address"
-                  :value="account.address"
-                ></el-option>
-              </el-select>
-
-              <el-button
-                @click="addAccount(index)"
-                icon="el-icon-plus"
-                class="add-account-button"
-                size="mini"
-                circle
-              ></el-button>
-            </el-row>
-
-          </el-collapse-item>
-
-          <el-collapse-item title="Deploy">
-            <deploy :deploy-info="deployInfo"></deploy>
-            </el-collapse-item>-->
                     </el-collapse>
 
                     <template v-if="deployInfo.sendCreateBlocks.length > 0">
@@ -69,53 +38,8 @@
                     ></log-list>
                 </SplitArea>
             </Split>
-
-            <!-- :account="selectedAccount"
-                        v-if="compileResult"
-                        :compile-result="compileResult"
-      @deployed="deployed"-->
-            <!-- <el-select v-model="selectedAccountAddress" size="small">
-                <el-option
-                    v-for="account in accountList"
-                    :key="account.address"
-                    :label="account.address"
-                    :value="account.address"
-                ></el-option>
-      </el-select>-->
-            <!-- <base-info
-                v-if="selectedAccount"
-                @onSelectAccount="onSelectAccount"
-                :selected-account="selectedAccount"
-                :contractAddress="contractAddress"
-            ></base-info>
-            <deploy
-                :account="account"
-                :abi="abi"
-                :bytecodes="compileResult.bytecodesList[index]"
-                :offchainCodes="compileResult.offchainCodesList[index]"
-                @deployed="deployed($event, abi, compileResult.contractNameList[index], compileResult.offchainCodesList[index])"
-      ></deploy>-->
         </el-tab-pane>
     </el-tabs>
-
-    <!-- <h4 class="title">Deploy contract</h4>    
-        <div :key="index" v-for = "(abi, index) in compileResult.abiList" >
-            <h5 class="title">
-                <i class="el-icon-caret-bottom" @click="hideDeploy(index)" v-if="showContractDeployList[index]"></i>
-                <i class="el-icon-caret-right" @click="showDeploy(index)" v-else></i>
-                {{compileResult.contractNameList[index]}}
-            </h5>
-            
-            <deploy 
-                v-if="showContractDeployList[index]"
-                :account="account"
-                :abi="abi" 
-                :bytecodes="compileResult.bytecodesList[index]" 
-                :offchainCodes="compileResult.offchainCodesList[index]" 
-                @deployed="deployed($event, abi, compileResult.contractNameList[index], compileResult.offchainCodesList[index])"> 
-            </deploy>            
-  </div>-->
-    <!-- </div> -->
 </template>
     
 <script>
@@ -125,35 +49,9 @@ import logList from 'components/logList';
 import postError from 'utils/postError';
 
 import baseInfo from 'components/baseInfo';
-// import contractList from 'components/contractList';
 
 import * as vite from 'global/vite';
 import { mapState } from 'vuex';
-
-// async function createAccounts(count) {
-//     let accounts = [];
-//     for (let i = 0; i < count; i++) {
-//         accounts.push(vite.createAccount());
-//     }
-//     return accounts;
-// var newRandomAccount = async () => {
-//     try {
-//         return await vite.createAccount();
-//     } catch (err) {
-//         return await new Promise(resolve => {
-//             setTimeout(() => {
-//                 resolve();
-//             }, 200);
-//         }).then(() => newRandomAccount());
-//     }
-// };
-// let tasks = [];
-// for (let i = 0; i < count; i++) {
-//     tasks.push(newRandomAccount());
-// }
-
-// return await Promise.all(tasks);
-// }
 
 export default {
     components: {
@@ -233,7 +131,6 @@ export default {
                     }
                     let block;
                     try {
-                        console.log(`request hash ${result.hash}`);
                         block = await client.request('ledger_getBlockByHash', result.hash);
                     } catch (err) {
                         this.$store.commit('addLog', {
@@ -248,10 +145,10 @@ export default {
 
                     let relatedDeployInfoList = [];
                     this.deployInfoList.forEach(deployInfo => {
-                        if (
-                            deployInfo.addressMap[block.toAddress] ||
-              deployInfo.addressMap[block.fromAddress]
-                        ) {
+                        let toAccount = deployInfo.addressMap[block.toAddress];
+                        let fromAccount = deployInfo.addressMap[block.fromAddress];
+
+                        if (toAccount || fromAccount) {
                             relatedDeployInfoList.push(deployInfo);
                         }
                     });
@@ -265,18 +162,6 @@ export default {
                 }
             });
         }
-
-        // deployed(contractBlock, abi, contractName, offchainCode) {
-        //     this.$emit('deployed', contractBlock, abi, contractName, offchainCode);
-        // }
-
-        // showDeploy(index) {
-        //     this.$set(this.showContractDeployList, index, true);
-        // },
-
-    // hideDeploy(index) {
-    //     this.$set(this.showContractDeployList, index, false);
-    // }
     }
 };
 </script>

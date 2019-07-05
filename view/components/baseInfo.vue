@@ -1,27 +1,12 @@
 <template>
     <div>
-        <!-- <el-row
-
-                        type="flex"
-                        align="middle"
-                        justify="center"
-                    >
-                        <el-col :span="4">
-                            <div>transfer</div>
-                            <div>(uint256)</div>
-                        </el-col>
-
-                        <el-col :span="13" :offset="1">
-                            <el-input size="small" v-model="callingParams.$$transfer"></el-input>
-                        </el-col>
-
-                        <el-col :span="4">
-                            <units class="units" v-model="callingParams.$$transferUnits"></units>
-                        </el-col>
-    </el-row>-->
+        <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="3" class="prop-label">snapshot</el-col>
+            <el-col :span="16" :offset="1">{{snapshotHeight}}</el-col>
+        </el-row>
         <el-row type="flex" align="middle">
             <el-col :span="3" class="prop-label">address</el-col>
-            <el-col :span="16">
+            <el-col :span="16" :offset="1">
                 <el-select
                     class="address-input"
                     size="small"
@@ -49,26 +34,42 @@
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="3" class="prop-label">balance</el-col>
-            <el-col :span="16">124 vite</el-col>
+            <el-col :span="16" :offset="1" v-if="selectedAccount.accountState">
+                <span
+                    v-for="(tokenBalance, tokenId, index) in selectedAccount.accountState.balance.tokenBalanceInfoMap"
+                    :key="tokenId"
+                >
+                    <span v-if="index > 0">,</span>
+                    {{transformBalance(tokenBalance.totalAmount, tokenBalance.tokenInfo.decimals)}} {{tokenBalance.tokenInfo.tokenSymbol}}
+                </span>
+            </el-col>
+        </el-row>
+        <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="3" class="prop-label">block number</el-col>
+            <el-col
+                :span="16"
+                :offset="1"
+                v-if="selectedAccount.accountState"
+            >{{selectedAccount.accountState.balance.totalNumber}}</el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="3" class="prop-label">abi</el-col>
-            <el-col :span="16">
+            <el-col :span="16" :offset="1">
                 <el-button size="small" @click="showAbi()">show abi</el-button>
             </el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="3" class="prop-label">code</el-col>
-            <el-col :span="16">
+            <el-col :span="16" :offset="1">
                 <el-button size="small" @click="showCode()">show code</el-button>
             </el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="3" class="prop-label">offchain code</el-col>
-            <el-col :span="16">
+            <el-col :span="16" :offset="1">
                 <el-button size="small" @click="showOffchaincode()">show offchain code</el-button>
             </el-col>
         </el-row>
@@ -100,42 +101,13 @@
             <div id="offchainCodeContent">{{deployInfo.compileInfo.offchainCode}}</div>
         </el-dialog>
     </div>
-
-    <!-- <div class="module-wrapper">
-        <h4 class="title">Base information</h4>  
-        <el-row type="flex" justify="center" align="middle" class="row" v-if="accountList">
-            <el-col class="key-col" :span="4">
-                account
-                <i class="el-icon-circle-plus add-account" @click="addAccount"></i>
-                :
-            </el-col>
-
-            <el-col class="col" :span="18">
-                <el-select class="select-address" v-model="selectedAccountAddress" size="small">
-                    <el-option
-                        v-for="account in accountList"
-                        :key="account.address"
-                        :label="account.address"
-                        :value="account.address">
-                    </el-option>
-                </el-select>
-                
-            </el-col>
-        </el-row>
-
-        <el-row type="flex" justify="center" class="row" v-if="contractAddress">
-            <el-col class="key-col" :span="4">
-                contract:
-            </el-col>
-
-            <el-col class="col" :span="18">{{contractAddress}}</el-col>
-        </el-row>
-  </div>-->
 </template>
 <script>
 import * as vite from 'global/vite';
 import ClipboardJS from 'clipboard';
 import VueJsonPretty from 'vue-json-pretty';
+import bigInt from 'big-integer';
+import { mapState } from 'vuex';
 
 export default {
     props: ['deployInfo'],
@@ -146,39 +118,54 @@ export default {
         return {
             isShowAbi: false,
             isShowCode: false,
-            isShowOffchainCode: false
+            isShowOffchainCode: false,
+
+            updateBalanceTimer: null,
+            timerStatus: 'stop'
         };
     },
     mounted() {
         new ClipboardJS('.copy-icon');
     },
-    //     data () {
-    //         return {
-    //             accountList: []
-    //         };
-    //     },
-    //     computed: {
-    //         selectedAccountAddress: {
-    //             get () {
-    //                 if (!this.selectedAccount) {
-    //                     return '';
-    //                 }
-    //                 return this.selectedAccount.address;
-    //             },
-    //             set (val) {
-    //                 let selectedAccount = this.accountList.find(function (account) {
-    //                     return account.address === val;
-    //                 });
-    //                 this.$emit('onSelectAccount', selectedAccount);
-    //             }
-    //         }
-    //     },
-    //     created () {
-    //         if (this.selectedAccount) {
-    //             this.accountList.push(this.selectedAccount);
-    //         }
-    //     },
+    created() {
+        let runTask = () => {
+            this.updateBalanceTimer = setTimeout(async () => {
+                if (this.timerStatus !== 'start') {
+                    return;
+                }
+                await this.updateAccountState();
+                runTask();
+            }, 1000);
+        };
+        this.timerStatus = 'start';
+        runTask();
+    },
+    beforeDestroy() {
+        this.timerStatus = 'stop';
+    },
+    computed: {
+        selectedAccount() {
+            return this.deployInfo.addressMap[this.deployInfo.selectedAccountAddress];
+        },
+        ...mapState(['snapshotHeight'])
+    },
+
     methods: {
+        async updateAccountState() {
+            let address = this.deployInfo.selectedAccountAddress;
+            let account = this.deployInfo.addressMap[address];
+
+            if (!account) {
+                return;
+            }
+            let accountState = await account.getBalance();
+
+            this.$store.commit('updateAccountState', {
+                deployInfo: this.deployInfo,
+                address: address,
+                accountState: accountState
+            });
+        },
         selectAccount(address) {
             this.$store.commit('selectAccount', {
                 deployInfo: this.deployInfo,
@@ -199,6 +186,11 @@ export default {
 
             this.selectAccount(newAccount.address);
         },
+        transformBalance(amount, decimal) {
+            return bigInt(amount)
+                .divide(`1e${decimal}`)
+                .toString();
+        },
         showAbi() {
             this.isShowAbi = true;
         },
@@ -207,18 +199,7 @@ export default {
         },
         showOffchaincode() {
             this.isShowOffchainCode = true;
-        },
-        copyCode() {
-            window.clipboardData.setData(
-                'data',
-                this.deployInfo.compileInfo.bytecodes
-            );
-        },
-        copyOffchainCode() {}
-    //         async addAccount () {
-    //             let account = await vite.createAccount();
-    //             this.accountList.push(account);
-    //         }
+        }
     }
 };
 </script>
@@ -236,21 +217,4 @@ export default {
     color: #67c23a;
   }
 }
-// .row{
-//     padding-bottom: 10px;
-// }
-
-// .key-col {
-//     text-align: center;
-// }
-
-// .col {
-//     word-break: break-all;
-// }
-// .add-account:hover {
-//      cursor: pointer;
-// }
-// .select-address {
-//     width: 100%;
-// }
 </style>

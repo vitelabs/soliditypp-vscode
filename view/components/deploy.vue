@@ -98,7 +98,7 @@ export default {
                         bytecodes: this.deployInfo.compileInfo.bytecodes,
                         abi: this.deployInfo.compileInfo.abi
                     },
-                    vite.transformBalance(this.amount, this.amountUnits),
+                    vite.transformViteBalance(this.amount, this.amountUnits),
                     this.params
                 );
 

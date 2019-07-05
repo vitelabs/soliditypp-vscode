@@ -168,7 +168,20 @@ export async function queryVmLogList(contractBlock, abi) {
     return vmLogs;
 }
 
-export function transformBalance(amount, units) {
+export function transformViteBalance(amount, units) {
+    let transformedAmount = amount;
+    switch (units) {
+    case 'vite':
+        transformedAmount = bigInt(transformedAmount)
+            .multiply(VITE_DECIMAL)
+            .toString();
+        break;
+    case 'attov':
+        break;
+    }
+    return transformedAmount;
+}
+export function transformBalance(amount, decimal) {
     let transformedAmount = amount;
     switch (units) {
     case 'vite':

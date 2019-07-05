@@ -303,7 +303,8 @@ export default {
                     this.deployInfo.selectedAccount,
                     contractAddress,
                     this.callingDeclaration,
-                    vite.transformBalance(
+
+                    vite.transformViteBalance(
                         this.callingParams.$$transfer,
                         this.callingParams.$$transferUnits
                     ),

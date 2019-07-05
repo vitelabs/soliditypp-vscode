@@ -15,6 +15,7 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
     state: {
+        snapshotHeight: 1,
         deployInfoList: []
     },
     mutations: {
@@ -25,6 +26,7 @@ const store = new Vuex.Store({
                 let compileInfo = {
                     abi: compileResult.abiList[i],
                     bytecodes: compileResult.bytecodesList[i],
+
                     contractName: compileResult.contractNameList[i],
                     offchainCode: compileResult.offchainCodesList[i]
                 };
@@ -39,8 +41,10 @@ const store = new Vuex.Store({
                     selectedAccount: initAccounts[i],
                     selectedAccountAddress: initAccounts[i].address,
                     sendCreateBlocks: [],
+
                     logs: []
                 };
+
                 deployInfo.addressMap[initAccounts[i].address] = initAccounts[i];
                 deployInfoList.push(deployInfo);
             }
@@ -62,6 +66,13 @@ const store = new Vuex.Store({
                     break;
                 }
             }
+        },
+
+        updateAccountState(state, { deployInfo, address, accountState }) {
+            Vue.set(deployInfo.addressMap[address], 'accountState', accountState);
+        },
+        updateSnapshotHeight(state, { snapshotHeight }) {
+            state.snapshotHeight = snapshotHeight;
         },
         // deployInfo: this.deployInfo,
         // sendCreateBlock: createContractBlock
