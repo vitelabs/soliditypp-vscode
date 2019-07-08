@@ -3,7 +3,7 @@ import { DebugProtocol } from "vscode-debugprotocol";
 import ViewRequestProcessor from "./viewRequestProcessor";
 import { exec } from "shelljs";
 
-import { getSolppcPath, getGviteName } from "./constant";
+import { getSolppcPath, getGviteName, VITE_DIR } from "./constant";
 
 import * as vscode from "vscode";
 import * as path from "path";
@@ -163,17 +163,22 @@ export default class SolidityppDebugSession extends DebugSession {
 
   private initVite() {
     this.cleanVite();
-    this._viteChildProcess = spawn(`./${getGviteName()}`, [], {
-      cwd: path.resolve(extensionPath, "bin/vite/"),
-      stdio: "ignore"
-    });
+
+    this._viteChildProcess = exec(
+      `./startup.sh ${getGviteName()}`,
+      {
+        cwd: VITE_DIR
+      },
+      () => {}
+    );
 
     this._viteChildProcess.stderr.on("data", stderr => {
       // init vite failed
-      this.aborted(
-        `An error occurred on the node vite node , error is ${stderr}`,
-        1
-      );
+      this.aborted(`An error occurred with gvite , error is ${stderr}`, 1);
+    });
+    this._viteChildProcess.stdout.on("data", data => {
+      console.log(data);
+      this.sendEvent(new OutputEvent(`${data}`, "stdout"));
     });
 
     this._viteChildProcess.on("close", code => {

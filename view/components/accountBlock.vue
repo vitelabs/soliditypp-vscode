@@ -76,8 +76,7 @@ export default {
 
 <style lang="scss" scoped>
 .wrapper {
-  border-top: 1px solid #999;
-  border-bottom: 1px solid #999;
+  border: 1px solid #999;
   margin: 10px 0;
 }
 
