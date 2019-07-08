@@ -55,8 +55,13 @@
                         justify="center"
                     >
                         <el-col :span="4" class="prop-label">
-                            <div>transfer</div>
-                            <div>(uint256)</div>
+                            <div>
+                                transfer
+                                <help
+                                    text="The amount of vite token is transferred to contract. The basic unit of token is vite, the smallest
+unit is attov, 1 vite = 1018 attov"
+                                ></help>
+                            </div>
                         </el-col>
 
                         <el-col :span="13" :offset="1">

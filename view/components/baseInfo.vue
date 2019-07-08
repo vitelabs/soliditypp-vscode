@@ -1,12 +1,18 @@
 <template>
     <div>
         <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="1">
+                <help text="The latest snapshot block height"></help>
+            </el-col>
             <el-col :span="3" class="prop-label">snapshot</el-col>
-            <el-col :span="16" :offset="1">{{snapshotHeight}}</el-col>
+            <el-col :span="15" :offset="1">{{snapshotHeight}}</el-col>
         </el-row>
         <el-row type="flex" align="middle">
+            <el-col :span="1">
+                <help text="The address who deploy the contract"></help>
+            </el-col>
             <el-col :span="3" class="prop-label">address</el-col>
-            <el-col :span="16" :offset="1">
+            <el-col :span="15" :offset="1">
                 <el-select
                     class="address-input"
                     size="small"
@@ -33,8 +39,11 @@
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="1">
+                <help text="The balance of the address"></help>
+            </el-col>
             <el-col :span="3" class="prop-label">balance</el-col>
-            <el-col :span="16" :offset="1" v-if="selectedAccount.accountState">
+            <el-col :span="15" :offset="1" v-if="selectedAccount.accountState">
                 <span
                     v-for="(tokenBalance, tokenId, index) in selectedAccount.accountState.balance.tokenBalanceInfoMap"
                     :key="tokenId"
@@ -45,31 +54,43 @@
             </el-col>
         </el-row>
         <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="1">
+                <help text="The number of blocks created by the address"></help>
+            </el-col>
             <el-col :span="3" class="prop-label">block number</el-col>
             <el-col
-                :span="16"
+                :span="15"
                 :offset="1"
                 v-if="selectedAccount.accountState"
             >{{selectedAccount.accountState.balance.totalNumber}}</el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="1">
+                <help text="The abi of contract"></help>
+            </el-col>
             <el-col :span="3" class="prop-label">abi</el-col>
-            <el-col :span="16" :offset="1">
+            <el-col :span="15" :offset="1">
                 <el-button size="small" @click="showAbi()">show abi</el-button>
             </el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="1">
+                <help text="The compiled code of contract"></help>
+            </el-col>
             <el-col :span="3" class="prop-label">code</el-col>
-            <el-col :span="16" :offset="1">
+            <el-col :span="15" :offset="1">
                 <el-button size="small" @click="showCode()">show code</el-button>
             </el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
+            <el-col :span="1">
+                <help text="The compiled offchain code of contract"></help>
+            </el-col>
             <el-col :span="3" class="prop-label">offchain code</el-col>
-            <el-col :span="16" :offset="1">
+            <el-col :span="15" :offset="1">
                 <el-button size="small" @click="showOffchaincode()">show offchain code</el-button>
             </el-col>
         </el-row>

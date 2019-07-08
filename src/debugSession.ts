@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as os from "os";
 
-import { ChildProcess, spawn, spawnSync } from "child_process";
+import { ChildProcess, spawnSync } from "child_process";
 import ExtensionRequestProcessor from "./extensionRequestProcessor";
 import { extensionPath } from "./constant";
 import createGvite from "./createGvite";
@@ -176,8 +176,8 @@ export default class SolidityppDebugSession extends DebugSession {
       // init vite failed
       this.aborted(`An error occurred with gvite , error is ${stderr}`, 1);
     });
+
     this._viteChildProcess.stdout.on("data", data => {
-      console.log(data);
       this.sendEvent(new OutputEvent(`${data}`, "stdout"));
     });
 

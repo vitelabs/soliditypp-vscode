@@ -9,6 +9,8 @@ import store from 'store/store';
 import App from './app.vue';
 import './theme/index.css';
 
+import Help from 'components/help';
+
 import {
     Form,
     Button,
@@ -50,6 +52,8 @@ Vue.use(VueSplit);
 Vue.prototype.$message = Message;
 Vue.prototype.$alert = MessageBox.alert;
 Vue.prototype.$loading = Loading.service;
+
+Vue.component('help', Help);
 
 new Vue({
     el: '#app',
