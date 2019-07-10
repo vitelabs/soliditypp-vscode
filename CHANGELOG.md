@@ -2,8 +2,11 @@
 ## v0.5.0
 
 ### Features
+1. Support gvite@2.2.0
+
+### Optimize
 1. Upgrade GUI completelly
-2. Support gvite@2.2.0
+2. Reduce plug-in package size from 20M to 1M
 
 ### Fixes
 1. Fix the bug about deployment timeout and calling method timeout
