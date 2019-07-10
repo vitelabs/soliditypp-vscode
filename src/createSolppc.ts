@@ -9,7 +9,8 @@ import {
 import uri from "./uri";
 import * as path from "path";
 
-const request = require("request");
+import * as request from "request";
+
 const decompress = require("decompress");
 const decompressTargz = require("decompress-targz");
 
@@ -65,41 +66,52 @@ async function downloadSolppc(
 
   // download
   await new Promise(function(resolve, reject) {
-    print &&
-      print(`Prepare to download solppc from ${downloadUri}`, 0, downloadUri);
+    let runTask = () => {
+      print &&
+        print(`Prepare to download solppc from ${downloadUri}`, 0, downloadUri);
 
-    let requestStrem = request(downloadUri);
-    let fsStream = fs.createWriteStream(getSolppcCompressedPath());
+      let requestStrem = request.get(downloadUri, {
+        timeout: 15000
+      });
+      let fsStream = fs.createWriteStream(getSolppcCompressedPath());
 
-    let downloadedSize = 0;
-    let totalSize = 0;
-    requestStrem
-      .on("error", function(err: any) {
-        reject(err);
-      })
-      .on("response", function(response: any) {
-        if (response.statusCode != 200) {
-          return reject(response);
-        }
+      let downloadedSize = 0;
+      let totalSize = 0;
+      requestStrem
+        .on("error", function(err: any) {
+          if (err.code === "ETIMEDOUT" || err.code === "ESOCKETTIMEDOUT") {
+            print && print(`Download solppc timeout, retrying`, 0, downloadUri);
+            runTask();
+            return;
+          }
+          reject(err);
+        })
+        .on("response", function(response: any) {
+          if (response.statusCode != 200) {
+            return reject(response);
+          }
 
-        totalSize = Number(response.headers["content-length"]);
-      })
-      .on("data", function(d: any) {
-        downloadedSize += d.length;
-        print &&
-          print(
-            "Downloading solppc",
-            Number(((downloadedSize / totalSize) * 100).toFixed(2)),
-            downloadUri
-          );
-      })
-      .pipe(fsStream);
+          totalSize = Number(response.headers["content-length"]);
+        })
+        .on("data", function(d: any) {
+          downloadedSize += d.length;
 
-    fsStream.on("finish", function() {
-      print && print("Solppc downloaded complete", 100, downloadUri);
+          print &&
+            print(
+              "Downloading solppc",
+              Number(((downloadedSize / totalSize) * 100).toFixed(2)),
+              downloadUri
+            );
+        })
+        .pipe(fsStream);
 
-      resolve();
-    });
+      fsStream.on("finish", function() {
+        print && print("Solppc downloaded complete", 100, downloadUri);
+
+        resolve();
+      });
+    };
+    runTask();
   });
 }
 

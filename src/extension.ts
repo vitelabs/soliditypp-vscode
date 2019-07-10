@@ -290,7 +290,7 @@ function installSolppc() {
             return;
           }
           progress.report({
-            message: `${p}%. The solppc is the compiler of soliditypp language. Download from ${downloadUrl}.`,
+            message: `${p}%. ${s}. Solppc is the compiler of soliditypp language.`,
             increment: p / 10
           });
         });

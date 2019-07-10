@@ -117,43 +117,56 @@ async function downloadGvite(ds: SolidityppDebugSession) {
 
   // download
   await new Promise(function(resolve, reject) {
-    ds.sendEvent(
-      new OutputEvent(`Prepare download vite from ${downloadUri}\n`, "stdout")
-    );
+    let runTask = () => {
+      ds.sendEvent(
+        new OutputEvent(`Prepare download vite from ${downloadUri}\n`, "stdout")
+      );
 
-    let requestStrem = request(downloadUri);
-    let fsStream = fs.createWriteStream(getGviteCompressedPath());
+      let requestStrem = request.get(downloadUri, {
+        timeout: 15000
+      });
 
-    let downloadedSize = 0;
-    let totalSize = 0;
-    requestStrem
-      .on("error", function(err) {
-        reject(err);
-      })
-      .on("response", function(response) {
-        if (response.statusCode != 200) {
-          return reject(response);
-        }
+      let fsStream = fs.createWriteStream(getGviteCompressedPath());
 
-        totalSize = Number(response.headers["content-length"]);
-      })
-      .on("data", function(d) {
-        downloadedSize += d.length;
-        ds.sendEvent(
-          new OutputEvent(
-            `Downloading vite: ${((downloadedSize / totalSize) * 100).toFixed(
-              2
-            )}%\n`,
-            "stdout"
-          )
-        );
-      })
-      .pipe(fsStream);
+      let downloadedSize = 0;
+      let totalSize = 0;
+      requestStrem
+        .on("error", function(err: any) {
+          if (err.code === "ETIMEDOUT" || err.code === "ESOCKETTIMEDOUT") {
+            ds.sendEvent(
+              new OutputEvent(`Download vite timeout, retrying\n`, "stdout")
+            );
+            runTask();
+            return;
+          }
+          reject(err);
+        })
+        .on("response", function(response) {
+          if (response.statusCode != 200) {
+            return reject(response);
+          }
 
-    fsStream.on("finish", function() {
-      ds.sendEvent(new OutputEvent("Vite downloaded complete\n", "stdout"));
-      resolve();
-    });
+          totalSize = Number(response.headers["content-length"]);
+        })
+        .on("data", function(d) {
+          downloadedSize += d.length;
+          ds.sendEvent(
+            new OutputEvent(
+              `Downloading vite: ${((downloadedSize / totalSize) * 100).toFixed(
+                2
+              )}%\n`,
+              "stdout"
+            )
+          );
+        })
+        .pipe(fsStream);
+
+      fsStream.on("finish", function() {
+        ds.sendEvent(new OutputEvent("Vite downloaded complete\n", "stdout"));
+        resolve();
+      });
+    };
+    runTask();
   });
 }
 
