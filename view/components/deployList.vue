@@ -56,23 +56,43 @@ import baseInfo from 'components/baseInfo';
 import * as vite from 'global/vite';
 import { mapState } from 'vuex';
 
-function parseLogTitle(block, deployInfo) {
-    let isSendCreate = hash => {
-        for (let i = 0; i < deployInfo.sendCreateBlocks.length; i++) {
-            let block = deployInfo.sendCreateBlocks[i];
-            if (block.hash === hash) {
-                return true;
-            }
-        }
-        return false;
+function briefAddress(address) {
+    return address.slice(0, 8) + '...' + address.slice(-3);
+}
+function briefHash(hash) {
+    return hash.slice(0, 5) + '...' + hash.slice(-5);
+}
+function parseLogTitle(block) {
+    // let isSendCreate = hash => {
+    //     for (let i = 0; i < deployInfo.sendCreateBlocks.length; i++) {
+    //         let block = deployInfo.sendCreateBlocks[i];
+    //         if (block.hash === hash) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // };
+    let title = `${
+        vite.isSendBlock(block.blockType) ? '<b>[SEND]</b>' : '<b>[RECEIVE]</b>'
+    }`;
+    // if (
+    //     block.blockType === 1 ||
+    // (block.height === '1' && isSendCreate(block.fromBlockHash))
+    // ) {
+    //     title = `${title} [deploy]`;
+    // }
+    let newProp = (k, v) => {
+        return ` <b>${k}</b>: <span style="color: #F6F0F0">${v}</span>`;
     };
-    let title = `${vite.isSendBlock(block.blockType) ? 'send' : 'receive'} block`;
-    if (
-        block.blockType === 1 ||
-    (block.height === '1' && isSendCreate(block.fromBlockHash))
-    ) {
-        title = `${title} [deploy]`;
+    title += newProp('from', briefAddress(block.fromAddress));
+    title += newProp('to', briefAddress(block.toAddress));
+    title += newProp('height', block.height);
+    title += newProp('hash', briefHash(block.hash));
+
+    if (vite.isReceiveBlock(block.blockType)) {
+        title += newProp('fromHash', briefHash(block.fromBlockHash));
     }
+
     return title;
 }
 
@@ -116,7 +136,7 @@ export default {
         for (let i = 0; i < initAccounts.length; i++) {
             await vite.initBalance(
                 initAccounts[i],
-                vite.ACCOUNT_INIT_AMOUNT.toString()
+                vite.ACCOUNT_INIT_AMOUNT.toFixed()
             );
         }
     },
@@ -193,7 +213,7 @@ export default {
                         this.$store.commit('addLog', {
                             deployInfo: relatedDeployInfo,
                             log: block,
-                            title: parseLogTitle(block, relatedDeployInfo),
+                            title: parseLogTitle(block),
                             dataType: 'accountBlock'
                         });
                     }

@@ -9,7 +9,7 @@
             <el-row :key="key" type="flex" justify="center" class="row" v-if="!isInDisplayBlackList(key)">
                 <el-col class="key-col col" :span="6">{{key}}</el-col>
 
-                <el-col class="col" :span="18">
+                <el-col class="val-col col" :span="18">
                     <template v-if="key === 'logs' || key === 'sendBlockList'">
                         <vue-json-pretty :data="value"></vue-json-pretty>
                     </template>
@@ -89,6 +89,9 @@ export default {
 
   &.no-border {
     border: none;
+  }
+  .val-col {
+    color: #fff;
   }
 }
 .key-col {

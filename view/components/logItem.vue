@@ -9,14 +9,16 @@
                 [{{log.type.toUpperCase()}}]
                 <span
                     class="title-content"
-                >{{log.title}}</span>
+                    v-html="log.title"
+                ></span>
             </span>
         </div>
 
         <div class="log-content" v-if="show">
             <account-block v-if="log.dataType === 'accountBlock'" :data="log.content"></account-block>
             <vue-json-pretty v-if="log.dataType=== 'json'" :data="log.content"></vue-json-pretty>
-            <div class="log-text" v-if="log.dataType=== 'text'">{{log.content}}</div>
+            <vue-json-pretty v-if="log.dataType=== 'text'" :data="textToJSON(log.content)"></vue-json-pretty>
+            <!-- <div class="log-text" v-if="log.dataType=== 'text'">{{log.content}}</div> -->
         </div>
     </div>
 </template>
@@ -38,6 +40,15 @@ export default {
     methods: {
         toggle() {
             this.show = this.show ? false : true;
+        },
+        textToJSON(text) {
+            let obj;
+            try {
+                obj = JSON.parse(text);
+            } catch (err) {
+                obj = text;
+            }
+            return obj;
         }
     }
 };
@@ -56,11 +67,13 @@ export default {
     color: #00ff7f;
     .title-content {
       color: #fff;
+      font-weight: 400;
     }
   }
-  .log-content {
-    padding-left: 10px;
-  }
+  //   .log-content {
+  //     padding-left: 10px;
+  //     word-break: break-all;
+  //   }
 }
 .log-text {
   padding: 8px;

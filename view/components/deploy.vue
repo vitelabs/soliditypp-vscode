@@ -19,6 +19,26 @@ unit is attov, 1 vite = 1018 attov"
                 <units class="units" v-model="amountUnits"></units>
             </el-col>
         </el-row>
+        <el-row class="row" type="flex" align="middle">
+            <el-col :span="3" class="label">confirm time</el-col>
+            <el-col :span="20">
+                <el-input v-model="confirmTime" size="small"></el-input>
+            </el-col>
+        </el-row>
+
+        <el-row class="row" type="flex" align="middle">
+            <el-col :span="3" class="label">quota ratio</el-col>
+            <el-col :span="20">
+                <el-input v-model="quotaRatio" size="small"></el-input>
+            </el-col>
+        </el-row>
+
+        <el-row class="row" type="flex" align="middle">
+            <el-col :span="3" class="label">seed count</el-col>
+            <el-col :span="20">
+                <el-input v-model="seedCount" size="small"></el-input>
+            </el-col>
+        </el-row>
         <template v-if="constructAbi && constructAbi.inputs">
             <el-row
                 class="row"
@@ -57,6 +77,11 @@ export default {
         return {
             amount: '0',
             amountUnits: '',
+            confirmTime: 0,
+            quotaRatio: 10,
+
+            seedCount: 0,
+
             params: [],
             status: 'BEFORE_DEPLOY'
         };
@@ -105,6 +130,10 @@ export default {
                         abi: this.deployInfo.compileInfo.abi
                     },
                     vite.transformViteBalance(this.amount, this.amountUnits),
+                    this.confirmTime,
+                    this.quotaRatio,
+                    this.seedCount,
+
                     this.params
                 );
 

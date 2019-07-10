@@ -1,5 +1,11 @@
 {
   "GenesisAccountAddress": "vite_bb6ad02107a4422d6a324fd2e3707ad53cfed9359378a78792",
+  "ForkPoints": {
+    "SeedFork": {
+      "Height": 1,
+      "Version": 1
+    }
+  },
   "ConsensusGroupInfo": {
     "ConsensusGroupInfoMap": {
       "00000000000000000001": {

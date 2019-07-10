@@ -143,10 +143,10 @@
   },
   "dependencies": {
     "@types/request": "^2.48.1",
-    "@vite/vitejs": "^2.2.1",
+    "@vite/vitejs": "^2.2.2",
     "@vite/vitejs-ws": "^2.1.0",
     "babel-polyfill": "^6.26.0",
-    "big-integer": "^1.6.44",
+    "bignumber.js": "^9.0.0",
     "clipboard": "^2.0.4",
     "dayjs": "^1.8.14",
     "decompress": "^4.2.0",

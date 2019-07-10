@@ -99,6 +99,12 @@
         </el-row>
 
         <el-dialog :visible.sync="isShowAbi" class="dialog" :fullscreen="true" title="abi">
+            <div>
+                <i
+                    class="el-icon-document-copy copy-icon"
+                    :data-clipboard-text="JSON.stringify(deployInfo.compileInfo.abi)"
+                ></i>
+            </div>
             <vue-json-pretty :show-length="true" :data="deployInfo.compileInfo.abi"></vue-json-pretty>
         </el-dialog>
         <el-dialog class="dialog" :visible.sync="isShowCode" :fullscreen="true" title="code">
@@ -136,9 +142,10 @@
 import * as vite from 'global/vite';
 import ClipboardJS from 'clipboard';
 import VueJsonPretty from 'vue-json-pretty';
-import bigInt from 'big-integer';
 import { mapState } from 'vuex';
+
 import transfer from 'components/transfer';
+const BigNumber = require('bignumber.js');
 
 export default {
     props: ['deployInfo'],
@@ -227,14 +234,12 @@ export default {
             });
 
             // init balance
-            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toString());
+            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toFixed());
 
             this.selectAccount(newAccount.address);
         },
         transformBalance(amount, decimal) {
-            return bigInt(amount)
-                .divide(`1e${decimal}`)
-                .toString();
+            return new BigNumber(amount).dividedBy(`1e${decimal}`).toFixed();
         },
         showAbi() {
             this.isShowAbi = true;
