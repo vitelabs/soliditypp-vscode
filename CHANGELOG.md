@@ -1,8 +1,18 @@
 # Soliditypp extension for Visual Studio Code
+## v0.5.0
+
+### Features
+1. Upgrade GUI completelly
+2. Support gvite@2.2.0
+
+### Fixes
+1. Fix the bug about deployment timeout and calling method timeout
+2. Fix lacking compile error hint when save file
 
 ## v0.4.3
+
 ### Fixes
-1. Fix that fail to run `gvite` on windows.
+1. Fix that fail to run `gvite` on windows
 
 ## v0.4.2
 
