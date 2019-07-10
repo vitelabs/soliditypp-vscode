@@ -179,14 +179,24 @@ export default {
                         }
                     });
 
-                    relatedDeployInfoList.forEach(relatedDeployInfo => {
+                    for (let i = 0; i < relatedDeployInfoList.length; i++) {
+                        let relatedDeployInfo = relatedDeployInfoList[i];
+
+                        if (block.logHash && !block.logs) {
+                            let vmLogs = await vite.queryVmLogList(
+                                block,
+                                relatedDeployInfo.compileInfo.abi
+                            );
+                            block.logs = vmLogs;
+                            console.log(block.logs);
+                        }
                         this.$store.commit('addLog', {
                             deployInfo: relatedDeployInfo,
                             log: block,
                             title: parseLogTitle(block, relatedDeployInfo),
                             dataType: 'accountBlock'
                         });
-                    });
+                    }
                 }
             });
         }
