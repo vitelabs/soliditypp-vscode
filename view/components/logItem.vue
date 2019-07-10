@@ -15,19 +15,19 @@
 
         <div class="log-content" v-if="show">
             <account-block v-if="log.dataType === 'accountBlock'" :data="log.content"></account-block>
-            <div v-else>{{log.content}}</div>
-            <!-- <vue-json-pretty class="log-" :data="log.content"></vue-json-pretty> -->
+            <vue-json-pretty v-if="log.dataType=== 'json'" :data="log.content"></vue-json-pretty>
+            <div class="log-text" v-if="log.dataType=== 'text'">{{log.content}}</div>
         </div>
     </div>
 </template>
 <script>
-// import VueJsonPretty from 'vue-json-pretty';
+import VueJsonPretty from 'vue-json-pretty';
 import AccountBlock from 'components/accountBlock.vue';
 
 export default {
     props: ['log'],
     components: {
-    // VueJsonPretty,
+        VueJsonPretty,
         AccountBlock
     },
     data() {
@@ -61,6 +61,10 @@ export default {
   .log-content {
     padding-left: 10px;
   }
+}
+.log-text {
+  padding: 8px;
+  font-size: 14px;
 }
 .log-error {
   .log-title {

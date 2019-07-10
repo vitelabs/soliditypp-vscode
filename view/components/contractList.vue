@@ -56,7 +56,7 @@
                     >
                         <el-col :span="4" class="prop-label">
                             <div>
-                                transfer
+                                amount
                                 <help
                                     text="The amount of vite token is transferred to contract. The basic unit of token is vite, the smallest
 unit is attov, 1 vite = 1018 attov"
@@ -262,10 +262,16 @@ export default {
                     toParamsArray(this.callingDeclaration, this.callingParams)
                 );
             } catch (err) {
+                let msg;
+                if (err.stack) {
+                    msg = err.toString();
+                } else {
+                    msg = JSON.stringify(err);
+                }
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
-
-                    log: `send contract tx: ${err.toString()}`,
+                    title: 'send block failed',
+                    log: `${msg}`,
                     type: 'error'
                 });
 
@@ -274,22 +280,38 @@ export default {
         },
 
         async callOffchain(contractAddress) {
+            let result;
             try {
-                await vite.callOffchainMethod(
+                result = await vite.callOffchainMethod(
                     contractAddress,
                     this.callingDeclaration,
                     this.deployInfo.compileInfo.offchainCode,
                     toParamsArray(this.callingDeclaration, this.callingParams)
                 );
             } catch (err) {
+                let msg;
+                if (err.stack) {
+                    msg = err.toString();
+                } else {
+                    msg = JSON.stringify(err);
+                }
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
 
-                    log: `call offchain method: ${err.toString()}`,
+                    title: `call ${this.callingDeclaration.name} failed`,
+                    log: msg,
                     type: 'error'
                 });
+                return;
                 // return;
             }
+            console.log(this.callingDeclaration);
+            this.$store.commit('addLog', {
+                deployInfo: this.deployInfo,
+                title: `call ${this.callingDeclaration.name}`,
+                log: result,
+                dataType: 'json'
+            });
         }
     },
     data() {

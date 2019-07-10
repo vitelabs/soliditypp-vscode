@@ -6,7 +6,7 @@
     >
         <el-row class="row" type="flex" align="middle">
             <el-col :span="3" class="label">
-                transfer
+                amount
                 <help
                     text="The amount of vite token is transferred by send create block which is used to create a contract. The basic unit of token is vite, the smallest
 unit is attov, 1 vite = 1018 attov"
@@ -131,11 +131,20 @@ export default {
                 //     log: createContractBlock
                 // });
             } catch (err) {
-                this.$message({
-                    message: 'Contract deployed failed. Get details in the debug console',
-                    type: 'failed'
+                let msg;
+                if (err.stack) {
+                    msg = err.toString();
+                } else {
+                    msg = JSON.stringify(err);
+                }
+                console.log(this.deployInfo);
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+
+                    title: `deploy ${this.deployInfo.compileInfo.contractName} failed`,
+                    log: msg,
+                    type: 'error'
                 });
-                postError(err);
             }
             this.status = 'BEFORE_DEPLOY';
         }
