@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import {
   SOLPPC_DIR,
+  SOLPPC_VERSION,
   getOsPlatform,
   getSolppcPath,
   OS_PLATFORM,
@@ -45,16 +46,16 @@ async function downloadSolppc(
 
   switch (osPlatform) {
     case OS_PLATFORM.DARWIN: {
-      downloadUri = uri.solppcDownload.darwin;
+      downloadUri = uri.createSolppcDownload(SOLPPC_VERSION, "darwin");
       break;
     }
     case OS_PLATFORM.LINUX: {
       // compressedFilePath = path.resolve(VITE_DIR, "gvite-linux.zip");
-      downloadUri = uri.solppcDownload.linux;
+      downloadUri = uri.createSolppcDownload(SOLPPC_VERSION, "linux");
       break;
     }
     case OS_PLATFORM.WIN64: {
-      downloadUri = uri.solppcDownload.win64;
+      downloadUri = uri.createSolppcDownload(SOLPPC_VERSION, "win");
       // compressedFilePath = path.resolve(VITE_DIR, "gvite-win64.zip");
       break;
     }

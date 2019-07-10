@@ -9,7 +9,7 @@ let plugins = [
     new HtmlWebpackPlugin({
         title: 'Soliditypp Debugger',
         template: TEMPLATE_PATH,
-        inlineSource: '.+',
+        inlineSource: '.+'
     }),
     new HtmlWebpackInlineSourcePlugin(),
     new VueLoaderPlugin()

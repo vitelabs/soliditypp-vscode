@@ -19,6 +19,7 @@ export const VITE_DIR = path.resolve(BIN_DIR, "vite/");
 export const SOLPPC_DIR = path.resolve(BIN_DIR, "solppc/");
 export const PLATFORM_ERROR = "don't support win32";
 export const GVITE_VERSION = "v2.2.0";
+export const SOLPPC_VERSION = "v0.4.3";
 
 export enum OS_PLATFORM {
   WIN32 = 1,

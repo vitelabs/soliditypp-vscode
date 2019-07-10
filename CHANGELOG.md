@@ -3,6 +3,7 @@
 
 ### Features
 1. Support gvite@2.2.0
+2. Support solppc@0.4.3
 
 ### Optimize
 1. Upgrade GUI completelly
