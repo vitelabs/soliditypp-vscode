@@ -2,6 +2,7 @@ node_modules
 out
 out_view
 gvite
+gvite.log
 gvite.exe
 .DS_Store
 ledger
