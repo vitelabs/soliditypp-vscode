@@ -88,10 +88,19 @@ const store = new Vuex.Store({
             state,
             { deployInfo, log, title = '', type = 'info', dataType = 'text' }
         ) {
+            let content = log;
+            if (type === 'error') {
+                if (content.stack) {
+                    content = log.toString();
+                } else {
+                    content = JSON.stringify(content);
+                }
+            }
+            console.log(type);
             deployInfo.logs.push({
                 createdTime: dayjs(),
                 title: title,
-                content: log,
+                content: content,
                 type,
                 dataType
             });

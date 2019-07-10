@@ -52,6 +52,9 @@
                     {{transformBalance(tokenBalance.totalAmount, tokenBalance.tokenInfo.decimals)}} {{tokenBalance.tokenInfo.tokenSymbol}}
                 </span>
             </el-col>
+            <el-col :span="3">
+                <el-link type="primary" @click="isShowTransfer=true">more vite</el-link>
+            </el-col>
         </el-row>
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="1">
@@ -121,6 +124,12 @@
             </div>
             <div id="offchainCodeContent">{{deployInfo.compileInfo.offchainCode}}</div>
         </el-dialog>
+
+        <el-dialog class="dialog" width="90%" :visible.sync="isShowTransfer" title="transfer">
+            <div>
+                <transfer @afterTransfer="afterTransfer" :account="selectedAccount" />
+            </div>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -129,17 +138,20 @@ import ClipboardJS from 'clipboard';
 import VueJsonPretty from 'vue-json-pretty';
 import bigInt from 'big-integer';
 import { mapState } from 'vuex';
+import transfer from 'components/transfer';
 
 export default {
     props: ['deployInfo'],
     components: {
-        VueJsonPretty
+        VueJsonPretty,
+        transfer
     },
     data() {
         return {
             isShowAbi: false,
             isShowCode: false,
             isShowOffchainCode: false,
+            isShowTransfer: false,
 
             updateBalanceTimer: null,
             timerStatus: 'stop'
@@ -156,7 +168,7 @@ export default {
                 }
                 await this.updateAccountState();
                 runTask();
-            }, 1000);
+            }, 600);
         };
         this.timerStatus = 'start';
         runTask();
@@ -172,6 +184,18 @@ export default {
     },
 
     methods: {
+        afterTransfer(res) {
+            this.isShowTransfer = false;
+            if (res.error) {
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+                    title: 'transfer vite failed',
+                    type: 'error',
+                    log: res.error
+                });
+                return;
+            }
+        },
         async updateAccountState() {
             let address = this.deployInfo.selectedAccountAddress;
             let account = this.deployInfo.addressMap[address];

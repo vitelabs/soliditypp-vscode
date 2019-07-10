@@ -17,7 +17,7 @@ export default {
     },
     data: function() {
         return {
-            selectValue: 'vite'
+            selectValue: ''
         };
     },
     watch: {
@@ -25,9 +25,11 @@ export default {
             this.$emit('update', val);
         }
     },
-    created() {
+    mounted() {
         if (this.value) {
             this.selectValue = this.value;
+        } else {
+            this.selectValue = 'vite';
         }
     }
 };

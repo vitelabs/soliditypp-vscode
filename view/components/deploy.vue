@@ -43,7 +43,6 @@ unit is attov, 1 vite = 1018 attov"
 
 <script>
 import * as vite from 'global/vite';
-import postError from 'utils/postError';
 import units from 'components/units';
 
 export default {
@@ -131,18 +130,11 @@ export default {
                 //     log: createContractBlock
                 // });
             } catch (err) {
-                let msg;
-                if (err.stack) {
-                    msg = err.toString();
-                } else {
-                    msg = JSON.stringify(err);
-                }
-                console.log(this.deployInfo);
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
 
                     title: `deploy ${this.deployInfo.compileInfo.contractName} failed`,
-                    log: msg,
+                    log: err,
                     type: 'error'
                 });
             }

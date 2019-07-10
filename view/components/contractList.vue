@@ -262,16 +262,10 @@ export default {
                     toParamsArray(this.callingDeclaration, this.callingParams)
                 );
             } catch (err) {
-                let msg;
-                if (err.stack) {
-                    msg = err.toString();
-                } else {
-                    msg = JSON.stringify(err);
-                }
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
                     title: 'send block failed',
-                    log: `${msg}`,
+                    log: err,
                     type: 'error'
                 });
 
@@ -289,23 +283,17 @@ export default {
                     toParamsArray(this.callingDeclaration, this.callingParams)
                 );
             } catch (err) {
-                let msg;
-                if (err.stack) {
-                    msg = err.toString();
-                } else {
-                    msg = JSON.stringify(err);
-                }
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
 
                     title: `call ${this.callingDeclaration.name} failed`,
-                    log: msg,
+                    log: err,
                     type: 'error'
                 });
                 return;
                 // return;
             }
-            console.log(this.callingDeclaration);
+
             this.$store.commit('addLog', {
                 deployInfo: this.deployInfo,
                 title: `call ${this.callingDeclaration.name}`,

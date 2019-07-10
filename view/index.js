@@ -28,7 +28,8 @@ import {
     TabPane,
     Collapse,
     CollapseItem,
-    Dialog
+    Dialog,
+    Link
 } from 'element-ui';
 
 Vue.use(Form);
@@ -46,6 +47,7 @@ Vue.use(Option);
 Vue.use(Collapse);
 Vue.use(CollapseItem);
 Vue.use(Dialog);
+Vue.use(Link);
 
 Vue.use(VueSplit);
 
