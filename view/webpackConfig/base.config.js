@@ -3,7 +3,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const plugins = require('./plugins.js');
 
 const SRC_PATH = path.join(__dirname, '../');
-const STATIC_PATH = path.join(__dirname, '../../out/view');
+const STATIC_PATH = path.join(__dirname, '../../out_view');
 let development = ['dev', 'test'];
 
 let config = {

@@ -10,7 +10,7 @@
                 <el-col class="key-col col" :span="6">{{key}}</el-col>
 
                 <el-col class="col" :span="18">
-                    <template v-if="key === 'logs'">
+                    <template v-if="key === 'logs' || key === 'sendBlockList'">
                         <vue-json-pretty :data="value"></vue-json-pretty>
                     </template>
                     <template v-else>{{value}}</template>

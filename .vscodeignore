@@ -1,21 +1,35 @@
-**/*.ts
-**/tsconfig.json
-**/tslint.json
-.DS_Store
-.eslintignore
-.vscode
-view/**/*
-*.vsix
-.gitignore
-bin/vite/__MACOSX
+# **/*.ts
+# **/tsconfig.json
+# **/tslint.json
+# .DS_Store
+# .eslintignore
+# .vscode
+# view/**/*
+# *.vsix
+# .gitignore
+# bin/vite/__MACOSX
 
-bin/vite/ledger
+# bin/vite/ledger
 
+# !bin/solppc/.keep
+# bin/solppc/*
+# solppc_*.zip
+
+# bin/vite/gvite-*.zip
+# bin/vite/gvite-v*/
+# bin/vite/gvite
+# bin/vite/gvite.exe
+
+**/*
+
+!out/**/*
+!out_view/**/*
 !bin/solppc/.keep
-bin/solppc/*
-solppc_*.zip
-
-bin/vite/gvite-*.zip
-bin/vite/gvite-v*/
-bin/vite/gvite
-bin/vite/gvite.exe
+!bin/vite/*.sh
+!bin/vite/*.json
+!bin/vite/*.solpp
+!bin/vite/devdata/
+!images/
+!*.md
+!syntax/
+!soliditypp-configuration.json

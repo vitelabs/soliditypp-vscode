@@ -1,5 +1,6 @@
 node_modules
 out
+out_view
 gvite
 gvite.exe
 .DS_Store

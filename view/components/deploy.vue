@@ -5,14 +5,14 @@
         element-loading-background="rgba(0, 0, 0, 0.8)"
     >
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="1">
+            <el-col :span="3" class="label">
+                transfer
                 <help
-                    text="The amount of vite token is transferred by `send create block` which is used to create a contract. The basic unit of token is vite, the smallest
+                    text="The amount of vite token is transferred by send create block which is used to create a contract. The basic unit of token is vite, the smallest
 unit is attov, 1 vite = 1018 attov"
                 ></help>
             </el-col>
-            <el-col :span="3" class="label">transfer</el-col>
-            <el-col :span="15" :offset="1">
+            <el-col :span="16">
                 <el-input v-model="amount" size="small"></el-input>
             </el-col>
             <el-col :span="4">

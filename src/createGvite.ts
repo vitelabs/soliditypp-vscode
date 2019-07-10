@@ -13,9 +13,9 @@ import * as request from "request";
 import * as decompress from "decompress";
 import SolidityppDebugSession from "./debugSession";
 import { OutputEvent } from "vscode-debugadapter";
-import { exec } from "shelljs";
 
 // const decompressUnzip = require( 'decompress-unzip');
+const child_process = require("child_process");
 const decompressTargz = require("decompress-targz");
 
 function getOrigGviteName(): string {
@@ -61,17 +61,19 @@ function checkGviteIsExisted(): boolean {
   return fs.existsSync(getGvitePath());
 }
 function checkGviteVersion(ds: SolidityppDebugSession): boolean {
-  const { code, stdout, stderr } = exec(`${getGvitePath()} -v`);
-
-  if (code || stderr) {
+  let result;
+  try {
+    result = String(child_process.execSync(`${getGvitePath()} -v`));
+  } catch (err) {
     ds.sendEvent(
       new OutputEvent(
-        `An error occurred when check the version of gvite, code: ${code}, stderr: ${stderr}, stdout: ${stdout}`
+        `An error occurred when check the version of gvite, Error: ${err.toString()}`
       )
     );
     return false;
   }
-  let version = stdout.slice(stdout.lastIndexOf("v")).replace(/\n/g, "");
+
+  let version = result.slice(result.lastIndexOf("v")).replace(/\n/g, "");
   if (version !== GVITE_VERSION) {
     ds.sendEvent(
       new OutputEvent(

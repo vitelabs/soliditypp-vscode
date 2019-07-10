@@ -1,15 +1,14 @@
-import { DebugSession, OutputEvent } from "vscode-debugadapter";
+import * as vscode from "vscode";
+import { OutputEvent, DebugSession } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
 import ViewRequestProcessor from "./viewRequestProcessor";
-import { exec } from "shelljs";
 
 import { getSolppcPath, getGviteName, VITE_DIR } from "./constant";
 
-import * as vscode from "vscode";
 import * as path from "path";
 import * as os from "os";
 
-import { ChildProcess, spawnSync } from "child_process";
+import { ChildProcess, spawnSync, exec, execSync } from "child_process";
 import ExtensionRequestProcessor from "./extensionRequestProcessor";
 import { extensionPath } from "./constant";
 import createGvite from "./createGvite";
@@ -106,7 +105,9 @@ export default class SolidityppDebugSession extends DebugSession {
       this.sendEvent(new OutputEvent("Preparing vite...\n", "stdout"));
 
       await createGvite(this);
-      await createSolppc(this);
+      await createSolppc((s, p) => {
+        this.sendEvent(new OutputEvent(`${s} ${p}% \n`, "stdout"));
+      });
 
       // set source file path
       this._sourceFilePath = args.program;
@@ -130,17 +131,18 @@ export default class SolidityppDebugSession extends DebugSession {
   }
 
   private async compileSource(): Promise<boolean> {
-    const { code, stdout, stderr } = await exec(
-      `${getSolppcPath()} --bin --abi ${this.sourceFilePath}`
-    );
-
-    if (code > 0) {
-      // compile failed
-      this.aborted(stderr, code);
+    let result;
+    try {
+      result = String(
+        execSync(`${getSolppcPath()} --bin --abi ${this.sourceFilePath}`)
+      );
+    } catch (err) {
+      this.aborted("Compile failed: \n" + err.toString(), 1);
       return false;
     }
+
     // TODO need compile source
-    let lines = stdout.split(os.EOL);
+    let lines = result.split(os.EOL);
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i];
       if (line.startsWith("======= ")) {

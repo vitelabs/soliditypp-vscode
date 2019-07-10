@@ -1,13 +1,18 @@
-import * as vscode from "vscode";
 import { readFileSync } from "fs";
+
+import * as vscode from "vscode";
 import * as path from "path";
+
 import SolidityConfigurationProvider from "./debugConfigurationProvider";
 import SolidityppDebugAdapterDescriptorFactory from "./debugAdapterDescriptorFactory";
 import { debuggerType } from "./constant";
 import { completeItemList } from "./autoComplete";
 import { extensionPath } from "./constant";
-import { exec } from "shelljs";
+import { getSolppcPath } from "./constant";
+
+import createSolppc, { checkSolppcAvailable } from "./createSolppc";
 import * as fs from "fs";
+const child_process = require("child_process");
 
 const VIEW_TO_DA_COMMAND_PREFIX = "view2debugAdapter.";
 const VIEW_TO_EXTENSION_COMMAND_PREFIX = "view2extension.";
@@ -21,7 +26,10 @@ enum DEBUGGER_STATUS {
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+  // check solppc
+  await installSolppc();
+
   let debuggerPanel: vscode.WebviewPanel | undefined;
   let debuggerViewColumn: vscode.ViewColumn = vscode.ViewColumn.Two;
   let debuggerStatus: DEBUGGER_STATUS = DEBUGGER_STATUS.STOPPED;
@@ -97,7 +105,9 @@ export function activate(context: vscode.ExtensionContext) {
         retainContextWhenHidden: true
       }
     );
+
     debuggerPanel.webview.html = getWebviewContent();
+
     debuggerPanel.webview.onDidReceiveMessage(
       async message => {
         if (message.command.indexOf(VIEW_TO_DA_COMMAND_PREFIX) === 0) {
@@ -188,6 +198,7 @@ export function activate(context: vscode.ExtensionContext) {
     terminateDebuggerPanel();
 
     initDebuggerPanel();
+
     debuggerStatus = DEBUGGER_STATUS.STARTED;
   });
 
@@ -211,9 +222,13 @@ export function deactivate() {
 let webviewContent: string = "";
 function getWebviewContent(): string {
   if (process.env.NODE_ENV !== "production" || !webviewContent) {
-    webviewContent = readFileSync(
-      path.join(__dirname, "./view/index.html")
-    ).toString();
+    try {
+      webviewContent = readFileSync(
+        path.join(__dirname, "../out_view/index.html")
+      ).toString();
+    } catch (err) {
+      console.log(err.stack);
+    }
   }
 
   return webviewContent;
@@ -224,13 +239,14 @@ async function compileSource(textDocument: vscode.TextDocument) {
     return;
   }
   diagnosticCollection.clear();
-  const { code, stdout, stderr } = await exec(
-    `${path.resolve(extensionPath, "bin/solppc")} --bin --abi ${
-      textDocument.fileName
-    }`
-  );
-  if (code > 0) {
-    let lines = stderr.split(textDocument.fileName + ":");
+
+  try {
+    await child_process.execSync(
+      `${getSolppcPath()} --bin --abi ${textDocument.fileName}`
+    );
+  } catch (err) {
+    let errStr = err.output[2].toString();
+    let lines = errStr.split(textDocument.fileName + ":");
     if (lines && lines.length > 1) {
       lines = lines[1].split(":");
       if (lines && lines.length > 1) {
@@ -246,13 +262,39 @@ async function compileSource(textDocument: vscode.TextDocument) {
             lineNum,
             line.range.end.character
           ),
-          message: stderr
+          message: errStr
         };
         diagnostics.push(diagnosic);
         diagnosticCollection.set(textDocument.uri, diagnostics);
         return;
       }
     }
-    console.log(code, stdout, stderr);
   }
+}
+
+function installSolppc() {
+  if (checkSolppcAvailable()) {
+    return;
+  }
+  return vscode.window.withProgress(
+    {
+      cancellable: false,
+      location: vscode.ProgressLocation.Notification,
+      title: "Download solppc"
+    },
+    (progress, cancelable) => {
+      return new Promise((resolve, reject) => {
+        createSolppc(function(s, p, downloadUrl) {
+          if (p >= 100) {
+            resolve();
+            return;
+          }
+          progress.report({
+            message: `${p}%. The solppc is the compiler of soliditypp language. Download from ${downloadUrl}.`,
+            increment: p / 10
+          });
+        });
+      });
+    }
+  );
 }
