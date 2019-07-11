@@ -1,8 +1,8 @@
 <template>
     <div :class="{'log-error': log.type === 'error'}">
         <div class="log-header" @click="toggle">
-            <i class="el-icon-caret-bottom" v-if="show"></i>
-            <i class="el-icon-caret-right" v-else></i>
+            <i class="el-icon-caret-bottom icon" v-if="show"></i>
+            <i class="el-icon-caret-right icon" v-else></i>
 
             <span class="log-title">
                 {{log.createdTime.format('YYYY-MM-DD HH:mm:ss')}}
@@ -57,6 +57,9 @@ export default {
 <style lang="scss" scoped>
 .log-header {
   cursor: pointer;
+  .icon {
+      color: #fff;
+  }
 }
 .log-item {
   border-top: 1px solid #666;

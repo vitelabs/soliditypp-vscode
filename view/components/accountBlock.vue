@@ -3,7 +3,7 @@
         <el-row type="flex" justify="center" class="row">
             <el-col class="key-col col no-border" :span="6">status</el-col>
 
-            <el-col class="col no-border" :span="18">{{displayStatus()}}</el-col>
+            <el-col class="col val-col no-border" :span="18">{{displayStatus()}}</el-col>
         </el-row>
         <template v-for="(value, key) in data">
             <el-row :key="key" type="flex" justify="center" class="row" v-if="!isInDisplayBlackList(key)">
@@ -90,7 +90,7 @@ export default {
   &.no-border {
     border: none;
   }
-  .val-col {
+  &.val-col {
     color: #fff;
   }
 }
@@ -104,5 +104,6 @@ export default {
 <style lang="scss">
 .vjs__tree {
   font-size: inherit !important;
+  color: #fff;
 }
 </style>

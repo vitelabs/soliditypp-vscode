@@ -185,7 +185,7 @@ export function transformViteBalance(amount, units) {
     case 'vite':
         transformedAmount = new BigNumber(transformedAmount)
             .multipliedBy(VITE_DECIMAL)
-            .toString();
+            .toFixed();
         break;
     case 'attov':
         break;
