@@ -53,7 +53,7 @@
                         amount
                         <help
                             text="The amount of vite token is transferred to contract. The basic unit of token is vite, the smallest
-unit is attov, 1 vite = 1018 attov"
+unit is attov, 1 vite = 1e18 attov"
                         ></help>
                     </div>
                 </el-col>

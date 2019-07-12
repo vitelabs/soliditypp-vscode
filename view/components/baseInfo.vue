@@ -9,7 +9,7 @@
         </el-row>
         <el-row type="flex" align="middle">
             <el-col :span="1">
-                <help text="The address who deploy the contract"></help>
+                <help text="Address who deploy the contract"></help>
             </el-col>
             <el-col :span="3" class="prop-label">address</el-col>
             <el-col :span="15" :offset="1">
@@ -40,7 +40,7 @@
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="1">
-                <help text="The balance of the address"></help>
+                <help text="Balance of the address"></help>
             </el-col>
             <el-col :span="3" class="prop-label">balance</el-col>
             <el-col :span="15" :offset="1" v-if="selectedAccount.accountState">
@@ -58,7 +58,7 @@
         </el-row>
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="1">
-                <help text="The number of blocks created by the address"></help>
+                <help text="Number of blocks created by the address"></help>
             </el-col>
             <el-col :span="3" class="prop-label">block number</el-col>
             <el-col
@@ -70,7 +70,7 @@
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="1">
-                <help text="The abi of contract"></help>
+                <help text="Abi of contract"></help>
             </el-col>
             <el-col :span="3" class="prop-label">abi</el-col>
             <el-col :span="15" :offset="1">
@@ -80,7 +80,7 @@
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="1">
-                <help text="The compiled code of contract"></help>
+                <help text="Compiled code of contract"></help>
             </el-col>
             <el-col :span="3" class="prop-label">code</el-col>
             <el-col :span="15" :offset="1">
@@ -90,7 +90,7 @@
 
         <el-row class="prop-row" type="flex" align="middle">
             <el-col :span="1">
-                <help text="The compiled offchain code of contract"></help>
+                <help text="Compiled offchain code of contract"></help>
             </el-col>
             <el-col :span="3" class="prop-label">offchain code</el-col>
             <el-col :span="15" :offset="1">

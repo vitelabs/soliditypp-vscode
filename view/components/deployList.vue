@@ -63,24 +63,10 @@ function briefHash(hash) {
     return hash.slice(0, 5) + '...' + hash.slice(-5);
 }
 function parseLogTitle(block) {
-    // let isSendCreate = hash => {
-    //     for (let i = 0; i < deployInfo.sendCreateBlocks.length; i++) {
-    //         let block = deployInfo.sendCreateBlocks[i];
-    //         if (block.hash === hash) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // };
     let title = `${
         vite.isSendBlock(block.blockType) ? '<b>[SEND]</b>' : '<b>[RECEIVE]</b>'
     }`;
-    // if (
-    //     block.blockType === 1 ||
-    // (block.height === '1' && isSendCreate(block.fromBlockHash))
-    // ) {
-    //     title = `${title} [deploy]`;
-    // }
+
     let newProp = (k, v) => {
         return ` <b>${k}</b>: <span style="color: #F6F0F0">${v}</span>`;
     };
