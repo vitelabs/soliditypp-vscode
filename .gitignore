@@ -9,7 +9,7 @@ ledger
 *.vsix
 bin/solppc/*
 !bin/solppc/.keep
-solppc_*.zip
+solppc_*.tar.gz
 __MACOSX
-bin/vite/gvite-*.zip
+bin/vite/gvite-*.tar.gz
 gvite-v*/

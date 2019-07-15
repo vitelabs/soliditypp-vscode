@@ -20,15 +20,15 @@ function getSolppcCompressedPath(): string {
   let compressedFilePath = "";
   switch (osPlatform) {
     case OS_PLATFORM.DARWIN: {
-      compressedFilePath = path.resolve(SOLPPC_DIR, "solppc_darwin.zip");
+      compressedFilePath = path.resolve(SOLPPC_DIR, "solppc_darwin.tar.gz");
       break;
     }
     case OS_PLATFORM.LINUX: {
-      compressedFilePath = path.resolve(SOLPPC_DIR, "solppc_linux.zip");
+      compressedFilePath = path.resolve(SOLPPC_DIR, "solppc_linux.tar.gz");
       break;
     }
     case OS_PLATFORM.WIN64: {
-      compressedFilePath = path.resolve(SOLPPC_DIR, "solppc_win.zip");
+      compressedFilePath = path.resolve(SOLPPC_DIR, "solppc_win.tar.gz");
       break;
     }
     case OS_PLATFORM.WIN32: {
@@ -117,9 +117,21 @@ async function downloadSolppc(
 }
 
 async function uncompressSolppc() {
-  await decompress(getSolppcCompressedPath(), SOLPPC_DIR, {
+  let files = await decompress(getSolppcCompressedPath(), SOLPPC_DIR, {
     plugins: [decompressTargz()]
   });
+
+  if (getOsPlatform() === OS_PLATFORM.WIN64) {
+    for (let i = 0; i < files.length; i++) {
+      let file = files[i];
+      let basename =  path.basename(file.path)
+      if (file.type !== 'file' || basename.indexOf('.') === 0) {
+        continue;
+      }
+      fs.renameSync(path.join(SOLPPC_DIR, file.path), path.join(SOLPPC_DIR, basename))
+  
+    }
+  }
 }
 
 function checkSolppcIsExisted(): boolean {

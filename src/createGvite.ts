@@ -39,15 +39,15 @@ function getGviteCompressedPath(): string {
   let compressedFilePath = "";
   switch (osPlatform) {
     case OS_PLATFORM.DARWIN: {
-      compressedFilePath = path.resolve(VITE_DIR, "gvite-darwin.zip");
+      compressedFilePath = path.resolve(VITE_DIR, "gvite-darwin.tar.gz");
       break;
     }
     case OS_PLATFORM.LINUX: {
-      compressedFilePath = path.resolve(VITE_DIR, "gvite-linux.zip");
+      compressedFilePath = path.resolve(VITE_DIR, "gvite-linux.tar.gz");
       break;
     }
     case OS_PLATFORM.WIN64: {
-      compressedFilePath = path.resolve(VITE_DIR, "gvite-win64.zip");
+      compressedFilePath = path.resolve(VITE_DIR, "gvite-win64.tar.gz");
       break;
     }
     case OS_PLATFORM.WIN32: {
@@ -100,18 +100,15 @@ async function downloadGvite(ds: SolidityppDebugSession) {
       break;
     }
     case OS_PLATFORM.LINUX: {
-      // compressedFilePath = path.resolve(VITE_DIR, "gvite-linux.zip");
       downloadUri = uri.createGviteDownload(GVITE_VERSION, "linux");
       break;
     }
     case OS_PLATFORM.WIN64: {
       downloadUri = uri.createGviteDownload(GVITE_VERSION, "windows");
-      // compressedFilePath = path.resolve(VITE_DIR, "gvite-win64.zip");
       break;
     }
     case OS_PLATFORM.WIN32: {
       throw PLATFORM_ERROR;
-      // compressedFilePath = path.resolve(VITE_DIR, "gvite-win32.zip");
     }
   }
 
@@ -171,25 +168,26 @@ async function downloadGvite(ds: SolidityppDebugSession) {
 }
 
 async function uncompressGvite() {
-  await decompress(getGviteCompressedPath(), VITE_DIR, {
-    plugins: [decompressTargz()]
-  }).then(files => {
+    let files = await decompress(getGviteCompressedPath(), VITE_DIR, {
+        plugins: [decompressTargz()]
+    });
     let gviteName = getGviteName();
     let origGviteName = getOrigGviteName();
     let directory = files[0].path;
     for (let i = 1; i < files.length; i++) {
-      let filePath = files[i].path;
-      let fileName = filePath.replace(directory, "");
-      if (fileName === origGviteName) {
-        fs.renameSync(
-          path.join(VITE_DIR, filePath),
-          path.join(VITE_DIR, gviteName)
-        );
-        break;
-      }
+        let filePath = files[i].path;
+        let fileName = filePath.replace(directory, "");
+        if (fileName === origGviteName) {
+            fs.renameSync(
+                path.join(VITE_DIR, filePath),
+                path.join(VITE_DIR, gviteName)
+            );
+            break;
+        }
     }
-    return files;
-  });
+    
+
+
 }
 
 export default async function createGvite(ds: SolidityppDebugSession) {

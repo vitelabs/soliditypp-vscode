@@ -27,6 +27,9 @@ export enum OS_PLATFORM {
   DARWIN = 3,
   LINUX = 4
 }
+
+export const EXEC_SUFFIX= inWindows() ? "bat" : "sh"
+
 export function getOsPlatform(): OS_PLATFORM {
   let platform = process.platform;
   let arch = os.arch();
@@ -64,3 +67,8 @@ function getSolppcName(): string {
 export function getSolppcPath(): string {
   return path.resolve(SOLPPC_DIR, getSolppcName());
 }
+
+export function inWindows(): boolean {
+    let osPlatform = getOsPlatform();
+    return osPlatform === OS_PLATFORM.WIN32 || osPlatform === OS_PLATFORM.WIN64
+  }

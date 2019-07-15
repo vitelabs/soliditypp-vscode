@@ -3,14 +3,13 @@ import { OutputEvent, DebugSession } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
 import ViewRequestProcessor from "./viewRequestProcessor";
 
-import { getSolppcPath, getGviteName, VITE_DIR } from "./constant";
+import { getSolppcPath, VITE_DIR, EXEC_SUFFIX, inWindows } from "./constant";
 
-import * as path from "path";
 import * as os from "os";
 
 import { ChildProcess, spawnSync, exec, execSync } from "child_process";
 import ExtensionRequestProcessor from "./extensionRequestProcessor";
-import { extensionPath } from "./constant";
+
 import createGvite from "./createGvite";
 import createSolppc from "./createSolppc";
 
@@ -167,12 +166,14 @@ export default class SolidityppDebugSession extends DebugSession {
     this.cleanVite();
 
     this._viteChildProcess = exec(
-      `./startup.sh ${getGviteName()}`,
+      `startup.${EXEC_SUFFIX}`,
       {
-        cwd: VITE_DIR
+        cwd: VITE_DIR,
+        encoding: 'utf8'
       },
       () => {}
     );
+
 
     this._viteChildProcess.stderr.on("data", stderr => {
       // init vite failed
@@ -201,11 +202,15 @@ export default class SolidityppDebugSession extends DebugSession {
 
   private cleanVite() {
     if (this._viteChildProcess && !this._viteChildProcess.killed) {
-      this._viteChildProcess.kill("SIGKILL");
+      if (inWindows()) {
+        exec('taskkill /pid ' + this._viteChildProcess.pid + ' /T /F')
+      } else {
+        this._viteChildProcess.kill("SIGKILL");
+      }
     }
 
-    spawnSync("./clean.sh", [], {
-      cwd: path.resolve(extensionPath, "bin/vite/"),
+    spawnSync(`clean.${EXEC_SUFFIX}`, [], {
+      cwd: VITE_DIR,
       shell: true
     });
   }

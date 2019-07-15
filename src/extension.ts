@@ -7,8 +7,7 @@ import SolidityConfigurationProvider from "./debugConfigurationProvider";
 import SolidityppDebugAdapterDescriptorFactory from "./debugAdapterDescriptorFactory";
 import { debuggerType } from "./constant";
 import { completeItemList } from "./autoComplete";
-import { extensionPath } from "./constant";
-import { getSolppcPath } from "./constant";
+import { extensionPath, getOsPlatform, getSolppcPath, OS_PLATFORM } from "./constant";
 
 import createSolppc, { checkSolppcAvailable } from "./createSolppc";
 import * as fs from "fs";
@@ -246,7 +245,13 @@ async function compileSource(textDocument: vscode.TextDocument) {
     );
   } catch (err) {
     let errStr = err.output[2].toString();
-    let lines = errStr.split(textDocument.fileName + ":");
+
+    let filename = textDocument.fileName
+    if (getOsPlatform() === OS_PLATFORM.WIN64) { 
+      filename = filename.replace(/\\/g, '/')
+    }
+
+    let lines = errStr.split(filename + ":");
     if (lines && lines.length > 1) {
       lines = lines[1].split(":");
       if (lines && lines.length > 1) {

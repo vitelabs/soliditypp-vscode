@@ -105,6 +105,7 @@
     "lint": "eslint --ext .js,.vue ./",
     "style:build": "et -c view/element-variables.scss -o view/theme",
     "style:watch": "et -c view/element-variables.scss -o view/theme -w",
+    "view:build:windows": "webpack --watch --config view/webpackConfig/base.config.js",
     "view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out_view/index.js",
     "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out_view/index.js",
     "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out_view/index.js"
@@ -157,7 +158,6 @@
     "jsonrpc-lite": "^2.0.7",
     "request": "^2.88.0",
     "rollup": "^1.16.7",
-    "shelljs": "^0.8.3",
     "ts-node": "^8.1.0",
     "vscode-debugadapter": "^1.33.0",
     "vue": "^2.6.6",
