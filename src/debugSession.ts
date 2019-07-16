@@ -165,15 +165,20 @@ export default class SolidityppDebugSession extends DebugSession {
   private initVite() {
     this.cleanVite();
 
+    let execCmd = `startup.${EXEC_SUFFIX}`;
+
+    if (!inWindows()) {
+      execCmd = `./${execCmd}`;
+    }
+
     this._viteChildProcess = exec(
-      `startup.${EXEC_SUFFIX}`,
+      execCmd,
       {
         cwd: VITE_DIR,
-        encoding: 'utf8'
+        encoding: "utf8"
       },
       () => {}
     );
-
 
     this._viteChildProcess.stderr.on("data", stderr => {
       // init vite failed
@@ -203,13 +208,19 @@ export default class SolidityppDebugSession extends DebugSession {
   private cleanVite() {
     if (this._viteChildProcess && !this._viteChildProcess.killed) {
       if (inWindows()) {
-        exec('taskkill /pid ' + this._viteChildProcess.pid + ' /T /F')
+        exec("taskkill /pid " + this._viteChildProcess.pid + " /T /F");
       } else {
         this._viteChildProcess.kill("SIGKILL");
       }
     }
 
-    spawnSync(`clean.${EXEC_SUFFIX}`, [], {
+    let execCmd = `clean.${EXEC_SUFFIX}`;
+
+    if (!inWindows()) {
+      execCmd = `./${execCmd}`;
+    }
+
+    spawnSync(execCmd, [], {
       cwd: VITE_DIR,
       shell: true
     });

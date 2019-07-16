@@ -627,6 +627,8 @@
     color: #606266; }
     .el-date-editor .el-range-input::-webkit-input-placeholder {
       color: #c0c4cc; }
+    .el-date-editor .el-range-input::-moz-placeholder {
+      color: #c0c4cc; }
     .el-date-editor .el-range-input::-ms-input-placeholder {
       color: #c0c4cc; }
     .el-date-editor .el-range-input::placeholder {
@@ -720,6 +722,8 @@
     color: #c0c4cc;
     cursor: not-allowed; }
     .el-range-editor.is-disabled input::-webkit-input-placeholder {
+      color: #c0c4cc; }
+    .el-range-editor.is-disabled input::-moz-placeholder {
       color: #c0c4cc; }
     .el-range-editor.is-disabled input::-ms-input-placeholder {
       color: #c0c4cc; }
