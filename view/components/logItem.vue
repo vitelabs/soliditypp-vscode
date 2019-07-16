@@ -58,7 +58,7 @@ export default {
 .log-header {
   cursor: pointer;
   .icon {
-      color: #fff;
+    color: #fff;
   }
 }
 .log-item {

@@ -6,4 +6,4 @@
 # ./kill.sh
 
 # ./${gvite} --pprof > gvite.log
-./gvite --pprof > gvite.log
+exec ./gvite --pprof > gvite.log

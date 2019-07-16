@@ -2,7 +2,7 @@
   "name": "soliditypp",
   "displayName": "Soliditypp",
   "description": "Soliditypp extension for Visual Studio Code",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "ViteLabs",
   "icon": "images/vscode.png",
   "repository": {
@@ -97,7 +97,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "npm run lint && webpack && npm run view:build:prod",
+    "compile": "npm run lint && npm run style:build && webpack && npm run view:build:prod",
     "watch": "tsc -w -p ./ & npm run style:watch & npm run view:build:watch",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run compile && node ./node_modules/vscode/bin/test",
@@ -145,7 +145,7 @@
   },
   "dependencies": {
     "@types/request": "^2.48.1",
-    "@vite/vitejs": "^2.2.2",
+    "@vite/vitejs": "^2.2.5",
     "@vite/vitejs-ws": "^2.1.0",
     "babel-polyfill": "^6.26.0",
     "bignumber.js": "^9.0.0",

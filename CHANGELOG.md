@@ -1,4 +1,8 @@
 # Soliditypp extension for Visual Studio Code
+## v0.5.1
+### Fixes
+1. Fix that gvite process is alive after stop debugging
+
 ## v0.5.0
 
 ### Features

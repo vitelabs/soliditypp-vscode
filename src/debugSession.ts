@@ -174,8 +174,7 @@ export default class SolidityppDebugSession extends DebugSession {
     this._viteChildProcess = exec(
       execCmd,
       {
-        cwd: VITE_DIR,
-        encoding: "utf8"
+        cwd: VITE_DIR
       },
       () => {}
     );
@@ -210,6 +209,7 @@ export default class SolidityppDebugSession extends DebugSession {
       if (inWindows()) {
         exec("taskkill /pid " + this._viteChildProcess.pid + " /T /F");
       } else {
+        // kill shell
         this._viteChildProcess.kill("SIGKILL");
       }
     }
