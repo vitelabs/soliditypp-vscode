@@ -1,4 +1,8 @@
 # Soliditypp extension for Visual Studio Code
+## v0.5.2
+### Fixes
+1. Fix about contract input params of array type 
+
 ## v0.5.1
 ### Fixes
 1. Fix that gvite process is alive after stop debugging
