@@ -1,8 +1,16 @@
 import WS_RPC from '@vite/vitejs-ws';
-import { account as viteAccount } from '@vite/vitejs';
-import { abi as abiutils } from '@vite/vitejs';
-import { utils } from '@vite/vitejs';
-import { client } from '@vite/vitejs';
+import {
+    account as viteAccount
+} from '@vite/vitejs';
+import {
+    abi as abiutils
+} from '@vite/vitejs';
+import {
+    utils
+} from '@vite/vitejs';
+import {
+    client
+} from '@vite/vitejs';
 import receiveAllOnroadTx from 'utils/receiveAllOnroadTx';
 
 const BigNumber = require('bignumber.js');
@@ -132,7 +140,10 @@ export async function callOffchainMethod(
                     value: offchainDecodeResult[i]
                 });
             } else {
-                resultList.push({ name: '', value: offchainDecodeResult[i] });
+                resultList.push({
+                    name: '',
+                    value: offchainDecodeResult[i]
+                });
             }
         }
         return resultList;

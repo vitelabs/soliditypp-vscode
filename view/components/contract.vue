@@ -110,8 +110,14 @@ function inputDefaultValue(type) {
 
 function toParamsArray(abi, paramsObject) {
     let paramsArray = [];
+    const isArr = /^\w+(\[\d*\])+$/g;
     abi.inputs.forEach(function(input) {
-        paramsArray.push(paramsObject[input.name]);
+        const value = paramsObject[input.name];
+        if (isArr.test(input.type)) {
+            paramsArray.push(JSON.parse(value));
+        } else {
+            paramsArray.push(value);
+        }
     });
     return paramsArray;
 }
