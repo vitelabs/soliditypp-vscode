@@ -1,4 +1,8 @@
 # Soliditypp extension for Visual Studio Code
+## v0.5.3
+### Fixes
+1. Update gvite and @vite/vitejs version.
+
 ## v0.5.2
 ### Fixes
 1. Fix about contract input params of array type 
