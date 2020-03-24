@@ -145,7 +145,7 @@
   },
   "dependencies": {
     "@types/request": "^2.48.1",
-    "@vite/vitejs": "^2.2.5",
+    "@vite/vitejs": "^2.3.3",
     "@vite/vitejs-ws": "^2.1.0",
     "babel-polyfill": "^6.26.0",
     "bignumber.js": "^9.0.0",
