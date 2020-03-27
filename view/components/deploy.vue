@@ -20,23 +20,23 @@ unit is attov, 1 vite = 1e18 attov"
             </el-col>
         </el-row>
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="3" class="label">confirm time</el-col>
+            <el-col :span="3" class="label">Response Latency time</el-col>
             <el-col :span="20">
-                <el-input v-model="confirmTime" size="small"></el-input>
+                <el-input v-model="responseLatency" size="small"></el-input>
             </el-col>
         </el-row>
 
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="3" class="label">quota ratio</el-col>
+            <el-col :span="3" class="label">Quota multiplier</el-col>
             <el-col :span="20">
-                <el-input v-model="quotaRatio" size="small"></el-input>
+                <el-input v-model="quotaMultiplier" size="small"></el-input>
             </el-col>
         </el-row>
 
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="3" class="label">seed count</el-col>
+            <el-col :span="3" class="label">Random degree</el-col>
             <el-col :span="20">
-                <el-input v-model="seedCount" size="small"></el-input>
+                <el-input v-model="randomDegree" size="small"></el-input>
             </el-col>
         </el-row>
         <template v-if="constructAbi && constructAbi.inputs">
@@ -77,10 +77,10 @@ export default {
         return {
             amount: '0',
             amountUnits: '',
-            confirmTime: 0,
-            quotaRatio: 10,
+            responseLatency: 0,
+            quotaMultiplier: 10,
 
-            seedCount: 0,
+            randomDegree: 0,
 
             params: [],
             status: 'BEFORE_DEPLOY'
@@ -130,9 +130,9 @@ export default {
                         abi: this.deployInfo.compileInfo.abi
                     },
                     vite.transformViteBalance(this.amount, this.amountUnits),
-                    this.confirmTime,
-                    this.quotaRatio,
-                    this.seedCount,
+                    this.responseLatency,
+                    this.quotaMultiplier,
+                    this.randomDegree,
 
                     this.params
                 );
@@ -140,7 +140,7 @@ export default {
                 let client = vite.getVite();
                 let createContractBlock = await client.request(
                     'ledger_getBlockByHeight',
-                    createContractTx.accountAddress,
+                    createContractTx.address,
                     createContractTx.height
                 );
 
@@ -159,6 +159,7 @@ export default {
                 //     log: createContractBlock
                 // });
             } catch (err) {
+                console.log(err.message);
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
 

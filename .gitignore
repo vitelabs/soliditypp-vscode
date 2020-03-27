@@ -13,3 +13,5 @@ solppc_*.tar.gz
 __MACOSX
 bin/vite/gvite-*.tar.gz
 gvite-v*/
+example
+accountBlock_test.js

@@ -1,19 +1,16 @@
 import WS_RPC from '@vite/vitejs-ws';
-import {
-    account as viteAccount
-} from '@vite/vitejs';
+import { utils } from '@vite/vitejs';
 import {
     abi as abiutils
 } from '@vite/vitejs';
 import {
-    utils
-} from '@vite/vitejs';
-import {
-    client
+    ViteAPI
 } from '@vite/vitejs';
 import receiveAllOnroadTx from 'utils/receiveAllOnroadTx';
 
 const BigNumber = require('bignumber.js');
+
+import Account from './Account';
 
 const VITE_TOKEN_ID = 'tti_5649544520544f4b454e6e40';
 const WS_SERVER = 'ws://localhost:23457';
@@ -28,11 +25,11 @@ let genesisAccount;
 export async function init() {
     let provider = new WS_RPC(WS_SERVER, 30 * 1000);
 
-    viteClient = new client(provider, () => {
+    viteClient = new ViteAPI(provider, () => {
         console.log('Already connected.');
     });
 
-    genesisAccount = new viteAccount({
+    genesisAccount = new Account({
         privateKey: GENESIS_PRIVATEKEY,
         client: viteClient
     });
@@ -52,9 +49,7 @@ export function getGenesisAccount() {
 }
 
 export function createAccount() {
-    let keyPair = utils.ed25519.keyPair();
-    let account = new viteAccount({
-        privateKey: keyPair.secretKey,
+    let account = new Account({
         client: viteClient
     });
 
@@ -77,18 +72,17 @@ export async function createContract(
     account,
     contract,
     amount,
-    confirmTime,
-    quotaRatio,
-    seedCount,
+    responseLatency,
+    quotaMultiplier,
+    randomDegree,
     params
 ) {
-    console.log(seedCount);
     let createContractBlock = await account.createContract({
         amount: amount.toString(),
         hexCode: contract.bytecodes,
-        quotaRatio: quotaRatio,
-        confirmTime: confirmTime,
-        seedCount: seedCount,
+        quotaMultiplier,
+        responseLatency,
+        randomDegree,
         abi: contract.abi,
         params: params
     });

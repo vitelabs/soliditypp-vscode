@@ -1,9 +1,33 @@
 {
   "GenesisAccountAddress": "vite_bb6ad02107a4422d6a324fd2e3707ad53cfed9359378a78792",
   "ForkPoints": {
-    "SeedFork": {
-      "Height": 1,
-      "Version": 1
+    "SeedFork":{
+      "Height":1,
+      "Version":1
+    },
+    "DexFork":{
+      "Height":2,
+      "Version":2
+    },
+    "DexFeeFork":{
+      "Height":3,
+      "Version":3
+    },
+    "StemFork":{
+      "Height":4,
+      "Version":4
+    },
+    "LeafFork":{
+      "Height":5,
+      "Version":5
+    },
+    "EarthFork":{
+      "Height":6,
+      "Version":6
+    },
+    "DexMiningFork":{
+      "Height":7,
+      "Version":7
     }
   },
   "ConsensusGroupInfo": {
