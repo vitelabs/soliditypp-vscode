@@ -1,4 +1,4 @@
-import { accountBlock, utils, constant, wallet } from '@vite/vitejs';
+import { accountBlock, utils, wallet } from '@vite/vitejs';
 
 const { createAccountBlock } = accountBlock;
 
@@ -47,8 +47,8 @@ export default class Account {
     }
 
     async createContract({ amount, hexCode, quotaMultiplier, responseLatency, randomDegree, abi, params }) {
-        console.log('randomDegree: ')
-        console.log(randomDegree)
+        console.log('randomDegree: ');
+        console.log(randomDegree);
         let _accountBlock = this._createAccountBlock('createContract', {
             abi,
             code: hexCode,
@@ -68,7 +68,7 @@ export default class Account {
             abi,
             params,
             toAddress
-        })
+        });
         return this._send(_accountBlock);
     }
 
