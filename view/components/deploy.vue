@@ -125,7 +125,7 @@ export default {
                     return this.$message({
                         message: 'responseLatency can\'t less than randomDegree',
                         type: 'error'
-                    })
+                    });
                 }
 
                 this.status = 'DEPLOYING';

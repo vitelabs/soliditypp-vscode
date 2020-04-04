@@ -24,7 +24,7 @@ export default class Account {
 
     async _send(_accountBlock) {
         await _accountBlock.autoSetPreviousAccountBlock();
-        console.log('toaddress: ')
+        console.log('toaddress: ');
         console.log(_accountBlock.toAddress);
         let result = await _accountBlock.sign().send();
         console.log(JSON.stringify(result, null, 4));
