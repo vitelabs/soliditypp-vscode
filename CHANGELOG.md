@@ -1,4 +1,8 @@
 # Soliditypp extension for Visual Studio Code
+## 0.6.1
+### Fixes
+1. Fix the problem of showing balance.
+
 ## 0.6.0
 ### Fixes
 1. Update gvite and @vite/vitejs version.
