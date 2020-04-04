@@ -121,7 +121,15 @@ export default {
     methods: {
         async deploy() {
             try {
+                if (Number(this.responseLatency) < Number(this.randomDegree)) {
+                    return this.$message({
+                        message: 'responseLatency can\'t less than randomDegree',
+                        type: 'error'
+                    })
+                }
+
                 this.status = 'DEPLOYING';
+
 
                 let createContractTx = await vite.createContract(
                     this.deployInfo.selectedAccount,

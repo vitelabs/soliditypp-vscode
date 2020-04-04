@@ -45,11 +45,11 @@
             <el-col :span="3" class="prop-label">balance</el-col>
             <el-col :span="15" :offset="1" v-if="selectedAccount.accountState">
                 <span
-                    v-for="(tokenBalance, tokenId, index) in selectedAccount.accountState.balance.tokenBalanceInfoMap"
+                    v-for="(tokenBalance, tokenId, index) in selectedAccount.accountState.balance.balanceInfoMap"
                     :key="tokenId"
                 >
                     <span v-if="index > 0">,</span>
-                    {{transformBalance(tokenBalance.totalAmount, tokenBalance.tokenInfo.decimals)}} {{tokenBalance.tokenInfo.tokenSymbol}}
+                    {{transformBalance(tokenBalance.balance, tokenBalance.tokenInfo.decimals)}} {{tokenBalance.tokenInfo.tokenSymbol}}
                 </span>
             </el-col>
             <el-col :span="3">
@@ -65,7 +65,7 @@
                 :span="15"
                 :offset="1"
                 v-if="selectedAccount.accountState"
-            >{{selectedAccount.accountState.balance.totalNumber}}</el-col>
+            >{{selectedAccount.accountState.balance.blockCount}}</el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
@@ -224,6 +224,7 @@ export default {
             }
             let accountState = await account.getBalance();
 
+            console.log(JSON.stringify(accountState, null, 4));
             this.$store.commit('updateAccountState', {
                 deployInfo: this.deployInfo,
                 address: address,

@@ -23,7 +23,10 @@ export default class Account {
     }
 
     async _send(_accountBlock) {
-        let result = await _accountBlock.autoSend();
+        await _accountBlock.autoSetPreviousAccountBlock();
+        console.log('toaddress: ')
+        console.log(_accountBlock.toAddress);
+        let result = await _accountBlock.sign().send();
         console.log(JSON.stringify(result, null, 4));
         return result;
     }
