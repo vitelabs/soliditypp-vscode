@@ -1,25 +1,33 @@
 <template>
-    <div class="app-wrapper">
-        <deploy-list class="deploy-list" v-if="compileResult" :compile-result="compileResult"></deploy-list>
-    </div>
+    <el-container class="app-wrapper">
+        <el-aside width="64px" class="menu-wrapper">
+            <el-menu default-active="/debug" :collapse="true" :router="true">
+                <el-menu-item index="/debug">
+                    <i class="el-icon-menu"></i>
+                    <span slot="title">Debug</span>
+                </el-menu-item>
+                <el-menu-item index="/publish">
+                    <i class="el-icon-upload"></i>
+                    <span slot="title">Publish</span>
+                </el-menu-item>
+            </el-menu>
+        </el-aside>
+        <el-main>
+            <keep-alive>
+                <router-view></router-view>
+            </keep-alive>
+        </el-main>
+    </el-container>
 </template>
 
 <script>
 import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
 
-import deployList from 'components/deployList';
-
 export default {
-    components: {
-        deployList
-    },
-
     data() {
         return {
-            // contracts: [],
             compileResult: undefined
-            // contractAddress: undefined
         };
     },
 
@@ -27,26 +35,13 @@ export default {
         try {
             let compileResult = await getCompileResult();
             this.compileResult = compileResult;
+            this.$store.commit('setCompileResult', { compileResult });
             await vite.init(compileResult);
         } catch (err) {
             console.log(err);
         }
 
         await this.subscribeSnapshotBlocks();
-
-        // var newRandomAccount = async () => {
-        //     try {
-        //         this.selectedAccount = await vite.createAccount();
-        //     } catch (err) {
-        //         await new Promise(resolve => {
-        //             setTimeout(() => {
-        //                 resolve();
-        //             }, 200);
-        //         }).then(() => newRandomAccount());
-        //     }
-        // };
-
-    // await newRandomAccount();
     },
     methods: {
         async subscribeSnapshotBlocks() {
@@ -67,22 +62,15 @@ export default {
                 });
             });
         }
-    //     deployed(contractBlock, abi, contractName, offchainCode) {
-    //         this.contracts.push({
-    //             contractAddress: contractBlock.toAddress,
-    //             contractBlock,
-    //             abi,
-    //             contractName,
-    //             offchainCode
-    //         });
-    //     }
     }
 };
 </script>
 
 <style lang="scss" scoped>
-.app-wrapper,
-.deploy-list {
+.app-wrapper, .deploy-list {
   height: 100%;
+}
+.menu-wrapper {
+    border-right: 1px solid rgba(0,0,0,0.05);
 }
 </style>

@@ -3,57 +3,23 @@ import 'babel-polyfill';
 import './index.scss';
 
 import Vue from 'vue';
+import VueRouter from 'vue-router';
 import VueSplit from 'vue-split-panel';
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
 
 import store from 'store/store';
 import App from './app.vue';
-import './theme/index.css';
+import router from './router';
+// import './theme/index.css';
+
 
 import Help from 'components/help';
 
-import {
-    Form,
-    Button,
-    FormItem,
-    Input,
-    Tree,
-    Row,
-    Col,
-    Loading,
-    Message,
-    MessageBox,
-    Select,
-    Option,
-    Tabs,
-    TabPane,
-    Collapse,
-    CollapseItem,
-    Dialog,
-    Link
-} from 'element-ui';
-
-Vue.use(Form);
-Vue.use(FormItem);
-Vue.use(Button);
-Vue.use(Input);
-Vue.use(Tree);
-Vue.use(Tabs);
-Vue.use(TabPane);
-Vue.use(Row);
-Vue.use(Col);
-Vue.use(Loading.directive);
-Vue.use(Select);
-Vue.use(Option);
-Vue.use(Collapse);
-Vue.use(CollapseItem);
-Vue.use(Dialog);
-Vue.use(Link);
+Vue.use(VueRouter);
+Vue.use(ElementUI);
 
 Vue.use(VueSplit);
-
-Vue.prototype.$message = Message;
-Vue.prototype.$alert = MessageBox.alert;
-Vue.prototype.$loading = Loading.service;
 
 Vue.component('help', Help);
 
@@ -61,5 +27,6 @@ new Vue({
     el: '#app',
     store: store,
     components: { App },
-    template: '<App/>'
+    template: '<App/>',
+    router
 });

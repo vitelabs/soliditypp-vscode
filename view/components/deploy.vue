@@ -66,7 +66,6 @@ import * as vite from 'global/vite';
 import units from 'components/units';
 
 export default {
-    // props: ['abi', 'bytecodes', 'offchainCodes', 'account'],
     props: ['deployInfo'],
 
     components: {
@@ -162,10 +161,10 @@ export default {
                     sendCreateBlock: createContractBlock
                 });
 
-                // this.$store.commit('addLog', {
-                //     deployInfo: this.deployInfo,
-                //     log: createContractBlock
-                // });
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+                    log: createContractBlock
+                });
             } catch (err) {
                 console.log(err.message);
                 this.$store.commit('addLog', {

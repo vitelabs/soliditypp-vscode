@@ -16,9 +16,19 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
     state: {
         snapshotHeight: 1,
-        deployInfoList: []
+        deployInfoList: [],
+        compileResult: null,
+        loginAddress: null,    // vc login wallet address
     },
     mutations: {
+        setCompileResult(state, { compileResult }) {
+            state.compileResult = compileResult;
+        },
+
+        setLoginAddress(state, { address }) {
+            state.loginAddress = address;
+        },
+
         init(state, { compileResult, initAccounts }) {
             let deployInfoList = [];
 

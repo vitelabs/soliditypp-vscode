@@ -88,14 +88,13 @@ export default {
         deploy,
         logList
     },
-    props: ['compileResult'],
     data() {
         return {
             selectedDeployIndex: 0
         };
     },
     computed: {
-        ...mapState(['deployInfoList']),
+        ...mapState(['deployInfoList', 'compileResult']),
         selectedDeployInfo() {
             return this.deployInfoList[this.selectedDeployIndex];
         }
