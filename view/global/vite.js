@@ -23,7 +23,10 @@ let viteClient;
 let genesisAccount;
 
 export async function init() {
-    let provider = new WS_RPC(WS_SERVER, 30 * 1000);
+    let provider = new WS_RPC(WS_SERVER, 30 * 1000, {
+        retryInterval: 100,
+        retryTimes: 100
+    });
 
     viteClient = new ViteAPI(provider, () => {
         console.log('Already connected.');

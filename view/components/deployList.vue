@@ -49,7 +49,6 @@
 import deploy from './deploy';
 import contractList from 'components/contractList';
 import logList from 'components/logList';
-import postError from 'utils/postError';
 
 import baseInfo from 'components/baseInfo';
 
@@ -135,7 +134,7 @@ export default {
             try {
                 listener = await client.subscribe('newAccountBlocks');
             } catch (err) {
-                postError(err);
+                console.log(err);
                 return;
             }
             let rollbackSet = {};

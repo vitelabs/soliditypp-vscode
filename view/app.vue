@@ -9,7 +9,6 @@ import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
 
 import deployList from 'components/deployList';
-import postError from 'utils/postError';
 
 export default {
     components: {
@@ -30,7 +29,7 @@ export default {
             this.compileResult = compileResult;
             await vite.init(compileResult);
         } catch (err) {
-            postError(err);
+            console.log(err);
         }
 
         await this.subscribeSnapshotBlocks();
@@ -57,7 +56,7 @@ export default {
             try {
                 listener = await client.subscribe('newSnapshotBlocks');
             } catch (err) {
-                postError(err);
+                console.log(err);
                 return;
             }
 

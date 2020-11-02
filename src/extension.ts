@@ -196,7 +196,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
     terminateDebuggerPanel();
 
-    initDebuggerPanel();
 
     debuggerStatus = DEBUGGER_STATUS.STARTED;
   });

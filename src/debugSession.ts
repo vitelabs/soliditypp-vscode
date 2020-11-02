@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { OutputEvent, DebugSession } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
 import ViewRequestProcessor from "./viewRequestProcessor";
 
 import { getSolppcPath, VITE_DIR, EXEC_SUFFIX, inWindows } from "./constant";
+import { HTTPServer } from './httpServer';
 
 import * as os from "os";
 
@@ -12,6 +14,8 @@ import ExtensionRequestProcessor from "./extensionRequestProcessor";
 
 import createGvite from "./createGvite";
 import createSolppc from "./createSolppc";
+
+const httpServer = new HTTPServer();
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
   /** An absolute path to the "program" to debug. */
@@ -116,6 +120,12 @@ export default class SolidityppDebugSession extends DebugSession {
       }
 
       this.initVite();
+      httpServer.setup({
+        bytecodesList: this._bytecodesList,
+        offchainCodesList: this._offchainCodesList,
+        abiList: this._abiList,
+        contractNameList: this._contractNameList
+      });
       this.sendEvent(new OutputEvent("Vite is ready!\n", "stdout"));
       this.sendResponse(response);
     } catch (err) {
