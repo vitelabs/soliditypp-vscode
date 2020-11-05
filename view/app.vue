@@ -13,7 +13,7 @@
             </el-menu>
         </el-aside>
         <el-main>
-            <keep-alive>
+            <keep-alive v-if="isReady">
                 <router-view></router-view>
             </keep-alive>
         </el-main>
@@ -27,7 +27,8 @@ import * as vite from 'global/vite';
 export default {
     data() {
         return {
-            compileResult: undefined
+            compileResult: undefined,
+            isReady: false
         };
     },
 
@@ -36,13 +37,17 @@ export default {
             let compileResult = await getCompileResult();
             this.compileResult = compileResult;
             this.$store.commit('setCompileResult', { compileResult });
-            await vite.init(compileResult);
+            vite.setupNode(null, () => {
+                vite.init().then(() => {
+                    this.subscribeSnapshotBlocks();
+                    this.isReady = true;
+                });
+            });
         } catch (err) {
             console.log(err);
         }
-
-        await this.subscribeSnapshotBlocks();
     },
+    
     methods: {
         async subscribeSnapshotBlocks() {
             let client = vite.getVite();

@@ -98,6 +98,7 @@ unit is attov, 1 vite = 1e18 attov"
 
 <script>
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import * as vite from 'global/vite';
 import units from 'components/units';
 
@@ -136,7 +137,6 @@ export default {
         };
     },
     created() {
-    // init calling offchain
         if (this.functions.length > 0) {
             this.callingFunction = this.functions[0].name;
         }
@@ -150,6 +150,7 @@ export default {
         }
     },
     computed: {
+        ...mapGetters(['selectedAccount']),
         constructors() {
             return this.getFunctionDeclarations('constructor');
         },
@@ -257,7 +258,7 @@ export default {
         async callFunction(contractAddress) {
             try {
                 await vite.sendContractTx(
-                    this.deployInfo.selectedAccount,
+                    this.selectedAccount,
                     contractAddress,
                     this.callingDeclaration,
 

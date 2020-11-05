@@ -62,6 +62,7 @@ unit is attov, 1 vite = 1e18 attov"
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import * as vite from 'global/vite';
 import units from 'components/units';
 
@@ -86,6 +87,7 @@ export default {
         };
     },
     computed: {
+        ...mapGetters(['selectedAccount']),
         constructAbi() {
             let abi = this.deployInfo.compileInfo.abi;
             if (!abi) {
@@ -131,7 +133,7 @@ export default {
 
 
                 let createContractTx = await vite.createContract(
-                    this.deployInfo.selectedAccount,
+                    this.selectedAccount,
                     {
                         bytecodes: this.deployInfo.compileInfo.bytecodes,
                         abi: this.deployInfo.compileInfo.abi

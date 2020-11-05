@@ -1,57 +1,6 @@
 <template>
     <div>
         <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="1">
-                <help text="The latest snapshot block height"></help>
-            </el-col>
-            <el-col :span="3" class="prop-label">snapshot</el-col>
-            <el-col :span="15" :offset="1">{{snapshotHeight}}</el-col>
-        </el-row>
-        <el-row type="flex" align="middle">
-            <el-col :span="1">
-                <help text="Address who deploy the contract"></help>
-            </el-col>
-            <el-col :span="3" class="prop-label">address</el-col>
-            <el-col :span="15" :offset="1">
-                <el-select
-                    class="address-input"
-                    size="small"
-                    @change="selectAccount($event)"
-                    v-model="deployInfo.selectedAccountAddress"
-                >
-                    <el-option
-                        v-for="account in deployInfo.accounts"
-                        :key="account.address"
-                        :label="account.address"
-                        :value="account.address"
-                    ></el-option>
-                </el-select>
-            </el-col>
-            <el-col :span="3">
-                <el-button
-                    @click="addAccount()"
-                    icon="el-icon-plus"
-                    class="add-account-button"
-                    size="mini"
-                    circle
-                ></el-button>
-            </el-col>
-        </el-row>
-
-        <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="1">
-                <help text="Balance of the address"></help>
-            </el-col>
-            <el-col :span="3" class="prop-label">balance</el-col>
-            <el-col :span="15" :offset="1" v-if="selectedAccount.accountState">
-                <span
-                    v-for="(tokenBalance, tokenId, index) in selectedAccount.accountState.balance.balanceInfoMap"
-                    :key="tokenId"
-                >
-                    <span v-if="index > 0">,</span>
-                    {{transformBalance(tokenBalance.balance, tokenBalance.tokenInfo.decimals)}} {{tokenBalance.tokenInfo.tokenSymbol}}
-                </span>
-            </el-col>
             <el-col :span="3">
                 <el-link type="primary" @click="isShowTransfer=true">more vite</el-link>
             </el-col>
@@ -154,7 +103,7 @@
 import * as vite from 'global/vite';
 import ClipboardJS from 'clipboard';
 import VueJsonPretty from 'vue-json-pretty';
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 
 import transfer from 'components/transfer';
 const BigNumber = require('bignumber.js');
@@ -173,33 +122,15 @@ export default {
             isShowTransfer: false,
 
             updateBalanceTimer: null,
-            timerStatus: 'stop'
         };
     },
     mounted() {
         new ClipboardJS('.copy-icon');
     },
-    created() {
-        let runTask = () => {
-            this.updateBalanceTimer = setTimeout(async () => {
-                if (this.timerStatus !== 'start') {
-                    return;
-                }
-                await this.updateAccountState();
-                runTask();
-            }, 600);
-        };
-        this.timerStatus = 'start';
-        runTask();
-    },
-    beforeDestroy() {
-        this.timerStatus = 'stop';
-    },
+
     computed: {
-        selectedAccount() {
-            return this.deployInfo.addressMap[this.deployInfo.selectedAccountAddress];
-        },
-        ...mapState(['snapshotHeight'])
+        ...mapState(['snapshotHeight', 'accounts']),
+        ...mapGetters(['addressMap', 'selectedAccount'])
     },
 
     methods: {
@@ -214,42 +145,6 @@ export default {
                 });
                 return;
             }
-        },
-        async updateAccountState() {
-            let address = this.deployInfo.selectedAccountAddress;
-            let account = this.deployInfo.addressMap[address];
-
-            if (!account) {
-                return;
-            }
-            let accountState = await account.getBalance();
-
-            console.log(JSON.stringify(accountState, null, 4));
-            this.$store.commit('updateAccountState', {
-                deployInfo: this.deployInfo,
-                address: address,
-                accountState: accountState
-            });
-        },
-        selectAccount(address) {
-            this.$store.commit('selectAccount', {
-                deployInfo: this.deployInfo,
-                address
-            });
-        },
-        async addAccount() {
-            // add account
-            let newAccount = vite.createAccount();
-
-            this.$store.commit('addAccount', {
-                deployInfo: this.deployInfo,
-                account: newAccount
-            });
-
-            // init balance
-            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toFixed());
-
-            this.selectAccount(newAccount.address);
         },
         transformBalance(amount, decimal) {
             return new BigNumber(amount).dividedBy(`1e${decimal}`).toFixed();

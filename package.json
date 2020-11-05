@@ -105,6 +105,7 @@
     "lint": "eslint --ext .js,.vue ./",
     "style:build": "et -c view/element-variables.scss -o view/theme",
     "style:watch": "et -c view/element-variables.scss -o view/theme -w",
+    "dev": "NODE_ENV=dev webpack serve --config view/webpackConfig/base.config.js",
     "view:build:windows": "webpack --watch --config view/webpackConfig/base.config.js",
     "view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out_view/index.js",
     "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out_view/index.js",
@@ -140,8 +141,9 @@
     "vscode": "^1.1.29",
     "vue-loader": "^15.6.3",
     "vue-template-compiler": "^2.6.6",
-    "webpack": "^4.29.5",
-    "webpack-cli": "^3.3.11"
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.1.0",
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
     "@types/request": "^2.48.1",

@@ -22,16 +22,18 @@ export const ACCOUNT_INIT_AMOUNT = VITE_DECIMAL.multipliedBy(1000);
 let viteClient;
 let genesisAccount;
 
-export async function init() {
-    let provider = new WS_RPC(WS_SERVER, 30 * 1000, {
+export function setupNode(server = WS_SERVER, cb) {
+    server = server || WS_SERVER;
+    let provider = new WS_RPC(server, 30 * 1000, {
         retryInterval: 100,
         retryTimes: 100
     });
 
-    viteClient = new ViteAPI(provider, () => {
-        console.log('Already connected.');
-    });
+    viteClient = new ViteAPI(provider, cb);
+    return viteClient;
+}
 
+export async function init() {
     genesisAccount = new Account({
         privateKey: GENESIS_PRIVATEKEY,
         client: viteClient
@@ -39,8 +41,6 @@ export async function init() {
 
     // genesis account receive onroad blocks
     await receiveAllOnroadTx(viteClient, genesisAccount);
-
-    return viteClient;
 }
 
 export function getVite() {
