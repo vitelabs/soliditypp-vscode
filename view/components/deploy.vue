@@ -3,9 +3,10 @@
         v-loading="status === 'DEPLOYING'"
         element-loading-text="deploying"
         element-loading-background="rgba(0, 0, 0, 0.8)"
+        class="deploy"
     >
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="3" class="label">
+            <el-col :span="4" class="label">
                 amount
                 <help
                     text="The amount of vite token is transferred by send create block which is used to create a contract. The basic unit of token is vite, the smallest
@@ -20,21 +21,21 @@ unit is attov, 1 vite = 1e18 attov"
             </el-col>
         </el-row>
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="3" class="label">Response Latency time</el-col>
+            <el-col :span="4" class="label">Response Latency time</el-col>
             <el-col :span="20">
                 <el-input v-model="responseLatency" size="small"></el-input>
             </el-col>
         </el-row>
 
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="3" class="label">Quota multiplier</el-col>
+            <el-col :span="4" class="label">Quota multiplier</el-col>
             <el-col :span="20">
                 <el-input v-model="quotaMultiplier" size="small"></el-input>
             </el-col>
         </el-row>
 
         <el-row class="row" type="flex" align="middle">
-            <el-col :span="3" class="label">Random degree</el-col>
+            <el-col :span="4" class="label">Random degree</el-col>
             <el-col :span="20">
                 <el-input v-model="randomDegree" size="small"></el-input>
             </el-col>
@@ -183,6 +184,9 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+.deploy {
+    font-size: 12px;
+}
 .label {
   text-align: center;
 }

@@ -1,48 +1,31 @@
 <template>
-    <div>
+    <div class="base-info">
         <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="3">
-                <el-link type="primary" @click="isShowTransfer=true">more vite</el-link>
-            </el-col>
-        </el-row>
-        <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="1">
-                <help text="Number of blocks created by the address"></help>
-            </el-col>
-            <el-col :span="3" class="prop-label">block number</el-col>
-            <el-col
-                :span="15"
-                :offset="1"
-                v-if="selectedAccount.accountState"
-            >{{selectedAccount.accountState.balance.blockCount}}</el-col>
-        </el-row>
-
-        <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="1">
+            <el-col :span="2">
                 <help text="Abi of contract"></help>
             </el-col>
-            <el-col :span="3" class="prop-label">abi</el-col>
-            <el-col :span="15" :offset="1">
+            <el-col :span="4" class="prop-label">abi</el-col>
+            <el-col :span="12" :offset="1">
                 <el-button size="small" @click="showAbi()">show abi</el-button>
             </el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="1">
+            <el-col :span="2">
                 <help text="Compiled code of contract"></help>
             </el-col>
-            <el-col :span="3" class="prop-label">code</el-col>
-            <el-col :span="15" :offset="1">
+            <el-col :span="4" class="prop-label">code</el-col>
+            <el-col :span="12" :offset="1">
                 <el-button size="small" @click="showCode()">show code</el-button>
             </el-col>
         </el-row>
 
         <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="1">
+            <el-col :span="2">
                 <help text="Compiled offchain code of contract"></help>
             </el-col>
-            <el-col :span="3" class="prop-label">offchain code</el-col>
-            <el-col :span="15" :offset="1">
+            <el-col :span="4" class="prop-label">offchain code</el-col>
+            <el-col :span="12" :offset="1">
                 <el-button size="small" @click="showOffchaincode()">show offchain code</el-button>
             </el-col>
         </el-row>
@@ -86,17 +69,6 @@
             </div>
             <div id="offchainCodeContent">{{deployInfo.compileInfo.offchainCode}}</div>
         </el-dialog>
-
-        <el-dialog
-            custom-class="grey-dialog"
-            width="90%"
-            :visible.sync="isShowTransfer"
-            title="transfer"
-        >
-            <div>
-                <transfer @afterTransfer="afterTransfer" :account="selectedAccount" />
-            </div>
-        </el-dialog>
     </div>
 </template>
 <script>
@@ -104,21 +76,18 @@ import ClipboardJS from 'clipboard';
 import VueJsonPretty from 'vue-json-pretty';
 import { mapState, mapGetters } from 'vuex';
 
-import transfer from 'components/transfer';
 import BigNumber from 'bignumber.js';
 
 export default {
     props: ['deployInfo'],
     components: {
         VueJsonPretty,
-        transfer
     },
     data() {
         return {
             isShowAbi: false,
             isShowCode: false,
             isShowOffchainCode: false,
-            isShowTransfer: false,
 
             updateBalanceTimer: null,
         };
@@ -133,21 +102,6 @@ export default {
     },
 
     methods: {
-        afterTransfer(res) {
-            this.isShowTransfer = false;
-            if (res.error) {
-                this.$store.commit('addLog', {
-                    deployInfo: this.deployInfo,
-                    title: 'transfer vite failed',
-                    type: 'error',
-                    log: res.error
-                });
-                return;
-            }
-        },
-        transformBalance(amount, decimal) {
-            return new BigNumber(amount).dividedBy(`1e${decimal}`).toFixed();
-        },
         showAbi() {
             this.isShowAbi = true;
         },
@@ -161,6 +115,9 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+.base-info {
+    font-size: 12px;
+}
 .address-input {
   width: 100%;
 }

@@ -4,52 +4,86 @@
             <el-form
                 class="form"
                 ref="form"
-                label-width="180px"
                 label-position="left"
                 size="mini"
             >
-                <el-form-item label="Snapshot Block Height: ">
-                    {{ snapshotHeight }}
-                </el-form-item>
+                <el-row :gutter="20" class="form-row" type="flex">
+                    <el-col :span="12">
+                        <el-form-item label="Snapshot Block Height: ">
+                            {{ snapshotHeight }}
+                        </el-form-item>
+                    </el-col>
 
-                <el-form-item label="Balance: ">
-                    <div v-if="balance">
-                        <span
-                            v-for="(tokenBalance, tokenId, index) in balance.balanceInfoMap"
-                            :key="tokenId"
-                        >
-                            <span v-if="index > 0">,</span>
-                            {{
-                                transformBalance(
-                                    tokenBalance.balance,
-                                    tokenBalance.tokenInfo.decimals
-                                )
-                            }}
-                            {{ tokenBalance.tokenInfo.tokenSymbol }}
-                        </span>
+                    <el-col :span="12">
+                        <el-form-item label="Account Block Number: ">
+                            <div v-if="balance">{{ balance.blockCount }} </div>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+
+                <el-row :gutter="20" class="form-row">
+                    <el-col :span="12">
+ 
+                        <el-form-item label="Balance: ">
+                            <div v-if="balance">
+                                <span
+                                    v-for="(tokenBalance, tokenId, index) in balance.balanceInfoMap"
+                                    :key="tokenId"
+                                >
+                                    <span v-if="index > 0">,</span>
+                                    {{
+                                        transformBalance(
+                                            tokenBalance.balance,
+                                            tokenBalance.tokenInfo.decimals
+                                        )
+                                    }}
+                                    {{ tokenBalance.tokenInfo.tokenSymbol }}
+                                </span>
+                                <el-button
+                                    @click="isShowTransfer=true"
+                                    icon="el-icon-plus"
+                                    class="add-account-button"
+                                    size="mini"
+                                    circle
+                                ></el-button>
+                            </div>
+                        </el-form-item>
+
+                    </el-col>
+
+                    <el-col :span="12">
+                        <el-form-item label="Address: ">
+                            <el-select
+                                v-model="selectedAddress"
+                                placeholder="Please select Address"
+                            >
+                                <el-option
+                                    v-for="item in accounts"
+                                    :key="item.address"
+                                    :label="item.address"
+                                    :value="item.address"
+                                ></el-option>
+                            </el-select>
+                            <el-button
+                                @click="addAccount()"
+                                icon="el-icon-plus"
+                                class="add-account-button"
+                                size="mini"
+                                circle
+                            ></el-button>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+
+                <el-dialog
+                    width="40%"
+                    :visible.sync="isShowTransfer"
+                    title="transfer"
+                >
+                    <div>
+                        <transfer @afterTransfer="afterTransfer" :account="selectedAccount" />
                     </div>
-                </el-form-item>
-
-                <el-form-item label="Address: ">
-                    <el-select
-                        v-model="selectedAddress"
-                        placeholder="Please select Address"
-                    >
-                        <el-option
-                            v-for="item in accounts"
-                            :key="item.address"
-                            :label="item.address"
-                            :value="item.address"
-                        ></el-option>
-                    </el-select>
-                    <el-button
-                        @click="addAccount()"
-                        icon="el-icon-plus"
-                        class="add-account-button"
-                        size="mini"
-                        circle
-                    ></el-button>
-                </el-form-item>
+                </el-dialog>
             </el-form>
 
             <el-tabs class="deploy-list-tabs" v-model="selectedDeployIndex">
@@ -60,30 +94,22 @@
                     :key="index"
                     v-for="(deployInfo, index) in deployInfoList"
                 >
-                    <div class="left-panel">
-                        <div class="title">Deploy</div>
-                        <el-collapse class="deploy-list-collapse">
-                            <el-collapse-item :title="selectedAddress">
-                                <div>
-                                    <div class="minor-title">BaseInfo</div>
-                                    <base-info :deploy-info="deployInfo"></base-info>
-                                </div>
+                    <el-row class="deploy-wrapper">
+                        <el-row :gutter="20" justify="space-between">
+                            <el-col :span="16">
+                                <deploy :deploy-info="deployInfo"></deploy>
+                            </el-col>
+                            <el-col :span="8">
+                                <base-info :deploy-info="deployInfo"></base-info>
+                            </el-col>
+                        </el-row>
+                    </el-row>
 
-                                <div class="minor-section">
-                                    <div class="minor-title">Deploy</div>
-                                    <deploy :deploy-info="deployInfo"></deploy>
-                                </div>
-                            </el-collapse-item>
-                        </el-collapse>
-
-                        <template v-if="deployInfo.sendCreateBlocks.length > 0">
-                            <div class="title">Contracts</div>
-                            <contract-list :deploy-info="deployInfo"></contract-list>
-                        </template>
-                    </div>
+                    <el-row class="contract-list" v-if="deployInfo.sendCreateBlocks.length > 0">
+                        <contract-list :deploy-info="deployInfo"></contract-list>
+                    </el-row>
                 </el-tab-pane>
             </el-tabs>
-
         </SplitArea>
 
         <SplitArea :size="40" class="right-panel-wrapper">
@@ -106,6 +132,7 @@ import contractList from 'components/contractList';
 import logList from 'components/logList';
 import baseInfo from 'components/baseInfo';
 import * as vite from 'global/vite';
+import transfer from 'components/transfer';
 
 
 function briefAddress(address) {
@@ -140,11 +167,13 @@ export default {
         contractList,
         deploy,
         logList,
+        transfer
     },
     data() {
         return {
             selectedDeployIndex: 0,
             timerStatus: 'stop',
+            isShowTransfer: false,
         };
     },
     computed: {
@@ -307,6 +336,18 @@ export default {
         transformBalance(amount, decimal) {
             return new BigNumber(amount).dividedBy(`1e${decimal}`).toFixed();
         },
+        afterTransfer(res) {
+            this.isShowTransfer = false;
+            if (res.error) {
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+                    title: 'transfer vite failed',
+                    type: 'error',
+                    log: res.error
+                });
+                return;
+            }
+        },
     },
 };
 </script>
@@ -343,32 +384,12 @@ export default {
 
 <style lang="scss" scoped>
 .form {
-  max-width: 50%;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
 }
 
-.deploy-panel {
-  display: flex;
-  align-content: stretch;
-  height: 100%;
-  .left-panel-wrapper {
-    overflow: auto;
-    .left-panel {
-      // flex: 1;
-      min-width: 465px;
-      height: 100%;
-    }
-  }
-  .right-panel-wrapper {
-    overflow: auto;
-
-    .right-panel {
-      min-width: 300px;
-
-      height: 100%;
-    }
-  }
-}
-.minor-section {
-  margin-top: 10px;
+.deploy-wrapper {
+    padding: 15px 0;
+    width: 100%;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
 }
 </style>
