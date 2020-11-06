@@ -11,7 +11,6 @@ import 'element-ui/lib/theme-chalk/index.css';
 import store from 'store/store';
 import App from './app.vue';
 import router from './router';
-// import './theme/index.css';
 
 
 import Help from 'components/help';

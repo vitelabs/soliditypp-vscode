@@ -22,7 +22,7 @@ let config = {
     },
     optimization: {
         splitChunks: {
-          chunks: 'all',
+            chunks: 'all',
         },
     },
     plugins,
@@ -97,10 +97,10 @@ let config = {
         extensions: ['.js', '.scss', '.vue', '.json']
     },
     devServer: {
-        before: function(app, server, compiler) {
-          app.get('/contractData', function(req, res) {
-            res.json(debugContractData);
-          });
+        before: function(app) {
+            app.get('/contractData', function(req, res) {
+                res.json(debugContractData);
+            });
         }
     }
 };

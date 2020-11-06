@@ -22,7 +22,7 @@ export default {
             let address = payload.params[0].accounts[0];
             this.$store.commit('setLoginAddress', { address });
         });
-        vc.on('disconnect', (err, payload) => {
+        vc.on('disconnect', () => {
             this.$store.commit('setLoginAddress', { address: null });
         });
     },
@@ -31,5 +31,5 @@ export default {
             QRCode.toCanvas(this.$refs.qrcode, uri);
         }
     }
-}
+};
 </script>

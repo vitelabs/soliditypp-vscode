@@ -8,7 +8,7 @@
 
 <script>
 import VcLogin from 'components/vcLogin';
-import { initVC, vc } from 'services/vc';
+// import { initVC, vc } from 'services/vc';
 import { mapState } from 'vuex';
 
 
@@ -19,7 +19,7 @@ export default {
     computed: {
         ...mapState(['loginAddress']),
     },
-}
+};
 </script>
 
 <style lang="scss" scope>

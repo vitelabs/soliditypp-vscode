@@ -100,13 +100,12 @@
     </div>
 </template>
 <script>
-import * as vite from 'global/vite';
 import ClipboardJS from 'clipboard';
 import VueJsonPretty from 'vue-json-pretty';
 import { mapState, mapGetters } from 'vuex';
 
 import transfer from 'components/transfer';
-const BigNumber = require('bignumber.js');
+import BigNumber from 'bignumber.js';
 
 export default {
     props: ['deployInfo'],

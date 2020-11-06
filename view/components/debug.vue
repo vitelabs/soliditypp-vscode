@@ -15,9 +15,10 @@ export default {
     computed: {
         ...mapState(['compileResult'])
     },
-}
+};
+
 </script>
 
-<<style lang="scss" scope>
+<style lang="scss" scoped>
     
 </style>

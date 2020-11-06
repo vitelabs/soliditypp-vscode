@@ -1,18 +1,16 @@
-import { appendFile, readFileSync } from "fs";
 import * as http from 'http';
 import * as net from 'net';
 import * as path from 'path';
 
 
-import * as express from "express";
-import * as vscode from 'vscode';
-import * as opn from "opn";
+import * as express from 'express';
+const opn = require('opn');
 
 function getAvailablePort (startingAt: any) {
-    function getNextAvailablePort (currentPort, cb) {
+    function getNextAvailablePort (currentPort: number, cb: { (value?: unknown): void; (arg0: any): void; }) {
         const server = net.createServer()
-        server.listen(currentPort, _ => {
-            server.once('close', _ => {
+        server.listen(currentPort, (_: any) => {
+            server.once('close', (_: any) => {
                 cb(currentPort)
             })
             server.close()
@@ -30,7 +28,7 @@ function getAvailablePort (startingAt: any) {
 const app = express();
 
 export class HTTPServer {
-	private httpServer: http.Server;
+	private httpServer: http.Server | undefined;
 	private contractData: any;
 
 	constructor() {

@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import * as path from "path";
 import { OutputEvent, DebugSession } from "vscode-debugadapter";
 import { DebugProtocol } from "vscode-debugprotocol";
 import ViewRequestProcessor from "./viewRequestProcessor";

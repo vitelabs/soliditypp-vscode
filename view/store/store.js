@@ -27,7 +27,7 @@ const store = new Vuex.Store({
         accountStates: {},
     },
     getters: {
-        addressMap(state, getters) {
+        addressMap(state) {
             let ob = {};
             state.accounts.forEach(item => {
                 ob[item.address] = item;

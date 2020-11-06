@@ -1,15 +1,16 @@
 import { accountBlock, utils, wallet } from '@vite/vitejs';
 
+import * as vite from './vite';
+
 const { createAccountBlock } = accountBlock;
 
 export default class Account {
-    constructor({ privateKey, client }) {
+    constructor({ privateKey }) {
         if (!privateKey) {
             privateKey = utils._Buffer.from(utils.ed25519.keyPair().privateKey).toString('hex');
         }
 
         this.privateKey = privateKey;
-        this.client = client;
         this.address = wallet.createAddressByPrivateKey(privateKey).address;
     }
 
@@ -18,7 +19,7 @@ export default class Account {
             address: this.address,
             ...params
         });
-        _accountBlock.setProvider(this.client).setPrivateKey(this.privateKey);
+        _accountBlock.setProvider(vite.getVite()).setPrivateKey(this.privateKey);
         return _accountBlock;
     }
 
@@ -76,6 +77,6 @@ export default class Account {
     }
 
     async getBalance() {
-        return this.client.getBalanceInfo(this.address);
+        return vite.getVite().getBalanceInfo(this.address);
     }
 }

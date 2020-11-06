@@ -12,7 +12,7 @@
                 </el-menu-item>
             </el-menu>
         </el-aside>
-        <el-main>
+        <el-main class="main-layout">
             <keep-alive v-if="isReady">
                 <router-view></router-view>
             </keep-alive>
@@ -37,6 +37,7 @@ export default {
             let compileResult = await getCompileResult();
             this.compileResult = compileResult;
             this.$store.commit('setCompileResult', { compileResult });
+            this.$store.commit('init', { compileResult });
             vite.setupNode(null, () => {
                 vite.init().then(() => {
                     this.subscribeSnapshotBlocks();
@@ -72,8 +73,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.app-wrapper, .deploy-list {
-  height: 100%;
+.main-layout {
+    height: 100vh;
+    & > div {
+        height: 100%;
+    }
 }
 .menu-wrapper {
     border-right: 1px solid rgba(0,0,0,0.05);
