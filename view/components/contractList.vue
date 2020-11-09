@@ -1,10 +1,11 @@
 <template>
     <div>
-        <el-collapse class="deployed-contract-list">
+        <el-collapse class="deployed-contract-list" v-model="activeNames">
             <el-collapse-item
                 v-for="(sendCreateBlock,index) in deployInfo.sendCreateBlocks"
                 :key="index"
-                :title="sendCreateBlock.toAddress"
+                :title="`Contract #${index + 1}: ${sendCreateBlock.toAddress}`"
+                :name="index"
             >
                 <contract :deploy-info="deployInfo" :send-create-block="sendCreateBlock"></contract>
             </el-collapse-item>
@@ -17,7 +18,12 @@ import contract from 'components/contract';
 
 export default {
     props: ['deployInfo'],
-    components: { contract }
+    components: { contract },
+    data() {
+        return {
+            activeNames: 0,
+        };
+    }
 };
 </script>
 

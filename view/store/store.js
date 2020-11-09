@@ -3,15 +3,18 @@ import Vuex from 'vuex';
 import dayjs from 'dayjs';
 import * as vite from 'global/vite';
 
-// deployInfo:
-// var deployInfo = {
-//     compileInfo: '',
-//     selectedAccount: '',
-//     selectedAccountAddress: '',
-//     accounts: [], // [viteAccount]
-//     contractList: [] // [contractList]
-//     logs: []
-// };
+/*
+    deployInfo struct:
+    
+    var deployInfo = {
+        compileInfo: '',
+        selectedAccount: '',
+        selectedAccountAddress: '',
+        accounts: [], // [viteAccount]
+        contractList: [] // [contractList]
+        logs: []
+    };
+*/
 
 Vue.use(Vuex);
 const initialAccount = vite.createAccount();
