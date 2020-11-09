@@ -12,7 +12,7 @@ let config = {
     development.indexOf(process.env.NODE_ENV) > -1
         ? 'development'
         : 'production',
-    devtool: 'cheap-source-map',
+    devtool: 'source-map',
 
     entry: {
         index: path.join(SRC_PATH, '/index.js')

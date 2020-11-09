@@ -26,10 +26,10 @@ export default class Account {
 
     async _send(_accountBlock) {
         await _accountBlock.autoSetPreviousAccountBlock();
-        console.log('toaddress: ');
-        console.log(_accountBlock.toAddress);
+        // console.log('toaddress: ');
+        // console.log(_accountBlock.toAddress);
         let result = await _accountBlock.sign().send();
-        console.log(JSON.stringify(result, null, 4));
+        // console.log(JSON.stringify(result, null, 4));
         return result;
     }
 
@@ -52,8 +52,8 @@ export default class Account {
     }
 
     async createContract({ amount, hexCode, quotaMultiplier, responseLatency, randomDegree, abi, params }) {
-        console.log('randomDegree: ');
-        console.log(randomDegree);
+        // console.log('randomDegree: ');
+        // console.log(randomDegree);
         let _accountBlock = this._createAccountBlock('createContract', {
             abi,
             code: hexCode,
@@ -74,7 +74,7 @@ export default class Account {
             params,
             toAddress
         });
-        return this._send(_accountBlock);
+        return this._send(_accountBlock, abi);
     }
 
     async getBalance() {

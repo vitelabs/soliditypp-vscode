@@ -1,8 +1,8 @@
 import { MessageBox } from 'element-ui';
-import { utils, accountBlock as accountBlockUtils } from '@vite/vitejs';
-
-
+import { accountBlock as accountBlockUtils } from '@vite/vitejs';
 import * as vite from './vite';
+
+
 import Account from './Account';
 import { sendVcTx } from 'services/vc';
 
@@ -28,10 +28,26 @@ export default class VcAccount extends Account {
         return _accountBlock;
     }
 
-    async _send(_accountBlock) {
+    async _send(_accountBlock, abi) {
         return sendVcTx({
-            block: _accountBlock,
-            abi: _accountBlock.abi,
+            block: _accountBlock.accountBlock,
+            abi
+        });
+    }
+
+    async createContract({ amount, hexCode, quotaMultiplier, responseLatency, randomDegree, abi, params }) {
+        let _accountBlock = this._createAccountBlock('createContract', {
+            abi,
+            code: hexCode,
+            responseLatency,
+            params,
+            quotaMultiplier,
+            randomDegree
+        });
+        _accountBlock.amount = amount;
+        await _accountBlock.autoSetPreviousAccountBlock();
+        return sendVcTx({
+            block: _accountBlock.accountBlock,
         });
     }
 }
