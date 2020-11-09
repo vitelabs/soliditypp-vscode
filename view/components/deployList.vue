@@ -21,7 +21,7 @@
                         </el-row>
                     </el-row>
 
-                    <el-row class="contract-list" v-if="deployInfo.sendCreateBlocks.length > 0">
+                    <el-row class="contract-list">
                         <contract-list :deploy-info="deployInfo"></contract-list>
                     </el-row>
                 </el-tab-pane>
@@ -96,6 +96,7 @@ export default {
             'deployInfoList',
             'compileResult',
             'accounts',
+            'contracts'
         ]),
         ...mapGetters(['addressMap', 'selectedAccount']),
         selectedDeployInfo() {
@@ -230,7 +231,7 @@ export default {
             }
             let accountState = await account.getBalance();
 
-            console.log(JSON.stringify(accountState, null, 4));
+            // console.log(JSON.stringify(accountState, null, 4));
             this.$store.commit('updateAccountState', {
                 address: address,
                 accountState: accountState,

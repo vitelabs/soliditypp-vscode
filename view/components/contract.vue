@@ -91,7 +91,7 @@ unit is attov, 1 vite = 1e18 attov"
 
         <!-- call -->
         <div class="button-wrapper">
-            <el-button size="small" @click="call(sendCreateBlock.toAddress)">call</el-button>
+            <el-button size="small" @click="call(contract.toAddress)">call</el-button>
         </div>
     </div>
 </template>
@@ -124,7 +124,7 @@ function toParamsArray(abi, paramsObject) {
 }
 
 export default {
-    props: ['deployInfo', 'sendCreateBlock'],
+    props: ['deployInfo', 'contract'],
     components: {
         units
     },

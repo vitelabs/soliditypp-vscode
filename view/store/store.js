@@ -36,7 +36,8 @@ const store = new Vuex.Store({
         selectedAddress: initialAccount.address,
         accountStates: {},
         netType: 'debug',     // debug(local debug network) / testnet(vite testnet) / mainnet(vite mainnet)
-        customNode: null
+        customNode: null,
+        contracts: []
     },
     getters: {
         addressMap(state, getters) {
@@ -99,8 +100,8 @@ const store = new Vuex.Store({
                 let deployInfo = {
                     index: i,
                     compileInfo,
-                    sendCreateBlocks: [],
-                    logs: []
+                    logs: [],
+                    contracts: []
                 };
 
                 deployInfoList.push(deployInfo);
@@ -130,13 +131,16 @@ const store = new Vuex.Store({
 
         // deployInfo: this.deployInfo,
         // sendCreateBlock: createContractBlock
-        deployed(state, { deployInfo, sendCreateBlock }) {
+        deployed(state, { contract, contractName }) {
             //             contractAddress: contractBlock.toAddress,
             //             contractBlock,
             //             abi,
             //             contractName,
             //             offchainCode
-            deployInfo.sendCreateBlocks.push(sendCreateBlock);
+            state.contracts = state.contracts.concat([{
+                ...contract,
+                contractName
+            }]);
         },
 
         addLog(

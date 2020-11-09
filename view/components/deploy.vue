@@ -57,7 +57,7 @@ unit is attov, 1 vite = 1e18 attov"
         </template>
 
         <div class="deploy-button-wrapper">
-            <el-button @click="deploy" size="small">deploy</el-button>
+            <el-button @click="deploy" size="small" type="primary">deploy</el-button>
         </div>
     </div>
 </template>
@@ -160,8 +160,8 @@ export default {
                 });
 
                 this.$store.commit('deployed', {
-                    deployInfo: this.deployInfo,
-                    sendCreateBlock: createContractBlock
+                    contract: createContractBlock,
+                    contractName: this.deployInfo.compileInfo.contractName
                 });
 
                 this.$store.commit('addLog', {
