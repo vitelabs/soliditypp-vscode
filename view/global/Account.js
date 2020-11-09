@@ -12,6 +12,7 @@ export default class Account {
 
         this.privateKey = privateKey;
         this.address = wallet.createAddressByPrivateKey(privateKey).address;
+        this.type = 'local';
     }
 
     _createAccountBlock(type, params) {

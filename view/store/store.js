@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import dayjs from 'dayjs';
 import * as vite from 'global/vite';
+import WS_RPC from '@vite/vitejs-ws';
 
 /*
     deployInfo struct:
@@ -16,6 +17,12 @@ import * as vite from 'global/vite';
     };
 */
 
+const NET_MAPS = {
+    debug: 'ws://localhost:23457',
+    testnet: 'wss://node.vite.net/test/gvite/ws',
+    mainnet: 'wss://node.vite.net/gvite/ws'
+};
+
 Vue.use(Vuex);
 const initialAccount = vite.createAccount();
 
@@ -24,22 +31,40 @@ const store = new Vuex.Store({
         snapshotHeight: 1,
         deployInfoList: [],
         compileResult: null,
-        loginAddress: null,    // vc login wallet address
+        vcConnected: false,    // vc connect status
         accounts: [initialAccount],
         selectedAddress: initialAccount.address,
         accountStates: {},
+        netType: 'debug',     // debug(local debug network) / testnet(vite testnet) / mainnet(vite mainnet)
+        customNode: null
     },
     getters: {
-        addressMap(state) {
+        addressMap(state, getters) {
             let ob = {};
-            state.accounts.forEach(item => {
+            getters.accountsFilter.forEach(item => {
                 ob[item.address] = item;
                 ob[item.address].accountState = state.accountStates[item.address];
             });
             return ob;
         },
+        accountsFilter(state) {
+            const { netType } = state;
+            if (netType === 'debug') {
+                return state.accounts.filter(item => item.type === 'local');
+            }
+            return state.accounts.filter(item => item.type === 'vc');
+        },
         selectedAccount(state, getters) {
-            return getters.addressMap[state.selectedAddress];
+            return getters.addressMap[state.selectedAddress] || {};
+        },
+        currentNode(state) {
+            return state.customNode ? state.customNode : NET_MAPS[state.netType];
+        },
+        isDebugEnv(state) {
+            return state.netType === 'debug';
+        },
+        netTypeList() {
+            return ['debug', 'testnet', 'mainnet'];
         }
     },
     mutations: {
@@ -47,8 +72,16 @@ const store = new Vuex.Store({
             state.compileResult = compileResult;
         },
 
-        setLoginAddress(state, { address }) {
-            state.loginAddress = address;
+        setNetType(state, netType) {
+            state.netType = netType;
+        },
+
+        setCustomNode(state, customNode) {
+            state.customNode = customNode;
+        },
+
+        setVcConnected(state, status) {
+            state.vcConnected = status;
         },
 
         init(state, { compileResult }) {
@@ -126,6 +159,22 @@ const store = new Vuex.Store({
                 type,
                 dataType
             });
+        }
+    },
+
+    actions: {
+        changeNetType({ state, getters, commit }, netType) {
+            if ( netType !== state.netType) {
+                commit('setNetType', netType);
+                commit('setSelectedAddress', { address: getters.accountsFilter[0] });
+                vite.getVite().setProvider(new WS_RPC(getters.currentNode, 60000), () => {
+                    console.log(`connect to ${getters.currentNode} success.`);
+                }, true);
+            }
+        },
+        addAccount({ commit }, newAccount) {
+            commit('addAccount', { account: newAccount });
+            commit('setSelectedAddress', newAccount);
         }
     }
 });

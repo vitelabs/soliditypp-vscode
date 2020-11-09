@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
 
@@ -46,6 +47,16 @@ export default {
             });
         } catch (err) {
             console.log(err);
+        }
+    },
+
+    computed: {
+        ...mapGetters(['currentNode'])
+    },
+
+    watch: {
+        currentNode() {
+            this.subscribeSnapshotBlocks();
         }
     },
     

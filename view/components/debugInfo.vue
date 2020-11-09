@@ -8,6 +8,27 @@
         >
             <el-row :gutter="20" class="form-row" type="flex">
                 <el-col :span="12">
+                    <el-form-item label="Network: ">
+                        <el-select v-model="netType" placeholder="Please select network">
+                            <el-option
+                                v-for="item in netTypeList"
+                                :key="item"
+                                :label="item"
+                                :value="item">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="Current Node: ">
+                        <code>{{customNode}}</code>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            
+            <el-row :gutter="20" class="form-row" type="flex">
+                <el-col :span="12">
                     <el-form-item label="Snapshot Block Height: ">
                         {{ snapshotHeight }}
                     </el-form-item>
@@ -39,6 +60,7 @@
                                 {{ tokenBalance.tokenInfo.tokenSymbol }}
                             </span>
                             <el-button
+                                v-if="isDebugEnv"
                                 @click="isShowTransfer=true"
                                 icon="el-icon-plus"
                                 class="add-account-button"
@@ -52,24 +74,31 @@
 
                 <el-col :span="12">
                     <el-form-item label="Address: ">
-                        <el-select
-                            v-model="selectedAddress"
-                            placeholder="Please select Address"
-                        >
-                            <el-option
-                                v-for="item in accounts"
-                                :key="item.address"
-                                :label="item.address"
-                                :value="item.address"
-                            ></el-option>
-                        </el-select>
-                        <el-button
-                            @click="addAccount()"
-                            icon="el-icon-plus"
-                            class="add-account-button"
-                            size="mini"
-                            circle
-                        ></el-button>
+                        <template v-if="isDebugEnv">
+                            <el-select
+                                v-model="selectedAddress"
+                                placeholder="Please select Address"
+                            >
+                                <el-option
+                                    v-for="item in accountsFilter"
+                                    :key="item.address"
+                                    :label="item.address"
+                                    :value="item.address"
+                                ></el-option>
+                            </el-select>
+                            <el-button
+                                v-if="isDebugEnv"
+                                @click="addAccount()"
+                                icon="el-icon-plus"
+                                class="add-account-button"
+                                size="mini"
+                                circle
+                            ></el-button>
+                        </template>
+                        <div v-else>
+                            <span v-if="selectedAddress && vcConnected">{{selectedAddress}}</span>
+                            <vc-login v-else></vc-login>
+                        </div>
                     </el-form-item>
                 </el-col>
             </el-row>
@@ -89,15 +118,17 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex';
+import { mapState, mapGetters, mapActions } from 'vuex';
 import BigNumber from 'bignumber.js';
 
 import * as vite from 'global/vite';
 import transfer from 'components/transfer';
+import vcLogin from 'components/vcLogin';
 
 export default {
     components: {
-        transfer
+        transfer,
+        vcLogin
     },
     data() {
         return {
@@ -112,8 +143,18 @@ export default {
             'compileResult',
             'accounts',
             'snapshotHeight',
+            'vcConnected'
         ]),
-        ...mapGetters(['addressMap', 'selectedAccount']),
+        ...mapGetters([
+            'addressMap', 
+            'selectedAccount', 
+            'netTypeList', 
+            'isDebugEnv', 
+            'currentNode', 
+            'isDebugEnv', 
+            'accountsFilter'
+        ]),
+        ...mapActions(['changeNetType']),
         selectedAddress: {
             get() {
                 return this.$store.state.selectedAddress;
@@ -121,6 +162,26 @@ export default {
             set(newValue) {
                 this.$store.commit('setSelectedAddress', { address: newValue });
             },
+        },
+        customNode: {
+            get() {
+                return this.$store.getters.currentNode;
+            },
+            set(newValue) {
+                if (newValue) {
+                    this.$store.commit('setCustomNode', newValue);
+                }
+            }
+        },
+        netType: {
+            get() {
+                return this.$store.state.netType;
+            },
+            set(newValue) {
+                if (newValue) {
+                    this.$store.dispatch('changeNetType', newValue);
+                }
+            }
         },
         balance() {
             const { accountState } = this.selectedAccount;
@@ -132,9 +193,7 @@ export default {
             // add account
             let newAccount = vite.createAccount();
 
-            this.$store.commit('addAccount', {
-                account: newAccount,
-            });
+            this.$store.dispatch('addAccount', newAccount);
 
             // init balance
             await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toFixed());
@@ -158,3 +217,9 @@ export default {
     
 };
 </script>
+
+<style lang="scss" scoped>
+.node-input {
+    width: auto;
+}
+</style>

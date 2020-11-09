@@ -222,17 +222,6 @@ export default {
                 }
             });
         },
-        async addAccount() {
-            // add account
-            let newAccount = vite.createAccount();
-
-            this.$store.commit('addAccount', {
-                account: newAccount,
-            });
-
-            // init balance
-            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toFixed());
-        },
         async updateAccountState() {
             let address = this.selectedAddress;
             let account = this.addressMap[address];
