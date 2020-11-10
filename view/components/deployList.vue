@@ -107,7 +107,7 @@ export default {
                 return this.$store.state.selectedAddress;
             },
             set(newValue) {
-                this.$store.commit('setSelectedAddress', { address: newValue });
+                this.$store.commit('setSelectedAddress', newValue);
             },
         },
         balance() {

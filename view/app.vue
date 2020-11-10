@@ -6,9 +6,9 @@
                     <i class="el-icon-menu"></i>
                     <span slot="title">Debug</span>
                 </el-menu-item>
-                <el-menu-item index="/publish">
-                    <i class="el-icon-upload"></i>
-                    <span slot="title">Publish</span>
+                <el-menu-item index="/setting">
+                    <i class="el-icon-setting"></i>
+                    <span slot="title">Setting</span>
                 </el-menu-item>
             </el-menu>
         </el-aside>

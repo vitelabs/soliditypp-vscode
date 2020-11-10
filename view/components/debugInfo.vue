@@ -45,20 +45,22 @@
                 <el-col :span="12">
  
                     <el-form-item label="Balance: ">
-                        <div v-if="balance">
-                            <span
-                                v-for="(tokenBalance, tokenId, index) in balance.balanceInfoMap"
-                                :key="tokenId"
-                            >
-                                <span v-if="index > 0">,</span>
-                                {{
-                                    transformBalance(
-                                        tokenBalance.balance,
-                                        tokenBalance.tokenInfo.decimals
-                                    )
-                                }}
-                                {{ tokenBalance.tokenInfo.tokenSymbol }}
-                            </span>
+                        <div>
+                            <template v-if="balance">
+                                <span
+                                    v-for="(tokenBalance, tokenId, index) in balance.balanceInfoMap"
+                                    :key="tokenId"
+                                >
+                                    <span v-if="index > 0">,</span>
+                                    {{
+                                        transformBalance(
+                                            tokenBalance.balance,
+                                            tokenBalance.tokenInfo.decimals
+                                        )
+                                    }}
+                                    {{ tokenBalance.tokenInfo.tokenSymbol }}
+                                </span>
+                            </template>
                             <el-button
                                 v-if="isDebugEnv"
                                 @click="isShowTransfer=true"
@@ -74,7 +76,7 @@
 
                 <el-col :span="12">
                     <el-form-item label="Address: ">
-                        <template v-if="isDebugEnv">
+                        <template v-if="!enableVc">
                             <el-select
                                 v-model="selectedAddress"
                                 placeholder="Please select Address"
@@ -143,7 +145,9 @@ export default {
             'compileResult',
             'accounts',
             'snapshotHeight',
-            'vcConnected'
+            'vcConnected',
+            'mnemonics',
+            'enableVc'
         ]),
         ...mapGetters([
             'addressMap', 
@@ -160,7 +164,7 @@ export default {
                 return this.$store.state.selectedAddress;
             },
             set(newValue) {
-                this.$store.commit('setSelectedAddress', { address: newValue });
+                this.$store.commit('setSelectedAddress', newValue);
             },
         },
         customNode: {
@@ -191,7 +195,7 @@ export default {
     methods: {
         async addAccount() {
             // add account
-            let newAccount = vite.createAccount();
+            let newAccount = vite.createAccount(this.mnemonics);
 
             this.$store.dispatch('addAccount', newAccount);
 

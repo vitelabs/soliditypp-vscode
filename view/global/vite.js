@@ -1,5 +1,5 @@
 import WS_RPC from '@vite/vitejs-ws';
-import { utils } from '@vite/vitejs';
+import { utils, wallet } from '@vite/vitejs';
 import {
     abi as abiutils
 } from '@vite/vitejs';
@@ -21,6 +21,7 @@ export const ACCOUNT_INIT_AMOUNT = VITE_DECIMAL.multipliedBy(1000);
 
 let viteClient;
 let genesisAccount;
+let mnemonicsDeriveIndex = 0;
 
 export function setupNode(server = WS_SERVER, cb) {
     server = server || WS_SERVER;
@@ -51,11 +52,15 @@ export function getGenesisAccount() {
     return genesisAccount;
 }
 
-export function createAccount() {
-    let account = new Account({
-        client: viteClient
+export function createAccount(mnemonics, index = mnemonicsDeriveIndex) {
+    const { privateKey } = wallet.deriveAddress({ 
+        mnemonics, 
+        index
     });
-
+    let account = new Account({
+        privateKey
+    });
+    mnemonicsDeriveIndex = index + 1;
     return account;
 }
 

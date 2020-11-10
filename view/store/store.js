@@ -3,6 +3,9 @@ import Vuex from 'vuex';
 import dayjs from 'dayjs';
 import * as vite from 'global/vite';
 import WS_RPC from '@vite/vitejs-ws';
+import { wallet } from '@vite/vitejs';
+
+import * as storage from 'utils/storage';
 
 /*
     deployInfo struct:
@@ -24,7 +27,14 @@ const NET_MAPS = {
 };
 
 Vue.use(Vuex);
-const initialAccount = vite.createAccount();
+let mnemonicsDefault = storage.get('mnemonics');
+if (!wallet.validateMnemonics(mnemonicsDefault)) {
+    mnemonicsDefault = wallet.createMnemonics();
+    storage.set('mnemonics', mnemonicsDefault);
+}
+
+const initialAccount = vite.createAccount(mnemonicsDefault, 0);
+const enableVc = !!storage.get('enableVc');
 
 const store = new Vuex.Store({
     state: {
@@ -37,7 +47,9 @@ const store = new Vuex.Store({
         accountStates: {},
         netType: 'debug',     // debug(local debug network) / testnet(vite testnet) / mainnet(vite mainnet)
         customNode: null,
-        contracts: []
+        contracts: [],
+        mnemonics: mnemonicsDefault,
+        enableVc,
     },
     getters: {
         addressMap(state, getters) {
@@ -49,8 +61,8 @@ const store = new Vuex.Store({
             return ob;
         },
         accountsFilter(state) {
-            const { netType } = state;
-            if (netType === 'debug') {
+            const { enableVc } = state;
+            if (!enableVc) {
                 return state.accounts.filter(item => item.type === 'local');
             }
             return state.accounts.filter(item => item.type === 'vc');
@@ -85,6 +97,10 @@ const store = new Vuex.Store({
             state.vcConnected = status;
         },
 
+        setEnableVc(state, status) {
+            state.enableVc = !!status;
+        },
+
         init(state, { compileResult }) {
             let deployInfoList = [];
 
@@ -110,11 +126,19 @@ const store = new Vuex.Store({
             state.deployInfoList = deployInfoList;
         },
 
+        setMnemonics(state, payload) {
+            state.mnemonics = payload;
+        },
+
         addAccount(state, { account }) {
             state.accounts = state.accounts.concat([account]);
         },
 
-        setSelectedAddress(state, { address }) {
+        setAccounts(state, accounts) {
+            state.accounts = accounts;
+        },
+
+        setSelectedAddress(state, address) {
             state.selectedAddress = address;
         },
 
@@ -170,7 +194,7 @@ const store = new Vuex.Store({
         changeNetType({ state, getters, commit }, netType) {
             if ( netType !== state.netType) {
                 commit('setNetType', netType);
-                commit('setSelectedAddress', { address: getters.accountsFilter[0] });
+                commit('setSelectedAddress', getters.accountsFilter[0]);
                 vite.getVite().setProvider(new WS_RPC(getters.currentNode, 60000), () => {
                     console.log(`connect to ${getters.currentNode} success.`);
                 }, true);
@@ -178,7 +202,21 @@ const store = new Vuex.Store({
         },
         addAccount({ commit }, newAccount) {
             commit('addAccount', { account: newAccount });
-            commit('setSelectedAddress', newAccount);
+            commit('setSelectedAddress', newAccount.address);
+        },
+        importWallet({ commit, state }, payload) {
+            if (payload === state.mnemonics) {
+                return;
+            }
+            commit('setMnemonics', payload);
+            storage.set('mnemonics', payload);
+            let newAccount = vite.createAccount(payload, 0);
+            commit('setAccounts', [newAccount]);
+            commit('setSelectedAddress', newAccount.address);
+        },
+        enableVc({ commit }, status) {
+            commit('setEnableVc', status);
+            storage.set('enableVc', !!status);
         }
     }
 });

@@ -34,6 +34,7 @@
 <script>
 import contract from 'components/contract';
 import { mapState } from 'vuex';
+import { wallet } from '@vite/vitejs';
 
 export default {
     props: ['deployInfo'],
@@ -52,6 +53,9 @@ export default {
     },
     methods: {
         loadContract() {
+            if (wallet.isValidAddress(this.loadContractAddress) != 2) {
+                return this.$message.error('Please input a valid address.');
+            }
             this.$store.commit('deployed', {
                 contract: {
                     toAddress: this.loadContractAddress,

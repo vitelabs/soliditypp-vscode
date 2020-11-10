@@ -1,12 +1,12 @@
 import VueRouter from 'vue-router';
 
-import DeployOnline from 'components/DeployOnline';
+import Setting from 'components/setting';
 import Debug from 'components/debug';
 
 
 const routes = [
     { path: '/debug', component: Debug, name: 'debug' },
-    { path: '/publish', component: DeployOnline, name: 'publish' }
+    { path: '/setting', component: Setting, name: 'setting' }
 ];
 
 export default new VueRouter({
