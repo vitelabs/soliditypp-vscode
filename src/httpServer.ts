@@ -61,7 +61,7 @@ export class HTTPServer {
         console.log(address);
 		address = address === "0.0.0.0" ? "127.0.0.1" : address
 
-		opn("http://" + address);
+		opn("http://" + address + "/#/debug");
 	}
 
 }
