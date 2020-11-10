@@ -17,6 +17,7 @@
             <el-alert
                 title="You can also input an exist contract address. After that, you can call this contract with current abi."
                 style="margin-bottom:20px;"
+                :closable="false"
                 type="success">
             </el-alert>
             <el-row :gutter="20">

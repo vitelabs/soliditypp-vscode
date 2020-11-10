@@ -105,6 +105,14 @@
                 </el-col>
             </el-row>
 
+            <el-row>
+                <el-alert
+                    :title="`Selected Address: ${selectedAccount.address}`"
+                    :closable="false"
+                    type="success">
+                </el-alert>
+            </el-row>
+
             <el-dialog
                 width="40%"
                 :visible.sync="isShowTransfer"
