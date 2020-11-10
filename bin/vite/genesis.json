@@ -28,6 +28,14 @@
     "DexMiningFork":{
       "Height":7,
       "Version":7
+    },
+    "DexRobotFork": {
+      "Height":8,
+      "Version":8
+    },
+    "DexStableMarketFork": {
+      "Height":9,
+      "Version":9
     }
   },
   "ConsensusGroupInfo": {

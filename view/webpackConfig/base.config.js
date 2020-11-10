@@ -2,6 +2,7 @@ const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const plugins = require('./plugins.js');
 
+const debugContractData = require('../../debug-contract-data.json');
 const SRC_PATH = path.join(__dirname, '../');
 const STATIC_PATH = path.join(__dirname, '../../out_view');
 let development = ['dev', 'test'];
@@ -18,6 +19,11 @@ let config = {
     },
     output: {
         path: STATIC_PATH
+    },
+    optimization: {
+        splitChunks: {
+            chunks: 'all',
+        },
     },
     plugins,
     module: {
@@ -89,6 +95,13 @@ let config = {
             i18n: path.join(SRC_PATH, 'i18n')
         },
         extensions: ['.js', '.scss', '.vue', '.json']
+    },
+    devServer: {
+        before: function(app) {
+            app.get('/contractData', function(req, res) {
+                res.json(debugContractData);
+            });
+        }
     }
 };
 

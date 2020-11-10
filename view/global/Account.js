@@ -1,16 +1,18 @@
 import { accountBlock, utils, wallet } from '@vite/vitejs';
 
+import * as vite from './vite';
+
 const { createAccountBlock } = accountBlock;
 
 export default class Account {
-    constructor({ privateKey, client }) {
+    constructor({ privateKey }) {
         if (!privateKey) {
             privateKey = utils._Buffer.from(utils.ed25519.keyPair().privateKey).toString('hex');
         }
 
         this.privateKey = privateKey;
-        this.client = client;
         this.address = wallet.createAddressByPrivateKey(privateKey).address;
+        this.type = 'local';
     }
 
     _createAccountBlock(type, params) {
@@ -18,16 +20,16 @@ export default class Account {
             address: this.address,
             ...params
         });
-        _accountBlock.setProvider(this.client).setPrivateKey(this.privateKey);
+        _accountBlock.setProvider(vite.getVite()).setPrivateKey(this.privateKey);
         return _accountBlock;
     }
 
     async _send(_accountBlock) {
         await _accountBlock.autoSetPreviousAccountBlock();
-        console.log('toaddress: ');
-        console.log(_accountBlock.toAddress);
+        // console.log('toaddress: ');
+        // console.log(_accountBlock.toAddress);
         let result = await _accountBlock.sign().send();
-        console.log(JSON.stringify(result, null, 4));
+        // console.log(JSON.stringify(result, null, 4));
         return result;
     }
 
@@ -50,8 +52,8 @@ export default class Account {
     }
 
     async createContract({ amount, hexCode, quotaMultiplier, responseLatency, randomDegree, abi, params }) {
-        console.log('randomDegree: ');
-        console.log(randomDegree);
+        // console.log('randomDegree: ');
+        // console.log(randomDegree);
         let _accountBlock = this._createAccountBlock('createContract', {
             abi,
             code: hexCode,
@@ -72,10 +74,10 @@ export default class Account {
             params,
             toAddress
         });
-        return this._send(_accountBlock);
+        return this._send(_accountBlock, abi);
     }
 
     async getBalance() {
-        return this.client.getBalanceInfo(this.address);
+        return vite.getVite().getBalanceInfo(this.address);
     }
 }

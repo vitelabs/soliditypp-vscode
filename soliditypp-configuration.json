@@ -20,5 +20,17 @@
 		["[", "]"],
 		["(", ")"],
 		["\"", "\""]
-	]
+	],
+	"properties": {
+		"solpp.serverPort": {
+		  "type": "number",
+          "default": 8081,
+          "description": "This is the port that Simple HTTP Server will be running on."
+		},
+		"solpp.serverHost": {
+		  "type": "string",
+          "default": "127.0.0.1",
+          "description": "This is the host that Simple HTTP Server will be running on."
+		}
+	}
 }

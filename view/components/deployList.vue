@@ -1,60 +1,55 @@
 <template>
-    <!-- <div class="module-wrapper"> -->
-    <el-tabs type="card" class="deploy-list-tabs" v-model="selectedDeployIndex">
-        <el-tab-pane
-            :label="deployInfo.compileInfo.contractName"
-            class="deploy-panel"
-            :value="index"
-            :key="index"
-            v-for="(deployInfo, index) in deployInfoList"
-        >
-            <Split style="height: 100%;">
-                <SplitArea :size="60" class="left-panel-wrapper">
-                    <div class="left-panel">
-                        <div class="title">Deploy</div>
-                        <el-collapse class="deploy-list-collapse">
-                            <el-collapse-item :title="deployInfo.selectedAccountAddress">
-                                <div>
-                                    <div class="minor-title">BaseInfo</div>
-                                    <base-info :deploy-info="deployInfo"></base-info>
-                                </div>
+    <Split class="split">
+        <SplitArea :size="60" class="left-panel-wrapper">
+            <debug-info></debug-info>
+            <el-tabs class="deploy-list-tabs" v-model="selectedDeployIndex">
+                <el-tab-pane
+                    :label="deployInfo.compileInfo.contractName"
+                    class="deploy-panel"
+                    :value="index"
+                    :key="index"
+                    v-for="(deployInfo, index) in deployInfoList"
+                >
+                    <el-row class="deploy-wrapper">
+                        <el-row :gutter="20" justify="space-between">
+                            <el-col :span="16">
+                                <deploy :deploy-info="deployInfo"></deploy>
+                            </el-col>
+                            <el-col :span="8">
+                                <base-info :deploy-info="deployInfo"></base-info>
+                            </el-col>
+                        </el-row>
+                    </el-row>
 
-                                <div class="minor-section">
-                                    <div class="minor-title">Deploy</div>
-                                    <deploy :deploy-info="deployInfo"></deploy>
-                                </div>
-                            </el-collapse-item>
-                        </el-collapse>
+                    <el-row class="contract-list">
+                        <contract-list :deploy-info="deployInfo"></contract-list>
+                    </el-row>
+                </el-tab-pane>
+            </el-tabs>
+        </SplitArea>
 
-                        <template v-if="deployInfo.sendCreateBlocks.length > 0">
-                            <div class="title">Contracts</div>
-                            <contract-list :deploy-info="deployInfo"></contract-list>
-                        </template>
-                    </div>
-                </SplitArea>
-
-                <SplitArea :size="40" class="right-panel-wrapper">
-                    <log-list
-                        class="right-panel"
-                        v-if="deployInfo && deployInfo.logs && deployInfo.logs.length > 0"
-                        :deploy-info="deployInfo"
-                    ></log-list>
-                </SplitArea>
-            </Split>
-        </el-tab-pane>
-    </el-tabs>
+        <SplitArea :size="40" class="right-panel-wrapper">
+            <log-list
+                class="right-panel"
+                :key="selectedDeployIndex"
+                v-if="selectedDeployInfo && selectedDeployInfo.logs && selectedDeployInfo.logs.length > 0"
+                :deploy-info="selectedDeployInfo"
+            ></log-list>
+        </SplitArea>
+    </Split>
 </template>
     
 <script>
+import { mapState, mapGetters } from 'vuex';
+import BigNumber from 'bignumber.js';
+
 import deploy from './deploy';
 import contractList from 'components/contractList';
 import logList from 'components/logList';
-import postError from 'utils/postError';
-
 import baseInfo from 'components/baseInfo';
-
 import * as vite from 'global/vite';
-import { mapState } from 'vuex';
+import debugInfo from 'components/debugInfo';
+
 
 function briefAddress(address) {
     return address.slice(0, 8) + '...' + address.slice(-3);
@@ -87,44 +82,66 @@ export default {
         baseInfo,
         contractList,
         deploy,
-        logList
+        logList,
+        debugInfo,
     },
-    props: ['compileResult'],
     data() {
         return {
-            selectedDeployIndex: 0
+            selectedDeployIndex: 0,
+            timerStatus: 'stop'
         };
     },
     computed: {
-        ...mapState(['deployInfoList']),
+        ...mapState([
+            'deployInfoList',
+            'compileResult',
+            'accounts',
+            'contracts'
+        ]),
+        ...mapGetters(['addressMap', 'selectedAccount']),
         selectedDeployInfo() {
             return this.deployInfoList[this.selectedDeployIndex];
+        },
+        selectedAddress: {
+            get() {
+                return this.$store.state.selectedAddress;
+            },
+            set(newValue) {
+                this.$store.commit('setSelectedAddress', newValue);
+            },
+        },
+        balance() {
+            const { accountState } = this.selectedAccount;
+            return accountState && accountState.balance;
         }
     },
 
     async created() {
-    // init the deployInfoList
         await this.subscribeNewAccountBlocks();
 
-        let initAccounts = [];
-
-        for (let i = 0; i < this.compileResult.abiList.length; i++) {
-            initAccounts.push(vite.createAccount());
-        }
-        // let initAccounts = await createAccounts(this.compileResult.abiList.length);
-
-        this.$store.commit('init', {
-            compileResult: this.compileResult,
-            initAccounts
-        });
-
         // init balances
-        for (let i = 0; i < initAccounts.length; i++) {
+        for (let i = 0; i < this.accounts.length; i++) {
             await vite.initBalance(
-                initAccounts[i],
+                this.accounts[i],
                 vite.ACCOUNT_INIT_AMOUNT.toFixed()
             );
         }
+
+        let runTask = () => {
+            this.updateBalanceTimer = setTimeout(async () => {
+                if (this.timerStatus !== 'start') {
+                    return;
+                }
+                await this.updateAccountState();
+                runTask();
+            }, 600);
+        };
+        this.timerStatus = 'start';
+        runTask();
+    },
+
+    beforeDestroy() {
+        this.timerStatus = 'stop';
     },
 
     methods: {
@@ -135,12 +152,12 @@ export default {
             try {
                 listener = await client.subscribe('newAccountBlocks');
             } catch (err) {
-                postError(err);
+                console.log(err);
                 return;
             }
             let rollbackSet = {};
 
-            listener.on(async resultList => {
+            listener.on(async (resultList) => {
                 if (!this.selectedDeployInfo) {
                     return;
                 }
@@ -152,7 +169,7 @@ export default {
                         this.$store.commit('addLog', {
                             deployInfo: this.selectedDeployInfo,
                             log: `rollback block ${result.hash}`,
-                            title: 'rollback account block'
+                            title: 'rollback account block',
                         });
                         return;
                     }
@@ -167,7 +184,7 @@ export default {
                         this.$store.commit('addLog', {
                             deployInfo: this.selectedDeployInfo,
                             type: 'error',
-                            log: `get block by hash: ${JSON.stringify(err)}`
+                            log: `get block by hash: ${JSON.stringify(err)}`,
                         });
                         return;
                     }
@@ -176,9 +193,9 @@ export default {
                     }
 
                     let relatedDeployInfoList = [];
-                    this.deployInfoList.forEach(deployInfo => {
-                        let toAccount = deployInfo.addressMap[block.toAddress];
-                        let fromAccount = deployInfo.addressMap[block.fromAddress];
+                    this.deployInfoList.forEach((deployInfo) => {
+                        let toAccount = this.addressMap[block.toAddress];
+                        let fromAccount = this.addressMap[block.fromAddress];
 
                         if (toAccount || fromAccount) {
                             relatedDeployInfoList.push(deployInfo);
@@ -200,13 +217,27 @@ export default {
                             deployInfo: relatedDeployInfo,
                             log: block,
                             title: parseLogTitle(block),
-                            dataType: 'accountBlock'
+                            dataType: 'accountBlock',
                         });
                     }
                 }
             });
-        }
-    }
+        },
+        async updateAccountState() {
+            let address = this.selectedAddress;
+            let account = this.addressMap[address];
+            if (!account) {
+                return;
+            }
+            let accountState = await account.getBalance();
+
+            // console.log(JSON.stringify(accountState, null, 4));
+            this.$store.commit('updateAccountState', {
+                address: address,
+                accountState: accountState,
+            });
+        },
+    },
 };
 </script>
 
@@ -241,29 +272,13 @@ export default {
 </style>
 
 <style lang="scss" scoped>
-.deploy-panel {
-  display: flex;
-  align-content: stretch;
-  height: 100%;
-  .left-panel-wrapper {
-    overflow: auto;
-    .left-panel {
-      // flex: 1;
-      min-width: 465px;
-      height: 100%;
-    }
-  }
-  .right-panel-wrapper {
-    overflow: auto;
-
-    .right-panel {
-      min-width: 300px;
-
-      height: 100%;
-    }
-  }
+.form {
+    border-bottom: 1px solid rgba(0,0,0,0.04);
 }
-.minor-section {
-  margin-top: 10px;
+
+.deploy-wrapper {
+    padding: 15px 0;
+    width: 100%;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
 }
 </style>

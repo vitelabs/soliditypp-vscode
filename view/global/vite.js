@@ -1,5 +1,5 @@
 import WS_RPC from '@vite/vitejs-ws';
-import { utils } from '@vite/vitejs';
+import { utils, wallet } from '@vite/vitejs';
 import {
     abi as abiutils
 } from '@vite/vitejs';
@@ -21,14 +21,20 @@ export const ACCOUNT_INIT_AMOUNT = VITE_DECIMAL.multipliedBy(1000);
 
 let viteClient;
 let genesisAccount;
+let mnemonicsDeriveIndex = 0;
 
-export async function init() {
-    let provider = new WS_RPC(WS_SERVER, 30 * 1000);
-
-    viteClient = new ViteAPI(provider, () => {
-        console.log('Already connected.');
+export function setupNode(server = WS_SERVER, cb) {
+    server = server || WS_SERVER;
+    let provider = new WS_RPC(server, 30 * 1000, {
+        retryInterval: 100,
+        retryTimes: 100
     });
 
+    viteClient = new ViteAPI(provider, cb);
+    return viteClient;
+}
+
+export async function init() {
     genesisAccount = new Account({
         privateKey: GENESIS_PRIVATEKEY,
         client: viteClient
@@ -36,8 +42,6 @@ export async function init() {
 
     // genesis account receive onroad blocks
     await receiveAllOnroadTx(viteClient, genesisAccount);
-
-    return viteClient;
 }
 
 export function getVite() {
@@ -48,11 +52,15 @@ export function getGenesisAccount() {
     return genesisAccount;
 }
 
-export function createAccount() {
-    let account = new Account({
-        client: viteClient
+export function createAccount(mnemonics, index = mnemonicsDeriveIndex) {
+    const { privateKey } = wallet.deriveAddress({ 
+        mnemonics, 
+        index
     });
-
+    let account = new Account({
+        privateKey
+    });
+    mnemonicsDeriveIndex = index + 1;
     return account;
 }
 

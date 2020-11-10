@@ -1,26 +1,35 @@
 <template>
-    <div class="app-wrapper">
-        <deploy-list class="deploy-list" v-if="compileResult" :compile-result="compileResult"></deploy-list>
-    </div>
+    <el-container class="app-wrapper">
+        <el-aside width="64px" class="menu-wrapper">
+            <el-menu default-active="/debug" :collapse="true" :router="true">
+                <el-menu-item index="/debug">
+                    <i class="el-icon-menu"></i>
+                    <span slot="title">Debug</span>
+                </el-menu-item>
+                <el-menu-item index="/setting">
+                    <i class="el-icon-setting"></i>
+                    <span slot="title">Setting</span>
+                </el-menu-item>
+            </el-menu>
+        </el-aside>
+        <el-main class="main-layout">
+            <keep-alive v-if="isReady">
+                <router-view></router-view>
+            </keep-alive>
+        </el-main>
+    </el-container>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import getCompileResult from 'services/compile';
 import * as vite from 'global/vite';
 
-import deployList from 'components/deployList';
-import postError from 'utils/postError';
-
 export default {
-    components: {
-        deployList
-    },
-
     data() {
         return {
-            // contracts: [],
-            compileResult: undefined
-            // contractAddress: undefined
+            compileResult: undefined,
+            isReady: false
         };
     },
 
@@ -28,27 +37,29 @@ export default {
         try {
             let compileResult = await getCompileResult();
             this.compileResult = compileResult;
-            await vite.init(compileResult);
+            this.$store.commit('setCompileResult', { compileResult });
+            this.$store.commit('init', { compileResult });
+            vite.setupNode(null, () => {
+                vite.init().then(() => {
+                    this.subscribeSnapshotBlocks();
+                    this.isReady = true;
+                });
+            });
         } catch (err) {
-            postError(err);
+            console.log(err);
         }
-
-        await this.subscribeSnapshotBlocks();
-
-        // var newRandomAccount = async () => {
-        //     try {
-        //         this.selectedAccount = await vite.createAccount();
-        //     } catch (err) {
-        //         await new Promise(resolve => {
-        //             setTimeout(() => {
-        //                 resolve();
-        //             }, 200);
-        //         }).then(() => newRandomAccount());
-        //     }
-        // };
-
-    // await newRandomAccount();
     },
+
+    computed: {
+        ...mapGetters(['currentNode'])
+    },
+
+    watch: {
+        currentNode() {
+            this.subscribeSnapshotBlocks();
+        }
+    },
+    
     methods: {
         async subscribeSnapshotBlocks() {
             let client = vite.getVite();
@@ -57,7 +68,7 @@ export default {
             try {
                 listener = await client.subscribe('newSnapshotBlocks');
             } catch (err) {
-                postError(err);
+                console.log(err);
                 return;
             }
 
@@ -68,22 +79,18 @@ export default {
                 });
             });
         }
-    //     deployed(contractBlock, abi, contractName, offchainCode) {
-    //         this.contracts.push({
-    //             contractAddress: contractBlock.toAddress,
-    //             contractBlock,
-    //             abi,
-    //             contractName,
-    //             offchainCode
-    //         });
-    //     }
     }
 };
 </script>
 
 <style lang="scss" scoped>
-.app-wrapper,
-.deploy-list {
-  height: 100%;
+.main-layout {
+    height: 100vh;
+    & > div {
+        height: 100%;
+    }
+}
+.menu-wrapper {
+    border-right: 1px solid rgba(0,0,0,0.05);
 }
 </style>
