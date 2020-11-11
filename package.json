@@ -107,7 +107,7 @@
     "view:build:windows": "webpack --watch --config view/webpackConfig/base.config.js",
     "view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out_view/index.js",
     "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out_view/index.js",
-    "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out_view/index.js"
+    "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
