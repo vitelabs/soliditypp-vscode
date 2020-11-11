@@ -159,6 +159,7 @@
     "element-ui": "^2.10.1",
     "events": "^3.0.0",
     "express": "^4.17.1",
+    "get-port": "^5.1.1",
     "install": "^0.13.0",
     "is-root": "^2.1.0",
     "jsonrpc-lite": "^2.0.7",
