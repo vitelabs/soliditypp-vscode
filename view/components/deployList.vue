@@ -95,23 +95,23 @@ export default {
             'deployInfoList',
             'compileResult',
             'accounts',
-            'contracts'
+            'contracts',
+            'selectedAddress',
+            'netType'
         ]),
         ...mapGetters(['addressMap', 'selectedAccount']),
         selectedDeployInfo() {
             return this.deployInfoList[this.selectedDeployIndex];
         },
-        selectedAddress: {
-            get() {
-                return this.$store.state.selectedAddress;
-            },
-            set(newValue) {
-                this.$store.commit('setSelectedAddress', newValue);
-            },
-        },
         balance() {
             const { accountState } = this.selectedAccount;
             return accountState && accountState.balance;
+        }
+    },
+
+    watch: {
+        netType() {
+            this.subscribeNewAccountBlocks();
         }
     },
 
@@ -157,6 +157,7 @@ export default {
             let rollbackSet = {};
 
             listener.on(async (resultList) => {
+                console.log(resultList);
                 if (!this.selectedDeployInfo) {
                     return;
                 }

@@ -150,7 +150,7 @@ export default {
                 let client = vite.getVite();
                 let createContractBlock = await client.request(
                     'ledger_getBlockByHeight',
-                    createContractTx.address,
+                    this.selectedAccount.address,
                     createContractTx.height
                 );
 
