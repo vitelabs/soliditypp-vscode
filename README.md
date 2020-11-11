@@ -1,6 +1,6 @@
 # Soliditypp extension for Visual Studio Code
 
-Soliditypp is the smart contract programming language used in Vite. Vite is a DAG-based, asynchronous, high-performance and fee-less dApp platform where transactions can be executed quickly and confirmed in seconds. The extension contains following features:
+[Soliditypp](https://marketplace.visualstudio.com/items?itemName=ViteLabs.soliditypp) is the smart contract programming language used in Vite. Vite is a DAG-based, asynchronous, high-performance and fee-less dApp platform where transactions can be executed quickly and confirmed in seconds. The extension contains following features:
 
 ## Features
 * Syntax highlighting
@@ -12,6 +12,10 @@ Soliditypp is the smart contract programming language used in Vite. Vite is a DA
 * Support for multiple smart contracts
 * Deployment / debugging result displaying
 * Support for offchain querying
+* Support import mnemonics
+* Support to call contract and create contract by vc connect
+* Support deploy contract and call contract on testnet and mainnet
+* Support call any contract on mainnet
 * Examples
 
 ## Tutorial
