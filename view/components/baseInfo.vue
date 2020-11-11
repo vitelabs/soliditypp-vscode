@@ -76,7 +76,6 @@ import ClipboardJS from 'clipboard';
 import VueJsonPretty from 'vue-json-pretty';
 import { mapState, mapGetters } from 'vuex';
 
-import BigNumber from 'bignumber.js';
 
 export default {
     props: ['deployInfo'],

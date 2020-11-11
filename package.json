@@ -2,7 +2,7 @@
   "name": "soliditypp",
   "displayName": "Soliditypp",
   "description": "Soliditypp extension for Visual Studio Code",
-  "version": "0.6.1",
+  "version": "0.7.1",
   "publisher": "ViteLabs",
   "icon": "images/vscode.png",
   "repository": {
@@ -107,7 +107,7 @@
     "view:build:windows": "webpack --watch --config view/webpackConfig/base.config.js",
     "view:build:watch": "npm run view:clean && NODE_ENV=dev webpack --watch --config view/webpackConfig/base.config.js && rm out_view/index.js",
     "view:build:dev": "npm run view:clean && NODE_ENV=dev webpack --config view/webpackConfig/base.config.js && rm out_view/index.js",
-    "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js && rm out_view/index.js"
+    "view:build:prod": "npm run view:clean && NODE_ENV=prod webpack --config view/webpackConfig/base.config.js"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
@@ -159,6 +159,7 @@
     "element-ui": "^2.10.1",
     "events": "^3.0.0",
     "express": "^4.17.1",
+    "get-port": "^5.1.1",
     "install": "^0.13.0",
     "is-root": "^2.1.0",
     "jsonrpc-lite": "^2.0.7",

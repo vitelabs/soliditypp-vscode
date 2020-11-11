@@ -1,29 +1,9 @@
 import * as http from 'http';
-import * as net from 'net';
 import * as path from 'path';
-
 
 import * as express from 'express';
 const opn = require('opn');
-
-function getAvailablePort (startingAt: any) {
-    function getNextAvailablePort (currentPort: number, cb: { (value?: unknown): void; (arg0: any): void; }) {
-        const server = net.createServer()
-        server.listen(currentPort, (_: any) => {
-            server.once('close', (_: any) => {
-                cb(currentPort)
-            })
-            server.close()
-        })
-        server.on('error', _ => {
-            getNextAvailablePort(++currentPort, cb)
-        })
-    }
-
-    return new Promise(resolve => {
-        getNextAvailablePort(startingAt, resolve)
-    })
-}
+const getPort = require('get-port');
 
 const app = express();
 
@@ -44,9 +24,9 @@ export class HTTPServer {
 	}
 
 	private setupServer(): void {
-        const host: any = '127.0.0.1';
+		const host: any = '127.0.0.1';
 
-        getAvailablePort(3000).then(port => {
+        getPort({port: getPort.makeRange(9000, 9800)}).then((port: any) => {
             if (this.httpServer)
 			this.httpServer.close();
 

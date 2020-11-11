@@ -194,7 +194,7 @@ const store = new Vuex.Store({
         changeNetType({ state, getters, commit }, netType) {
             if ( netType !== state.netType) {
                 commit('setNetType', netType);
-                commit('setSelectedAddress', getters.accountsFilter[0]);
+                commit('setSelectedAddress', getters.accountsFilter[0] && getters.accountsFilter[0].address);
                 vite.getVite().setProvider(new WS_RPC(getters.currentNode, 60000), () => {
                     console.log(`connect to ${getters.currentNode} success.`);
                 }, true);
