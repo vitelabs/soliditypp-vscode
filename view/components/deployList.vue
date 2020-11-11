@@ -41,7 +41,6 @@
     
 <script>
 import { mapState, mapGetters } from 'vuex';
-import BigNumber from 'bignumber.js';
 
 import deploy from './deploy';
 import contractList from 'components/contractList';

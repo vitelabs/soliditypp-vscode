@@ -1,4 +1,3 @@
-import { MessageBox } from 'element-ui';
 import { accountBlock as accountBlockUtils } from '@vite/vitejs';
 import * as vite from './vite';
 
