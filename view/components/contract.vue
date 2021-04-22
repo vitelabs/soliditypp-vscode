@@ -51,19 +51,19 @@
                 <el-col :span="4" class="prop-label">
                     <div>
                         amount
-                        <help
-                            text="The amount of vite token is transferred to contract. The basic unit of token is vite, the smallest
-unit is attov, 1 vite = 1e18 attov"
-                        ></help>
                     </div>
                 </el-col>
 
-                <el-col :span="13" :offset="1">
+                <el-col :span="9" :offset="1">
                     <el-input size="small" v-model="callingParams.$$transfer"></el-input>
                 </el-col>
 
                 <el-col :span="4">
-                    <units class="units" v-model="callingParams.$$transferUnits"></units>
+                    <select-token class="units" v-model="selectToken"></select-token>
+                </el-col>
+
+                <el-col :span="4">
+                    <token-units class="units" v-model="selectTokenUnits" :decimals="selectToken.decimals || 0"></token-units>
                 </el-col>
             </el-row>
 
@@ -100,7 +100,8 @@ unit is attov, 1 vite = 1e18 attov"
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import * as vite from 'global/vite';
-import units from 'components/units';
+import selectToken from 'components/selectToken';
+import tokenUnits from 'components/tokenUnits';
 
 function inputDefaultValue(type) {
     if (type.indexOf('uint') === 0 || type.indexOf('int') === 0) {
@@ -126,14 +127,17 @@ function toParamsArray(abi, paramsObject) {
 export default {
     props: ['deployInfo', 'contract'],
     components: {
-        units
+        selectToken,
+        tokenUnits
     },
     data() {
         return {
             callingFunction: '',
             callingOffchain: '',
             callingParams: {},
-            callType: ''
+            callType: '',
+            selectToken: {},
+            selectTokenUnits: 0
         };
     },
     created() {
@@ -209,7 +213,6 @@ export default {
             let inputs = this.callingDeclaration.inputs;
             if (this.callType === 'function') {
                 Vue.set(this.callingParams, '$$transfer', inputDefaultValue('uint256'));
-                Vue.set(this.callingParams, '$$transferUnits', 'vite');
             }
             inputs.forEach(input => {
                 Vue.set(this.callingParams, input.name, inputDefaultValue(input.type));
@@ -257,18 +260,19 @@ export default {
 
         async callFunction(contractAddress) {
             try {
+                console.log(this.selectToken);
+                console.log(this.selectTokenUnits);
                 await vite.sendContractTx(
                     this.selectedAccount,
                     contractAddress,
                     this.callingDeclaration,
 
-                    vite.transformViteBalance(
-                        this.callingParams.$$transfer,
-                        this.callingParams.$$transferUnits
-                    ),
-                    toParamsArray(this.callingDeclaration, this.callingParams)
+                    vite.transformTokenAmount(this.callingParams.$$transfer, this.selectTokenUnits),
+                    toParamsArray(this.callingDeclaration, this.callingParams),
+                    this.selectToken.tokenId
                 );
             } catch (err) {
+                console.log(err);
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
                     title: 'send block failed',

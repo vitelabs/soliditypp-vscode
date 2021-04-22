@@ -102,10 +102,12 @@ export async function sendContractTx(
     contractAddress,
     abi,
     amount = 0,
-    params
+    params,
+    tokenId = VITE_TOKEN_ID
 ) {
+    console.log(params);
     let callContractBlock = await account.callContract({
-        tokenId: VITE_TOKEN_ID,
+        tokenId,
         amount: amount.toString(),
         abi: abi,
         params: params,
@@ -204,6 +206,12 @@ export function transformViteBalance(amount, units) {
         break;
     }
     return transformedAmount;
+}
+
+export function transformTokenAmount(amount, units) {
+    return new BigNumber(amount)
+        .multipliedBy(new BigNumber(`1e${ units || 0}`))
+        .toFixed(); 
 }
 
 export function isSendBlock(blockType) {
