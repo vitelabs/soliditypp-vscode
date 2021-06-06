@@ -224,19 +224,24 @@ export default {
             });
         },
         async updateAccountState() {
-            let address = this.selectedAddress;
-            let account = this.addressMap[address];
-            if (!account) {
-                return;
+            for (let i = 0; i < this.accounts.length; i ++) {
+                let address = this.accounts[i].address;
+                let account = this.addressMap[address];
+                if (account && account.address) {
+                    this.getBalance(account);
+                }
+
             }
+        },
+        async getBalance(account) {
             let accountState = await account.getBalance();
 
             // console.log(JSON.stringify(accountState, null, 4));
             this.$store.commit('updateAccountState', {
-                address: address,
+                address: account.address,
                 accountState: accountState,
             });
-        },
+        }
     },
 };
 </script>

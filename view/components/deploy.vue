@@ -164,10 +164,10 @@ export default {
                     contractName: this.deployInfo.compileInfo.contractName
                 });
 
-                this.$store.commit('addLog', {
-                    deployInfo: this.deployInfo,
-                    log: createContractBlock
-                });
+                // this.$store.commit('addLog', {
+                //     deployInfo: this.deployInfo,
+                //     log: createContractBlock
+                // });
             } catch (err) {
                 console.log(err.message);
                 this.$store.commit('addLog', {
