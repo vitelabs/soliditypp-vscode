@@ -20,4 +20,12 @@
 
 ## Tutorial
 See the [Vite Wiki](https://vite.wiki/tutorial/contract/debug.html) for details.
-  
+
+
+## Publish
+
+https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+
+```
+vsce publish
+```
