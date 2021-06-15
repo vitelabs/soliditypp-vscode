@@ -235,6 +235,7 @@ export default {
         },
         async getBalance(account) {
             let accountState = await account.getBalance();
+            account.receiveAllOnroadTx();
 
             // console.log(JSON.stringify(accountState, null, 4));
             this.$store.commit('updateAccountState', {

@@ -172,7 +172,6 @@ export default {
                 console.log(err.message);
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
-
                     title: `deploy ${this.deployInfo.compileInfo.contractName} failed`,
                     log: err,
                     type: 'error'

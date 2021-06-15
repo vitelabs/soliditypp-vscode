@@ -1,6 +1,7 @@
 import { accountBlock, utils, wallet } from '@vite/vitejs';
 
 import * as vite from './vite';
+import receiveAllOnroadTx from '../utils/receiveAllOnroadTx';
 
 const { createAccountBlock } = accountBlock;
 
@@ -39,6 +40,10 @@ export default class Account {
         });
 
         return this._send(_accountBlock);
+    }
+
+    async receiveAllOnroadTx() {
+        return receiveAllOnroadTx(vite.getVite(), this);
     }
 
     async sendTx({ toAddress, tokenId, amount }) {
