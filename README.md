@@ -27,5 +27,9 @@ See the [Vite Wiki](https://vite.wiki/tutorial/contract/debug.html) for details.
 https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 
 ```
+# Bump package version
+npm version patch
+
+# Publish to VC marketplace
 vsce publish
 ```
