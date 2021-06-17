@@ -10,8 +10,12 @@ on:
         description: 'Choose an branch to deploy'
         required: true
         default: 'master'
+      version:
+        description: 'Choose version bump types: major | minor | patch'
+        required: true
+        default: 'patch'
       dryRun:
-        description: 'Set this option to true to package your extension but do not publish it. When using this option set the pat option to a stub value.'
+        description: 'Set this option to true to package your extension but do not publish it.'
         required: true
         default: 'false' 
 
@@ -41,6 +45,18 @@ jobs:
           node-version: '${{ steps.nvm.outputs.NVMRC }}'
           
       - uses: bahmutov/npm-install@v1
+
+      - name: Bump Version
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          npm version ${{ github.event.inputs.version }}
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.event.inputs.branch }}
 
       - name: Publish to Visual Studio Marketplace
         uses: HaaLeo/publish-vscode-extension@v0
