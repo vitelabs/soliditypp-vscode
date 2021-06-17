@@ -22,7 +22,7 @@ import * as storage from 'utils/storage';
 
 const NET_MAPS = {
     debug: 'ws://localhost:23457',
-    testnet: 'wss://node.vite.net/test/gvite/ws',
+    testnet: 'wss://buidl.vite.net/gvite/ws',
     mainnet: 'wss://node.vite.net/gvite/ws'
 };
 
