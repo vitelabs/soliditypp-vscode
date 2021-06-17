@@ -52,12 +52,6 @@ jobs:
           git config --local user.name "github-actions[bot]"
           npm version ${{ github.event.inputs.version }}
 
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.event.inputs.branch }}
-
       - name: Publish to Visual Studio Marketplace
         uses: HaaLeo/publish-vscode-extension@v0
         with:
@@ -65,3 +59,9 @@ jobs:
           registryUrl: https://marketplace.visualstudio.com
           yarn: true
           dryRun: ${{ github.event.inputs.dryRun }}
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.event.inputs.branch }}
