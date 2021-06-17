@@ -9,7 +9,11 @@ on:
       branch:
         description: 'Choose an branch to deploy'
         required: true
-        default: 'master' 
+        default: 'master'
+      dryRun:
+        description: 'Set this option to true to package your extension but do not publish it. When using this option set the pat option to a stub value.'
+        required: true
+        default: 'false' 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -43,3 +47,5 @@ jobs:
         with:
           pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
           registryUrl: https://marketplace.visualstudio.com
+          yarn: true
+          dryRun: ${{ github.event.inputs.dryRun }}
