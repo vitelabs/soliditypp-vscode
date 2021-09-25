@@ -1,21 +1,36 @@
 {
   "version": "0.2.0",
   "configurations": [
-  {
-    "type": "soliditypp",
-    "request": "launch",
-    "name": "Soliditypp Debug",
-    "program": ""
-  },
+    {
+      "type": "soliditypp",
+      "request": "launch",
+      "name": "Soliditypp Debug",
+      "program": ""
+    },
     {
       "name": "Run Extension",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        // "--disable-extensions",
+      ],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
       // "preLaunchTask": "npm: watch"
       // "preLaunchTask": "npm: view:build:watch"
+    },
+    {
+      "name": "Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+        "--disable-extensions",
+      ],
+      "outFiles": ["${workspaceFolder}/out/test/**/*.js"]
     }
   ]
 }
