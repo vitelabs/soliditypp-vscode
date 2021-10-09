@@ -117,7 +117,7 @@
     "@types/mocha": "^9.0.0",
     "@types/node": "^8.10.40",
     "@types/shelljs": "^0.8.3",
-    "@types/vscode": "^1.60.0",
+    "@types/vscode": "^1.30.0",
     "babel-eslint": "^10.0.1",
     "babel-loader": "^8.0.5",
     "babel-plugin-component": "^1.1.1",
