@@ -7,7 +7,11 @@ module.exports = {
       {
         test: /\.ts$/,
         use: {
-          loader: "ts-loader"
+          loader: "ts-loader",
+          options: {
+            // transpileOnly: true,
+            configFile:path.resolve(__dirname,"./tsconfig.json")
+          }
         }
       }
     ]
