@@ -77,7 +77,7 @@ function checkGviteVersion(ds: SolidityppDebugSession): boolean {
   if (version !== GVITE_VERSION) {
     ds.sendEvent(
       new OutputEvent(
-        `Current version is ${version}, required version is ${version}`
+        `Current version is ${version}, required version is ${GVITE_VERSION}`
       )
     );
     return false;
@@ -86,9 +86,9 @@ function checkGviteVersion(ds: SolidityppDebugSession): boolean {
   return true;
 }
 
-// function checkCompressedGviteIsExisted() :boolean{
-//     return fs.existsSync(getGviteCompressedPath());
-// }
+function checkCompressedGviteIsExisted() :boolean{
+    return fs.existsSync(getGviteCompressedPath());
+}
 
 async function downloadGvite(ds: SolidityppDebugSession) {
   let osPlatform = getOsPlatform();
@@ -195,8 +195,8 @@ export default async function createGvite(ds: SolidityppDebugSession) {
     return;
   }
 
-  // if (!checkCompressedGviteIsExisted()) {
-  // }
+  if (!checkCompressedGviteIsExisted()) {
+  }
   await downloadGvite(ds);
 
   await uncompressGvite();
