@@ -158,7 +158,7 @@ export default class SolidityppDebugSession extends DebugSession {
         try {
             result = String(
                 execSync(
-                    `${getSolppcPath()} --bin --abi ${this.sourceFilePath}`
+                    `${getSolppcPath()} --asm --bin --abi ${this.sourceFilePath}`
                 )
             );
         } catch (err) {
