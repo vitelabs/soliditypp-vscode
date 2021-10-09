@@ -1,6 +1,7 @@
 import { storageKeyMap } from 'global/constants';
 
-export const get = (key) => {
+
+export const get = key => {
     if (!storageKeyMap[key]) {
         throw new Error(`Can't find the storage key: ${key}`);
     }
@@ -12,7 +13,7 @@ export const get = (key) => {
     }
     try {
         json = JSON.parse(str);
-    } catch(err) {
+    } catch (err) {
         console.log(err);
     }
     return json;

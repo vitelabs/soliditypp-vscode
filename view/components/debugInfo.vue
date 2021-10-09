@@ -1,20 +1,20 @@
 <template>
     <div>
-        <el-form
-            class="form"
-            ref="form"
-            label-position="left"
-            size="mini"
-        >
+        <el-form class="form" ref="form" label-position="left" size="mini">
             <el-row :gutter="20" class="form-row" type="flex">
                 <el-col :span="12">
                     <el-form-item label="Network: ">
-                        <el-select v-model="netType" placeholder="Please select network">
+                        <el-select
+                            @input="onNetSelect"
+                            :value="netType"
+                            placeholder="Please select network"
+                        >
                             <el-option
                                 v-for="item in netTypeList"
                                 :key="item"
                                 :label="item"
-                                :value="item">
+                                :value="item"
+                            >
                             </el-option>
                         </el-select>
                     </el-form-item>
@@ -22,11 +22,17 @@
 
                 <el-col :span="12">
                     <el-form-item label="Current Node: ">
-                        <code>{{customNode}}</code>
+                        <code>{{ currentNode }}</code
+                        ><el-button
+                            v-if="!sysNetMap[netType]"
+                            @click="onEditNet"
+                            class="edit-net"
+                        >Edit</el-button
+                        >
                     </el-form-item>
                 </el-col>
             </el-row>
-            
+
             <el-row :gutter="20" class="form-row" type="flex">
                 <el-col :span="12">
                     <el-form-item label="Snapshot Block Height: ">
@@ -36,19 +42,20 @@
 
                 <el-col :span="12">
                     <el-form-item label="Account Block Number: ">
-                        <div v-if="balance">{{ balance.blockCount }} </div>
+                        <div v-if="balance">{{ balance.blockCount }}</div>
                     </el-form-item>
                 </el-col>
             </el-row>
 
             <el-row :gutter="20" class="form-row">
                 <el-col :span="12">
- 
                     <el-form-item label="Balance: ">
                         <div>
                             <template v-if="balance">
                                 <span
-                                    v-for="(tokenBalance, tokenId, index) in balance.balanceInfoMap"
+                                    v-for="(tokenBalance,
+                                            tokenId,
+                                            index) in balance.balanceInfoMap"
                                     :key="tokenId"
                                 >
                                     <span v-if="index > 0">,</span>
@@ -63,7 +70,7 @@
                             </template>
                             <el-button
                                 v-if="isDebugEnv"
-                                @click="isShowTransfer=true"
+                                @click="isShowTransfer = true"
                                 icon="el-icon-plus"
                                 class="add-account-button"
                                 size="mini"
@@ -71,7 +78,6 @@
                             ></el-button>
                         </div>
                     </el-form-item>
-
                 </el-col>
 
                 <el-col :span="12">
@@ -98,7 +104,9 @@
                             ></el-button>
                         </template>
                         <div v-else>
-                            <span v-if="selectedAddress && vcConnected">{{selectedAddress}}</span>
+                            <span v-if="selectedAddress && vcConnected">{{
+                                selectedAddress
+                            }}</span>
                             <vc-login v-else></vc-login>
                         </div>
                     </el-form-item>
@@ -109,7 +117,8 @@
                 <el-alert
                     :title="`Selected Address: ${selectedAccount.address}`"
                     :closable="false"
-                    type="success">
+                    type="success"
+                >
                 </el-alert>
             </el-row>
 
@@ -119,11 +128,37 @@
                 title="transfer"
             >
                 <div>
-                    <transfer @afterTransfer="afterTransfer" :account="selectedAccount" />
+                    <transfer
+                        @afterTransfer="afterTransfer"
+                        :account="selectedAccount"
+                    />
                 </div>
             </el-dialog>
         </el-form>
-
+        <el-dialog
+            width="40%"
+            :visible.sync="isShowDynamicNetEditor"
+            title="Custom Network"
+        >
+            <div>
+                <el-form
+                    class="net-item-editor-form"
+                    ref="netEditorForm"
+                    label-position="left"
+                    size="mini"
+                >
+                    <el-form-item :label="'URL:'">
+                        <el-input
+                            v-model="dynamicNetUrlInput"
+                            :account="selectedAccount"
+                        />
+                    </el-form-item>
+                </el-form>
+            </div>
+            <el-button @click="onSaveDynamicUrl('custom', dynamicNetUrlInput)"
+            >Save</el-button
+            >
+        </el-dialog>
     </div>
 </template>
 
@@ -134,6 +169,7 @@ import BigNumber from 'bignumber.js';
 import * as vite from 'global/vite';
 import transfer from 'components/transfer';
 import vcLogin from 'components/vcLogin';
+import { NET_MAPS } from 'store/store';
 
 export default {
     components: {
@@ -145,6 +181,9 @@ export default {
             selectedDeployIndex: 0,
             timerStatus: 'stop',
             isShowTransfer: false,
+            dynamicNetUrlInput: '',
+            isShowDynamicNetEditor: false,
+            sysNetMap:NET_MAPS
         };
     },
     computed: {
@@ -155,15 +194,17 @@ export default {
             'snapshotHeight',
             'vcConnected',
             'mnemonics',
-            'enableVc'
+            'enableVc',
+            'dynamicNetMap',
+            'currentNode'
         ]),
         ...mapGetters([
-            'addressMap', 
-            'selectedAccount', 
-            'netTypeList', 
-            'isDebugEnv', 
-            'currentNode', 
-            'isDebugEnv', 
+            'addressMap',
+            'selectedAccount',
+            'netTypeList',
+            'isDebugEnv',
+            'currentNode',
+            'isDebugEnv',
             'accountsFilter'
         ]),
         ...mapActions(['changeNetType']),
@@ -173,16 +214,6 @@ export default {
             },
             set(newValue) {
                 this.$store.commit('setSelectedAddress', newValue);
-            },
-        },
-        customNode: {
-            get() {
-                return this.$store.getters.currentNode;
-            },
-            set(newValue) {
-                if (newValue) {
-                    this.$store.commit('setCustomNode', newValue);
-                }
             }
         },
         netType: {
@@ -201,6 +232,23 @@ export default {
         }
     },
     methods: {
+        onNetSelect(value) {
+            if (this.dynamicNetMap[value]) {
+                this.netType = value;
+            } else {
+                this.onEditNet();
+            }
+        },
+        onEditNet() {
+            this.isShowDynamicNetEditor = true;
+            this.dynamicNetUrlInput=this.currentNode;
+        },
+        onSaveDynamicUrl(name, url) {
+            if (!name || !url) throw new Error('invalid name or url');
+            this.$store.dispatch('updateDynamicNetItem', { name, url });
+            this.netType = name;
+            this.isShowDynamicNetEditor = false;
+        },
         async addAccount() {
             // add account
             let newAccount = vite.createAccount(this.mnemonics);
@@ -208,7 +256,10 @@ export default {
             this.$store.dispatch('addAccount', newAccount);
 
             // init balance
-            await vite.initBalance(newAccount, vite.ACCOUNT_INIT_AMOUNT.toFixed());
+            await vite.initBalance(
+                newAccount,
+                vite.ACCOUNT_INIT_AMOUNT.toFixed()
+            );
         },
         transformBalance(amount, decimal) {
             return new BigNumber(amount).dividedBy(`1e${decimal}`).toFixed();
@@ -224,14 +275,16 @@ export default {
                 });
                 return;
             }
-        },
+        }
     }
-    
 };
 </script>
 
 <style lang="scss" scoped>
 .node-input {
     width: auto;
+}
+.edit-net {
+    margin-left: 8px;
 }
 </style>
