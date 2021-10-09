@@ -1,8 +1,8 @@
 {
   "name": "soliditypp",
-  "displayName": "Soliditypp",
+  "displayName": "Solidityppcc",
   "description": "Soliditypp extension for Visual Studio Code",
-  "version": "0.7.7",
+  "version": "0.7.9",
   "publisher": "ViteLabs",
   "icon": "images/vscode.png",
   "repository": {
@@ -113,6 +113,7 @@
     "@babel/plugin-proposal-class-properties": "^7.3.3",
     "@babel/preset-env": "^7.3.1",
     "@types/decompress": "^4.2.3",
+    "@types/fs-extra": "^9.0.13",
     "@types/mocha": "^9.0.0",
     "@types/node": "^8.10.40",
     "@types/shelljs": "^0.8.3",
@@ -161,6 +162,7 @@
     "element-ui": "^2.10.1",
     "events": "^3.0.0",
     "express": "^4.17.1",
+    "fs-extra": "^10.0.0",
     "get-port": "^5.1.1",
     "install": "^0.13.0",
     "is-root": "^2.1.0",

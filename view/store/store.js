@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import * as vite from 'global/vite';
 import WS_RPC from '@vite/vitejs-ws';
 import { wallet } from '@vite/vitejs';
+import { CUSTOM_NET_MAP } from 'global/constants';
 
 import * as storage from 'utils/storage';
 
@@ -20,7 +21,7 @@ import * as storage from 'utils/storage';
     };
 */
 
-const NET_MAPS = {
+export const NET_MAPS = {
     debug: 'ws://localhost:23457',
     testnet: 'wss://buidl.vite.net/gvite/ws',
     mainnet: 'wss://node.vite.net/gvite/ws'
@@ -35,28 +36,30 @@ if (!wallet.validateMnemonics(mnemonicsDefault)) {
 
 const initialAccount = vite.createAccount(mnemonicsDefault, 0);
 const enableVc = !!storage.get('enableVc');
+const initCustomNetsMap = storage.get(CUSTOM_NET_MAP);
 
 const store = new Vuex.Store({
     state: {
         snapshotHeight: 1,
         deployInfoList: [],
         compileResult: null,
-        vcConnected: false,    // vc connect status
+        vcConnected: false, // vc connect status
         accounts: [initialAccount],
         selectedAddress: initialAccount.address,
         accountStates: {},
-        netType: 'debug',     // debug(local debug network) / testnet(vite testnet) / mainnet(vite mainnet)
-        customNode: null,
+        netType: 'debug', // debug(local debug network) / testnet(vite testnet) / mainnet(vite mainnet)
         contracts: [],
         mnemonics: mnemonicsDefault,
         enableVc,
+        dynamicNetMap: { ...NET_MAPS,...initCustomNetsMap }
     },
     getters: {
         addressMap(state, getters) {
             let ob = {};
             getters.accountsFilter.forEach(item => {
                 ob[item.address] = item;
-                ob[item.address].accountState = state.accountStates[item.address];
+                ob[item.address].accountState =
+                    state.accountStates[item.address];
             });
             return ob;
         },
@@ -71,16 +74,19 @@ const store = new Vuex.Store({
             return getters.addressMap[state.selectedAddress] || {};
         },
         currentNode(state) {
-            return state.customNode ? state.customNode : NET_MAPS[state.netType];
+            return state.dynamicNetMap[state.netType];
         },
         isDebugEnv(state) {
             return state.netType === 'debug';
         },
         netTypeList() {
-            return ['debug', 'testnet', 'mainnet'];
+            return ['debug', 'testnet', 'mainnet', 'custom'];
         }
     },
     mutations: {
+        setDynamicNetItem(state, { url, name }) {
+            state.dynamicNetMap[name] = url;
+        },
         setCompileResult(state, { compileResult }) {
             state.compileResult = compileResult;
         },
@@ -88,11 +94,6 @@ const store = new Vuex.Store({
         setNetType(state, netType) {
             state.netType = netType;
         },
-
-        setCustomNode(state, customNode) {
-            state.customNode = customNode;
-        },
-
         setVcConnected(state, status) {
             state.vcConnected = status;
         },
@@ -110,7 +111,9 @@ const store = new Vuex.Store({
                     bytecodes: compileResult.bytecodesList[i],
 
                     contractName: compileResult.contractNameList[i],
-                    offchainCode: compileResult.offchainCodesList[i]
+                    offchainCode: compileResult.offchainCodesList[i],
+                    asm:compileResult.asmList[i],
+                    offAsm:compileResult.offAsmList[i]
                 };
 
                 let deployInfo = {
@@ -161,10 +164,12 @@ const store = new Vuex.Store({
             //             abi,
             //             contractName,
             //             offchainCode
-            state.contracts = state.contracts.concat([{
-                ...contract,
-                contractName
-            }]);
+            state.contracts = state.contracts.concat([
+                {
+                    ...contract,
+                    contractName
+                }
+            ]);
         },
 
         addLog(
@@ -192,12 +197,22 @@ const store = new Vuex.Store({
 
     actions: {
         changeNetType({ state, getters, commit }, netType) {
-            if ( netType !== state.netType) {
+            if (netType !== state.netType) {
                 commit('setNetType', netType);
-                commit('setSelectedAddress', getters.accountsFilter[0] && getters.accountsFilter[0].address);
-                vite.getVite().setProvider(new WS_RPC(getters.currentNode, 60000), () => {
-                    console.log(`connect to ${getters.currentNode} success.`);
-                }, true);
+                commit(
+                    'setSelectedAddress',
+                    getters.accountsFilter[0] &&
+                        getters.accountsFilter[0].address
+                );
+                vite.getVite().setProvider(
+                    new WS_RPC(getters.currentNode, 60000),
+                    () => {
+                        console.log(
+                            `connect to ${getters.currentNode} success.`
+                        );
+                    },
+                    true
+                );
             }
         },
         addAccount({ commit }, newAccount) {
@@ -217,6 +232,11 @@ const store = new Vuex.Store({
         enableVc({ commit }, status) {
             commit('setEnableVc', status);
             storage.set('enableVc', !!status);
+        },
+        updateDynamicNetItem({ commit }, { name, url }) {
+            const customNetsMap = storage.get(CUSTOM_NET_MAP);
+            storage.set(CUSTOM_NET_MAP,{...customNetsMap,[name]:url});
+            commit('setDynamicNetItem', { name, url });
         }
     }
 });

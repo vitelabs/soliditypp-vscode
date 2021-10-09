@@ -1,0 +1,10 @@
+pragma soliditypp >0.7.0;
+
+import * as A from "./HelloWorld.solpp";
+contract HelloWorld {
+   event transfer(address indexed addr,uint256 amount);
+     onMessage SayHello(address addr) payable {
+        addr.transfer(msg.tokenid ,msg.amount);
+        emit transfer(addr, msg.amount);
+     }
+}
