@@ -150,7 +150,7 @@
     "@types/opn": "^5.5.0",
     "@types/request": "^2.48.1",
     "@vite/connector": "0.0.2",
-    "@vite/vitejs": "^2.3.11",
+    "@vite/vitejs": "^2.3.16",
     "@vite/vitejs-ws": "^2.3.3",
     "@vscode/test-electron": "^1.6.2",
     "babel-polyfill": "^6.26.0",
