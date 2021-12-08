@@ -161,7 +161,7 @@ export default class SolidityppDebugSession extends DebugSession {
                     `${getSolppcPath()} --bin --abi ${this.sourceFilePath}`
                 )
             );
-        } catch (err:any) {
+        } catch (err) {
             this.aborted('Compile failed: \n' + err.toString(), 1);
             return false;
         }
