@@ -2,7 +2,7 @@
   "name": "soliditypp",
   "displayName": "Solidityppcc",
   "description": "Soliditypp extension for Visual Studio Code",
-  "version": "0.7.9",
+  "version": "0.7.10",
   "publisher": "ViteLabs",
   "icon": "images/vscode.png",
   "repository": {
