@@ -161,10 +161,17 @@ export default class SolidityppDebugSession extends DebugSession {
                     `${getSolppcPath()} --bin --abi ${this.sourceFilePath}`
                 )
             );
-        } catch (err) {
+        } catch (err:any) {
             this.aborted('Compile failed: \n' + err.toString(), 1);
             return false;
         }
+        this.sendEvent(<DebugProtocol.OutputEvent>{
+            event: 'output',
+            body: {
+                category: 'std',
+                output: result
+            }
+        });
 
         // TODO need compile source
         let lines = result.split(os.EOL);

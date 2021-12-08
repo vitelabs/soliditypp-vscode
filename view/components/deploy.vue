@@ -169,7 +169,7 @@ export default {
                 //     log: createContractBlock
                 // });
             } catch (err) {
-                console.log(err.message);
+                console.log("deploy fail, ", err.message);
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
                     title: `deploy ${this.deployInfo.compileInfo.contractName} failed`,

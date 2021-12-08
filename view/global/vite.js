@@ -1,11 +1,7 @@
 import WS_RPC from '@vite/vitejs-ws';
 import { utils, wallet } from '@vite/vitejs';
-import {
-    abi as abiutils
-} from '@vite/vitejs';
-import {
-    ViteAPI
-} from '@vite/vitejs';
+import { abi as abiutils } from '@vite/vitejs';
+import { ViteAPI } from '@vite/vitejs';
 import receiveAllOnroadTx from 'utils/receiveAllOnroadTx';
 
 const BigNumber = require('bignumber.js');
@@ -15,7 +11,7 @@ import Account from './Account';
 const VITE_TOKEN_ID = 'tti_5649544520544f4b454e6e40';
 const WS_SERVER = 'ws://localhost:23457';
 const GENESIS_PRIVATEKEY =
-  '7488b076b27aec48692230c88cbe904411007b71981057ea47d757c1e7f7ef24f4da4390a6e2618bec08053a86a6baf98830430cbefc078d978cf396e1c43e3a';
+    '7488b076b27aec48692230c88cbe904411007b71981057ea47d757c1e7f7ef24f4da4390a6e2618bec08053a86a6baf98830430cbefc078d978cf396e1c43e3a';
 const VITE_DECIMAL = new BigNumber('1e18');
 export const ACCOUNT_INIT_AMOUNT = VITE_DECIMAL.multipliedBy(1000);
 
@@ -53,8 +49,8 @@ export function getGenesisAccount() {
 }
 
 export function createAccount(mnemonics, index = mnemonicsDeriveIndex) {
-    const { privateKey } = wallet.deriveAddress({ 
-        mnemonics, 
+    const { privateKey } = wallet.deriveAddress({
+        mnemonics,
         index
     });
     let account = new Account({
@@ -87,7 +83,7 @@ export async function createContract(
 ) {
     let createContractBlock = await account.createContract({
         amount: amount.toString(),
-        hexCode: contract.bytecodes,
+        code: contract.bytecodes,
         quotaMultiplier,
         responseLatency,
         randomDegree,
@@ -135,7 +131,10 @@ export async function callOffchainMethod(
         for (let i = 0; i < abi.outputs.length; i++) {
             outputs.push(abi.outputs[i].type);
         }
-        let offchainDecodeResult = abiutils.decodeParameters(outputs, resultBytes);
+        let offchainDecodeResult = abiutils.decodeParameters(
+            outputs,
+            resultBytes
+        );
         let resultList = [];
         for (let i = 0; i < abi.outputs.length; i++) {
             if (abi.outputs[i].name) {
@@ -210,8 +209,8 @@ export function transformViteBalance(amount, units) {
 
 export function transformTokenAmount(amount, units) {
     return new BigNumber(amount)
-        .multipliedBy(new BigNumber(`1e${ units || 0}`))
-        .toFixed(); 
+        .multipliedBy(new BigNumber(`1e${units || 0}`))
+        .toFixed();
 }
 
 export function isSendBlock(blockType) {
