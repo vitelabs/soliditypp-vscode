@@ -83,7 +83,7 @@ export async function createContract(
 ) {
     let createContractBlock = await account.createContract({
         amount: amount.toString(),
-        code: contract.bytecodes,
+        hexCode: contract.bytecodes,
         quotaMultiplier,
         responseLatency,
         randomDegree,
@@ -120,9 +120,10 @@ export async function callOffchainMethod(
 ) {
     let data = abiutils.encodeFunctionCall(abi, params);
     let dataBase64 = Buffer.from(data, 'hex').toString('base64');
+    let codeBase64 = Buffer.from(offchaincode, 'hex').toString('base64');
     let result = await viteClient.request('contract_callOffChainMethod', {
-        selfAddr: contractAddress,
-        offChainCode: offchaincode,
+        address: contractAddress,
+        code: codeBase64,
         data: dataBase64
     });
     if (result) {

@@ -1,4 +1,3 @@
-import * as os from 'os';
 type keyWordsType =
     | 'bin'
     | 'offBin'
@@ -67,7 +66,7 @@ export function linesParser(lines: string[]) {
             break;
         }
         if (!keyType) {
-            parser.curContent += os.EOL + line || '';
+            parser.curContent += line || '';
             parser.pos++;
             continue;
         }
@@ -77,8 +76,7 @@ export function linesParser(lines: string[]) {
             continue;
         }
         if (keyType?.name === 'name') {
-            parser.curContent +=
-                os.EOL + line.match(keyType.matcher)?.[1] || '';
+            parser.curContent += line.match(keyType.matcher)?.[1] || '';
             parser.curType = 'name';
             parser.pos++;
             continue;
