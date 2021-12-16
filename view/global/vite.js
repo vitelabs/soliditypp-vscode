@@ -155,6 +155,52 @@ export async function callOffchainMethod(
     return '';
 }
 
+export async function callContract(
+    contractAddress,
+    abi,
+    params
+) {
+    let data = abiutils.encodeFunctionCall(abi, params);
+    let dataBase64 = Buffer.from(data, 'hex').toString('base64');
+
+    console.log('call RPC contract_call', contractAddress, data, dataBase64);
+
+    let result = await viteClient.request('contract_call', {
+        address: contractAddress,
+        data: dataBase64
+    });
+    
+    console.log('RPC contract_call returns', result);
+
+    if (result) {
+        let resultBytes = Buffer.from(result, 'base64').toString('hex');
+        let outputs = [];
+        for (let i = 0; i < abi.outputs.length; i++) {
+            outputs.push(abi.outputs[i].type);
+        }
+        let offchainDecodeResult = abiutils.decodeParameters(
+            outputs,
+            resultBytes
+        );
+        let resultList = [];
+        for (let i = 0; i < abi.outputs.length; i++) {
+            if (abi.outputs[i].name) {
+                resultList.push({
+                    name: abi.outputs[i].name,
+                    value: offchainDecodeResult[i]
+                });
+            } else {
+                resultList.push({
+                    name: '',
+                    value: offchainDecodeResult[i]
+                });
+            }
+        }
+        return resultList;
+    }
+    return '';
+}
+
 export async function queryVmLogList(contractBlock, abi) {
     if (!contractBlock.logHash) {
         return;

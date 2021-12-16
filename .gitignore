@@ -1,13 +1,11 @@
 node_modules
 out
 out_view
-gvite
 gvite.log
 gvite.exe
 .DS_Store
 ledger
 *.vsix
-bin/solppc/*
 !bin/solppc/.keep
 solppc_*.tar.gz
 __MACOSX

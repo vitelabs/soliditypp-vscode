@@ -1,15 +1,11 @@
 node_modules
-gvite
 gvite.log
 gvite.exe
 .DS_Store
 ledger
 *.vsix
-bin/solppc/*
 !bin/solppc/.keep
-solppc_*.tar.gz
 __MACOSX
-bin/vite/gvite-*.tar.gz
 gvite-v*/
 example
 accountBlock_test.js

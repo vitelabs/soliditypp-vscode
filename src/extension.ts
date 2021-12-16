@@ -8,7 +8,8 @@ import { completeItemList } from "./autoComplete";
 import { extensionPath, getOsPlatform, getSolppcPath, OS_PLATFORM } from "./constant";
 
 import createSolppc, { checkSolppcAvailable } from "./createSolppc";
-import * as fs from "fs";
+// import * as fs from "fs";
+import * as fs from "fs-extra";
 const child_process = require("child_process");
 
 // enum DEBUGGER_STATUS {
@@ -57,29 +58,54 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(diagnosticCollection);
   vscode.workspace.onDidSaveTextDocument(compileSource);
 
-  // generate test code
+  // generate examples code
+  
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand("soliditypp.generateHelloWorld", () => {
+  //     let workspaceFolders = vscode.workspace.workspaceFolders;
+  //     if (workspaceFolders && workspaceFolders.length > 0) {
+  //       let newFile = path.join(
+  //         workspaceFolders[0].uri.path,
+  //         "HelloWorld.solpp"
+  //       );
+  //       fs.copyFile(
+  //         path.resolve(extensionPath, "bin/vite/HelloWorld.solpp"),
+  //         newFile,
+  //         function(err) {
+  //           if (err) {
+  //             console.log(err);
+  //             return false;
+  //           }
+  //         }
+  //       );
+  //       let uri = vscode.Uri.file(newFile);
+  //       vscode.workspace
+  //         .openTextDocument(uri)
+  //         .then(doc => vscode.window.showTextDocument(doc));
+  //     }
+  //   })
+  // );
+
   context.subscriptions.push(
-    vscode.commands.registerCommand("soliditypp.generateHelloWorld", () => {
+    vscode.commands.registerCommand("soliditypp.generateExamples", () => {
       let workspaceFolders = vscode.workspace.workspaceFolders;
+
       if (workspaceFolders && workspaceFolders.length > 0) {
-        let newFile = path.join(
+        let newPath = path.join(
           workspaceFolders[0].uri.path,
-          "HelloWorld.solpp"
+          "examples"
         );
-        fs.copyFile(
-          path.resolve(extensionPath, "bin/vite/HelloWorld.solpp"),
-          newFile,
-          function(err) {
-            if (err) {
-              console.log(err);
-              return false;
-            }
+        fs.pathExists(newPath, (err, exists) => {
+          if (!err && !exists) {
+            fs.copySync(
+              path.resolve(extensionPath, "examples"),
+              newPath
+            );
+            console.log("Examples generated in 'examples' directory.");
+          } else {
+            console.log("The 'example' directory exists, rename it and try again!");
           }
-        );
-        let uri = vscode.Uri.file(newFile);
-        vscode.workspace
-          .openTextDocument(uri)
-          .then(doc => vscode.window.showTextDocument(doc));
+        });
       }
     })
   );

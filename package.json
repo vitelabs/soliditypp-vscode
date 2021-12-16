@@ -2,7 +2,7 @@
   "name": "soliditypp",
   "displayName": "Solidityppcc",
   "description": "Soliditypp extension for Visual Studio Code",
-  "version": "0.7.11",
+  "version": "0.8.0-alpha",
   "publisher": "ViteLabs",
   "icon": "images/vscode.png",
   "repository": {
@@ -26,7 +26,7 @@
   "activationEvents": [
     "onLanguage:soliditypp",
     "onDebug",
-    "onCommand:soliditypp.generateHelloWorld"
+    "onCommand:soliditypp.generateExamples"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -90,8 +90,8 @@
     ],
     "commands": [
       {
-        "command": "soliditypp.generateHelloWorld",
-        "title": "soliditypp: Generate HelloWorld.solpp"
+        "command": "soliditypp.generateExamples",
+        "title": "soliditypp: Generate Examples"
       }
     ]
   },

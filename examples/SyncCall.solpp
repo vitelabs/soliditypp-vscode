@@ -1,0 +1,65 @@
+// SPDX-License-Identifier: GPL-3.0
+// Demonstrate how a contract call another contract synchronously and wait for an asynchronous function to return.
+
+/* call hierarchy:
+ C --> B
+       B --> A
+       B <-- A  
+       B --> A
+       B <-- A
+ C <-- B
+ C --------> A
+ C <-------- A 
+*/
+
+pragma soliditypp ^0.8.0;
+
+// step1: deploy A
+contract A {
+    uint public data;
+
+    function add(uint a, uint b) external async returns(uint) {
+        data = a + b;
+        return data;
+    }
+}
+
+// step2: deploy B by passing the address of A as a parameter of contructor
+contract B {
+    A a;
+    uint public b;
+
+    constructor (address addr) {
+        a = A(addr);
+    }
+
+    function test(uint data) external async returns(uint) {
+        // call A synchronously
+        b = await a.add(data, 10);
+
+        // call A synchronously one more time
+        return await a.add(b, 100);
+    }
+}
+
+// step3: deploy C by passing the address of A and B as the parameters of contructor
+contract C {
+    A a;
+    B b;
+    uint public c;
+    
+    constructor (address _a, address payable _b) {
+        a = A(_a);
+        b = B(_b);
+    }
+
+    function f(uint data) external async returns(uint) {
+        // call B synchronously
+        c = await b.test(data);
+
+        // call A synchronously after that b.test() returns
+        c = await a.add(c, 1000);
+
+        return c;
+    }
+}

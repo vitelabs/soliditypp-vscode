@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: GPL-3.0
+// Demonstrate how to send tokens to a given address.
+
+pragma soliditypp ^0.8.0;
+
+contract A {
+   event Received(address sender, tokenId token, uint amount);
+
+   constructor() payable {}
+
+   // Receive Token function
+   receive() external payable {
+      address sender = msg.sender;
+      tokenId token = msg.tokenid;
+      uint amount = msg.amount;
+
+      emit Received(sender, token, amount);
+   }
+
+   function sendViteTo(address payable addr, uint amount) external async {
+      // send 1 VITE to `addr`
+      addr.transfer("tti_5649544520544f4b454e6e40", 1e18);
+   }
+}

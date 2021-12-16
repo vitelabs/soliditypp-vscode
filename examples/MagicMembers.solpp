@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: GPL-3.0
+// Demonstrate how to visit magic variables and functions.
+
+pragma soliditypp >=0.4.2;
+
+contract Magic {
+    uint64 public rand;
+
+    function _blake2b(bytes memory data) external async pure returns(bytes32) {
+        return blake2b(data);
+    }
+
+    function _sha3(bytes memory data) external async pure returns(bytes32) {
+        return keccak256(data);
+    }
+
+    // fixme: return zeros
+    function _sha256(bytes memory data) external async pure returns(bytes32) {
+        return sha256(data);
+    }
+
+    // fixme: return zeros
+    function _ripemd160(bytes memory data) external async pure returns(bytes20) {
+        return ripemd160(data);
+    }
+
+    function _selector() external async pure returns (bytes4) {
+        return this._blake2b.selector;
+    }
+
+    // fixme: return zero
+    // state mutability can not be view / pure to get a random
+    function nextRandom() external async returns (uint64) {
+        return nextrandom();
+    }
+
+    function balanceOfVITE() external async view returns (uint256) {
+        return balance("tti_5649544520544f4b454e6e40");
+    }
+
+    function getPrevHash() external async view returns (bytes32) {
+        return prevhash();
+    }
+
+    function getAccountHeight() external async view returns (uint64) {
+        return accountheight();
+    }
+}

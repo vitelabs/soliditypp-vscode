@@ -1,8 +1,12 @@
-pragma soliditypp ^0.4.2;
-contract HelloWorld {
-   event transfer(address indexed addr,uint256 amount);
-     onMessage SayHello(address addr) payable {
-        addr.transfer(msg.tokenid ,msg.amount);
-        emit transfer(addr, msg.amount);
-     }
+// SPDX-License-Identifier: GPL-3.0
+
+pragma soliditypp ^0.8.0;
+
+contract A {
+    // will generate a getter function automatically: function data() public async view returns(uint);
+    uint public data = 123;
+
+    function set(uint a) external async {
+        data = a; 
+    }
 }
