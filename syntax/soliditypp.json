@@ -259,7 +259,7 @@
                     "name": "keyword.control.contract.soliditypp"
                 },
                 {
-                    "match": "\\b(addmod|mulmod|blake2b)\\b",
+                    "match": "\\b(addmod|mulmod|blake2b|keccak256|sha256|ripemd160)\\b",
                     "name": "support.function.math.soliditypp"
                 },
                 {
@@ -275,6 +275,9 @@
                 },
                 {
                     "include": "#declaration-interface"
+                },
+                {
+                    "include": "#declaration-message"
                 },
                 {
                     "include": "#declaration-library"
@@ -316,19 +319,30 @@
                     }
                 },
                 {
-                    "match": "\\b(is)\\b",
+                    "match": "\\b(is|abstract)\\b",
                     "name": "storage.modifier.is.soliditypp"
                 }
             ]
         },
         "declaration-interface": {
-            "match": "\\b(message)(\\s+([A-Za-z_]\\w*))?\\b",
+            "match": "\\b(interface)(\\s+([A-Za-z_]\\w*))?\\b",
             "captures": {
                 "1": {
                     "name": "storage.type.interface.soliditypp"
                 },
                 "3": {
                     "name": "entity.name.type.interface.soliditypp"
+                }
+            }
+        },
+        "declaration-message": {
+            "match": "\\b(message)(\\s+([A-Za-z_]\\w*))?\\b",
+            "captures": {
+                "1": {
+                    "name": "storage.type.message.soliditypp"
+                },
+                "3": {
+                    "name": "entity.name.type.message.soliditypp"
                 }
             }
         },
@@ -409,7 +423,7 @@
                     }
                 },
                 {
-                    "match": "\\b(public|pure|view|payable|nonpayable|inherited|indexed|storage|memory)\\b",
+                    "match": "\\b(public|external|internal|private|offchain|pure|view|payable|nonpayable|inherited|indexed|storage|memory|sync|async|override|virtual)\\b",
                     "name": "storage.type.mofifier.soliditypp"
                 }
             ]
