@@ -5,12 +5,9 @@ import SolidityConfigurationProvider from "./debugConfigurationProvider";
 import SolidityppDebugAdapterDescriptorFactory from "./debugAdapterDescriptorFactory";
 import { debuggerType } from "./constant";
 import { completeItemList } from "./autoComplete";
-import { extensionPath, getOsPlatform, getSolppcPath, OS_PLATFORM } from "./constant";
-
-import createSolppc, { checkSolppcAvailable } from "./createSolppc";
-// import * as fs from "fs";
+import { extensionPath, getOsPlatform, OS_PLATFORM } from "./constant";
+import * as Compiler from "./compiler";
 import * as fs from "fs-extra";
-const child_process = require("child_process");
 
 // enum DEBUGGER_STATUS {
 //   STOPPING = 1,
@@ -22,8 +19,6 @@ const child_process = require("child_process");
 let diagnosticCollection: vscode.DiagnosticCollection;
 
 export async function activate(context: vscode.ExtensionContext) {
-  // check solppc
-  await installSolppc();
 
   let debuggerPanel: vscode.WebviewPanel | undefined;
   // let debuggerStatus: DEBUGGER_STATUS = DEBUGGER_STATUS.STOPPED;
@@ -58,36 +53,10 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(diagnosticCollection);
   vscode.workspace.onDidSaveTextDocument(compileSource);
 
-  // generate examples code
-  
-  // context.subscriptions.push(
-  //   vscode.commands.registerCommand("soliditypp.generateHelloWorld", () => {
-  //     let workspaceFolders = vscode.workspace.workspaceFolders;
-  //     if (workspaceFolders && workspaceFolders.length > 0) {
-  //       let newFile = path.join(
-  //         workspaceFolders[0].uri.path,
-  //         "HelloWorld.solpp"
-  //       );
-  //       fs.copyFile(
-  //         path.resolve(extensionPath, "bin/vite/HelloWorld.solpp"),
-  //         newFile,
-  //         function(err) {
-  //           if (err) {
-  //             console.log(err);
-  //             return false;
-  //           }
-  //         }
-  //       );
-  //       let uri = vscode.Uri.file(newFile);
-  //       vscode.workspace
-  //         .openTextDocument(uri)
-  //         .then(doc => vscode.window.showTextDocument(doc));
-  //     }
-  //   })
-  // );
-
   context.subscriptions.push(
     vscode.commands.registerCommand("soliditypp.generateExamples", () => {
+      console.log('visit https://github.com/vitelabs/soliditypp-examples');
+
       let workspaceFolders = vscode.workspace.workspaceFolders;
 
       if (workspaceFolders && workspaceFolders.length > 0) {
@@ -155,67 +124,29 @@ async function compileSource(textDocument: vscode.TextDocument) {
   }
   diagnosticCollection.clear();
 
-  try {
-    await child_process.execSync(
-      `${getSolppcPath()} --bin --abi ${textDocument.fileName}`
-    );
-  } catch (err) {
-    let errStr = err.output[2].toString();
+  let fileName = textDocument.fileName;
+  if (getOsPlatform() === OS_PLATFORM.WIN64) { 
+    fileName = fileName.replace(/\\/g, '/')
+  }
 
-    let filename = textDocument.fileName
-    if (getOsPlatform() === OS_PLATFORM.WIN64) { 
-      filename = filename.replace(/\\/g, '/')
-    }
-
-    let lines = errStr.split(filename + ":");
-    if (lines && lines.length > 1) {
-      lines = lines[1].split(":");
-      if (lines && lines.length > 1) {
-        let lineNum = +lines[0] - 1;
-        let columnNum = +lines[1] - 1;
-        let line = textDocument.lineAt(lineNum);
-        let diagnostics: vscode.Diagnostic[] = [];
-        let diagnosic: vscode.Diagnostic = {
-          severity: vscode.DiagnosticSeverity.Error,
-          range: new vscode.Range(
-            lineNum,
-            columnNum,
-            lineNum,
-            line.range.end.character
-          ),
-          message: errStr
-        };
-        diagnostics.push(diagnosic);
-        diagnosticCollection.set(textDocument.uri, diagnostics);
-        return;
-      }
-    }
+  const compileResult = await Compiler.compile(fileName);
+  
+  for (const err of compileResult.errors) {
+    const location = err.sourceLocation;
+    const start = textDocument.positionAt(location.start);
+    const end = textDocument.positionAt(location.end);
+    const errSeverity = err.severity === 'error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+    let diagnostics: vscode.Diagnostic[] = [];
+    let diagnosic: vscode.Diagnostic = {
+      severity: errSeverity,
+      range: new vscode.Range(
+        start,
+        end
+      ),
+      message:  err.formattedMessage
+    };
+    diagnostics.push(diagnosic);
+    diagnosticCollection.set(textDocument.uri, diagnostics);
   }
 }
 
-function installSolppc() {
-  if (checkSolppcAvailable()) {
-    return;
-  }
-  return vscode.window.withProgress(
-    {
-      cancellable: false,
-      location: vscode.ProgressLocation.Notification,
-      title: "Download solppc"
-    },
-    (progress) => {
-      return new Promise((resolve) => {
-        createSolppc(function(s, p) {
-          if (p >= 100) {
-            resolve();
-            return;
-          }
-          progress.report({
-            message: `${p}%. ${s}. Solppc is the compiler of soliditypp language.`,
-            increment: p / 10
-          });
-        });
-      });
-    }
-  );
-}

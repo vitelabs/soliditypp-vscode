@@ -1,16 +1,16 @@
 {
-  "name": "soliditypp",
-  "displayName": "Solidityppcc",
-  "description": "Soliditypp extension for Visual Studio Code",
-  "version": "0.8.0-alpha",
+  "name": "solppdebugger",
+  "displayName": "Solidity++ 0.8 Preview",
+  "description": "Vite Solidity++ Language for Visual Studio Code",
+  "version": "0.1.2",
   "publisher": "ViteLabs",
-  "icon": "images/vscode.png",
+  "icon": "images/vite256.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/vitelabs/soliditypp-vscode.git"
   },
   "engines": {
-    "vscode": "^1.30.0"
+    "vscode": "^1.63.0"
   },
   "categories": [
     "Debuggers",
@@ -18,10 +18,12 @@
   ],
   "license": "MIT",
   "keywords": [
+    "solidity",
     "soliditypp",
+    "solidity++",
     "vite",
-    "ViteLabs",
-    "Smart contract"
+    "vitelabs",
+    "smart contract"
   ],
   "activationEvents": [
     "onLanguage:soliditypp",
@@ -146,12 +148,13 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
+    "@vite/solppc": "^0.8.0-alpha.1",
     "@types/express": "^4.17.8",
     "@types/opn": "^5.5.0",
     "@types/request": "^2.48.1",
     "@vite/connector": "0.0.2",
-    "@vite/vitejs": "^2.3.16",
-    "@vite/vitejs-ws": "^2.3.3",
+    "@vite/vitejs": "^2.3.17",
+    "@vite/vitejs-ws": "^2.3.17",
     "@vscode/test-electron": "^1.6.2",
     "babel-polyfill": "^6.26.0",
     "bignumber.js": "^9.0.0",

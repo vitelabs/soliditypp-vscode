@@ -6,8 +6,6 @@ gvite.exe
 .DS_Store
 ledger
 *.vsix
-!bin/solppc/.keep
-solppc_*.tar.gz
 __MACOSX
 bin/vite/gvite-*.tar.gz
 gvite-v*/

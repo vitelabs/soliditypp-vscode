@@ -3,7 +3,7 @@ import * as process from 'process';
 import * as os from 'os';
 import * as path from 'path';
 
-export const extensionId = 'ViteLabs.soliditypp';
+export const extensionId = 'ViteLabs.solppdebugger';
 
 let _extensionPath = '';
 let extension = vscode.extensions.getExtension(extensionId);

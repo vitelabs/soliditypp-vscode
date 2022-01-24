@@ -7,5 +7,5 @@ ledger
 !bin/solppc/.keep
 __MACOSX
 gvite-v*/
-example
+examples
 accountBlock_test.js

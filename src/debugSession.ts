@@ -3,17 +3,11 @@ import { OutputEvent, DebugSession } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import ViewRequestProcessor from './viewRequestProcessor';
 
-import { getSolppcPath, VITE_DIR, EXEC_SUFFIX, inWindows } from './constant';
+import { VITE_DIR, EXEC_SUFFIX, inWindows } from './constant';
 import { HTTPServer } from './httpServer';
-
-import * as os from 'os';
-
-import { ChildProcess, spawnSync, exec, execSync } from 'child_process';
+import { ChildProcess, spawnSync, exec } from 'child_process';
 import ExtensionRequestProcessor from './extensionRequestProcessor';
-
-import createGvite from './createGvite';
-import createSolppc from './createSolppc';
-import { linesParser } from './utils/linesParser';
+import * as Compiler from "./compiler";
 const httpServer = new HTTPServer();
 
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
@@ -38,10 +32,7 @@ export default class SolidityppDebugSession extends DebugSession {
     public get asmList() {
         return this._asmList;
     }
-    private _offAsmList: string[] = [];
-    public get offAsmList() {
-        return this._offAsmList;
-    }
+
     private _contractNameList: string[] = [];
     public get contractNameList() {
         return this._contractNameList;
@@ -50,11 +41,6 @@ export default class SolidityppDebugSession extends DebugSession {
     private _bytecodesList: string[] = [];
     public get bytecodesList() {
         return this._bytecodesList;
-    }
-
-    private _offchainCodesList: string[] = [];
-    public get offchainCodesList() {
-        return this._offchainCodesList;
     }
 
     private _abiList: any[][] = [];
@@ -119,11 +105,6 @@ export default class SolidityppDebugSession extends DebugSession {
 
             this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'));
 
-            await createGvite(this);
-            await createSolppc((s, p) => {
-                this.sendEvent(new OutputEvent(`${s} ${p}% \n`, 'stdout'));
-            });
-
             // set source file path
             this._sourceFilePath = args.program;
 
@@ -134,11 +115,9 @@ export default class SolidityppDebugSession extends DebugSession {
             this.initVite();
             httpServer.setup({
                 bytecodesList: this._bytecodesList,
-                offchainCodesList: this._offchainCodesList,
                 abiList: this._abiList,
                 contractNameList: this._contractNameList,
-                asmList:this._asmList,
-                offAsmList:this._offAsmList
+                asmList:this._asmList
             });
             this.sendEvent(new OutputEvent('Vite is ready!\n', 'stdout'));
             this.sendResponse(response);
@@ -154,34 +133,26 @@ export default class SolidityppDebugSession extends DebugSession {
     }
 
     private async compileSource(): Promise<boolean> {
-        let result;
-        try {
-            result = String(
-                execSync(
-                    `${getSolppcPath()} --bin --abi ${this.sourceFilePath}`
-                )
-            );
-        } catch (err) {
-            this.aborted('Compile failed: \n' + err.toString(), 1);
-            return false;
-        }
+        const compileResult = await Compiler.compile(this.sourceFilePath);
+        console.log(compileResult.contracts);
+        const contracts = compileResult.contracts[this.sourceFilePath];
+
+        const message = this.sourceFilePath + ' compiled.\n';
         this.sendEvent(<DebugProtocol.OutputEvent>{
             event: 'output',
             body: {
                 category: 'std',
-                output: result
+                output: message
             }
         });
 
-        // TODO need compile source
-        let lines = result.split(os.EOL);
-        const parseRes = linesParser(lines);
-        this._contractNameList.push(...(parseRes.name || []));
-        this._asmList.push(...(parseRes.asm || []));
-        this._offAsmList.push(...(parseRes.offAsm || []));
-        this._bytecodesList.push(...(parseRes.bin || []));
-        this._offchainCodesList.push(...(parseRes.offBin || []));
-        this._abiList.push(...(parseRes.abi || []).map(s => JSON.parse(s)));
+        for(const contractName in contracts) {
+            const compiled = contracts[contractName];
+            this._contractNameList.push(contractName);
+            this._asmList.push(compiled.evm.assembly);
+            this._bytecodesList.push(compiled.evm.bytecode.object);
+            this._abiList.push(compiled.abi);
+        }
 
         return true;
     }

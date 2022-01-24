@@ -163,14 +163,14 @@ export async function callContract(
     let data = abiutils.encodeFunctionCall(abi, params);
     let dataBase64 = Buffer.from(data, 'hex').toString('base64');
 
-    console.log('call RPC contract_call', contractAddress, data, dataBase64);
+    console.log('call RPC contract_query', contractAddress, data, dataBase64);
 
-    let result = await viteClient.request('contract_call', {
+    let result = await viteClient.request('contract_query', {
         address: contractAddress,
         data: dataBase64
     });
     
-    console.log('RPC contract_call returns', result);
+    console.log('RPC contract_query returns', result);
 
     if (result) {
         let resultBytes = Buffer.from(result, 'base64').toString('hex');

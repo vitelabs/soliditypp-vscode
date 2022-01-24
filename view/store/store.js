@@ -109,11 +109,8 @@ const store = new Vuex.Store({
                 let compileInfo = {
                     abi: compileResult.abiList[i],
                     bytecodes: compileResult.bytecodesList[i],
-
                     contractName: compileResult.contractNameList[i],
-                    offchainCode: compileResult.offchainCodesList[i],
-                    asm:compileResult.asmList[i],
-                    offAsm:compileResult.offAsmList[i]
+                    asm:compileResult.asmList[i]
                 };
 
                 let deployInfo = {
