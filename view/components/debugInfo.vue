@@ -9,13 +9,13 @@
                             :value="netType"
                             placeholder="Please select network"
                         >
-                            <!-- <el-option
+                            <el-option
                                 v-for="item in netTypeList"
                                 :key="item"
                                 :label="item"
                                 :value="item"
                             >
-                            </el-option> -->
+                            </el-option>
                         </el-select>
                     </el-form-item>
                 </el-col>
