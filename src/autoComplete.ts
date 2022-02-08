@@ -68,21 +68,6 @@ export const completeItemList = [
         kind: vscode.CompletionItemKind.Keyword,
     },
     {
-        label: "send",
-        insertText: "send",
-        kind: vscode.CompletionItemKind.Keyword,
-    },
-    {
-        label: "message",
-        insertText: "message",
-        kind: vscode.CompletionItemKind.Keyword,
-    },
-    {
-        label: "onMessage",
-        insertText: "onMessage",
-        kind: vscode.CompletionItemKind.Keyword,
-    },
-    {
         label: "event",
         insertText: "event",
         kind: vscode.CompletionItemKind.Keyword,
@@ -95,11 +80,6 @@ export const completeItemList = [
     {
         label: "for",
         insertText: "for",
-        kind: vscode.CompletionItemKind.Keyword,
-    },
-    {
-        label: "getter",
-        insertText: "getter",
         kind: vscode.CompletionItemKind.Keyword,
     },
     {
@@ -249,6 +229,11 @@ export const completeItemList = [
     },
     // units
     {
+        label: "attov",
+        insertText: "attov",
+        kind: vscode.CompletionItemKind.Unit,
+    },
+    {
         label: "vite",
         insertText: "vite",
         kind: vscode.CompletionItemKind.Unit,
@@ -315,8 +300,8 @@ export const completeItemList = [
         kind: vscode.CompletionItemKind.TypeParameter,
     },
     {
-        label: "tokenId",
-        insertText: "tokenId",
+        label: "vitetoken",
+        insertText: "vitetoken",
         kind: vscode.CompletionItemKind.TypeParameter,
     },
     {
@@ -830,7 +815,83 @@ export const completeItemList = [
         insertText: "NULL",
         kind: vscode.CompletionItemKind.Value,
     },
+    // magic members
+    {
+        label: "msg",
+        insertText: "msg",
+        kind: vscode.CompletionItemKind.Variable,
+    },
+    {
+        label: "sender",
+        insertText: "sender",
+        kind: vscode.CompletionItemKind.Field,
+    },
+    {
+        label: "selector",
+        insertText: "selector",
+        kind: vscode.CompletionItemKind.Field,
+    },
+    {
+        label: "transfer",
+        insertText: "transfer",
+        kind: vscode.CompletionItemKind.Method,
+    },
+    {
+        label: "token",
+        insertText: "token",
+        kind: vscode.CompletionItemKind.Field,
+    },
+    {
+        label: "value",
+        insertText: "value",
+        kind: vscode.CompletionItemKind.Field,
+    },
+    {
+        label: "fromhash",
+        insertText: "fromhash",
+        kind: vscode.CompletionItemKind.Function,
+    },
+    {
+        label: "accountheight",
+        insertText: "accountheight",
+        kind: vscode.CompletionItemKind.Function,
+    },
+    {
+        label: "prevhash",
+        insertText: "prevhash",
+        kind: vscode.CompletionItemKind.Function,
+    },
+    {
+        label: "random64",
+        insertText: "random64",
+        kind: vscode.CompletionItemKind.Function,
+    },
+    {
+        label: "nextrandom",
+        insertText: "nextrandom",
+        kind: vscode.CompletionItemKind.Function,
+    },
+    {
+        label: "balance",
+        insertText: "balance",
+        kind: vscode.CompletionItemKind.Function,
+    },
+    {
+        label: "blake2b",
+        insertText: "blake2b",
+        kind: vscode.CompletionItemKind.Function,
+    },
+    {
+        label: "keccak256",
+        insertText: "keccak256",
+        kind: vscode.CompletionItemKind.Function,
+    },
     // reserved keywords
+    {
+        label: "await",
+        insertText: "await",
+        kind: vscode.CompletionItemKind.Keyword,
+    },
     {
         label: "abstract",
         insertText: "abstract",
@@ -959,6 +1020,11 @@ export const completeItemList = [
     {
         label: "relocatable",
         insertText: "relocatable",
+        kind: vscode.CompletionItemKind.Keyword,
+    },
+    {
+        label: "revert",
+        insertText: "revert",
         kind: vscode.CompletionItemKind.Keyword,
     },
     {
