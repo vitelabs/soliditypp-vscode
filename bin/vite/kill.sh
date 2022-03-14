@@ -1,1 +1,0 @@
-pgrep gvite | xargs kill -9

@@ -15,11 +15,8 @@ export const extensionPath = _extensionPath;
 export const debuggerType = 'soliditypp';
 export const languageId = 'soliditypp';
 export const BIN_DIR = path.resolve(extensionPath, 'bin/');
-export const VITE_DIR = path.resolve(BIN_DIR, 'vite/');
-export const SOLPPC_DIR = path.resolve(BIN_DIR, 'solppc/');
 export const PLATFORM_ERROR = 'don\'t support win32';
 export const GVITE_VERSION = 'v2.11.0';
-export const SOLPPC_VERSION = 'v0.8.0';
 
 export enum OS_PLATFORM {
     WIN32 = 1,
@@ -43,29 +40,6 @@ export function getOsPlatform(): OS_PLATFORM {
         }
     }
     return OS_PLATFORM.LINUX;
-}
-export function getGviteName(): string {
-    let osPlatform = getOsPlatform();
-
-    if (osPlatform === OS_PLATFORM.WIN32 || osPlatform === OS_PLATFORM.WIN64) {
-        return 'gvite.exe';
-    } else {
-        return 'gvite';
-    }
-}
-
-function getSolppcName(): string {
-    let osPlatform = getOsPlatform();
-
-    if (osPlatform === OS_PLATFORM.WIN32 || osPlatform === OS_PLATFORM.WIN64) {
-        return 'solppc.exe';
-    } else {
-        return 'solppc';
-    }
-}
-
-export function getSolppcPath(): string {
-    return path.resolve(SOLPPC_DIR, getSolppcName());
 }
 
 export function inWindows(): boolean {

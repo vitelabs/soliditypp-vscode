@@ -7,8 +7,8 @@ gvite.exe
 ledger
 *.vsix
 __MACOSX
-bin/vite/gvite-*.tar.gz
-gvite-v*/
+bin/gvite-*.tar.gz
+bin/gvite-v*
 example
 accountBlock_test.js
 nbproject

@@ -1,1 +1,0 @@
-gvite.exe --pprof > gvite.log

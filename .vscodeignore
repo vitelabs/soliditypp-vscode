@@ -6,6 +6,6 @@ ledger
 *.vsix
 !bin/solppc/.keep
 __MACOSX
-gvite-v*/
+bin/gvite-v*
 examples
 accountBlock_test.js

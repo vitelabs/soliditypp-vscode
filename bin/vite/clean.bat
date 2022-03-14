@@ -1,1 +1,0 @@
-rd /s/q ledger
