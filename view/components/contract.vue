@@ -64,9 +64,11 @@ import selectToken from 'components/selectToken';
 import tokenUnits from 'components/tokenUnits';
 
 function inputDefaultValue(type) {
-    if (type.indexOf('uint') === 0 || type.indexOf('int') === 0) {
+    if (type.indexOf('uint') === 0 || type.indexOf('int') === 0)
         return 0;
-    }
+    else if (type.indexOf('bool') === 0)
+        return false;
+
     return '';
 }
 
@@ -77,6 +79,9 @@ function toParamsArray(params) {
         const value = input.value ? input.value : inputDefaultValue(input.type);
         if (isArr.test(input.type)) {
             result.push(JSON.parse(value));
+        } else if (input.type.indexOf('bool') === 0) {
+            const b = (/^(true|1)$/i).test(value.toLowerCase().trim());
+            result.push(b);
         } else {
             result.push(value);
         }
