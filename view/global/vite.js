@@ -21,10 +21,7 @@ let mnemonicsDeriveIndex = 0;
 
 export function setupNode(server = WS_SERVER, cb) {
     server = server || WS_SERVER;
-    let provider = new WS_RPC(server, 30 * 1000, {
-        retryInterval: 100,
-        retryTimes: 100
-    });
+    let provider = new WS_RPC(server);
 
     viteClient = new ViteAPI(provider, cb);
     return viteClient;
