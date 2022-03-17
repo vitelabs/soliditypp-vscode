@@ -2,7 +2,7 @@
   "name": "solppdebugger",
   "displayName": "Solidity++ 0.8 Preview",
   "description": "Vite Solidity++ Language for Visual Studio Code",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "ViteLabs",
   "icon": "images/vite256.png",
   "repository": {
