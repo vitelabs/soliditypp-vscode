@@ -105,14 +105,17 @@ export default class SolidityppDebugSession extends DebugSession {
                 'workbench.debug.panel.action.clearReplAction'
             );
 
-            this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'));
+            this.sendEvent(new OutputEvent('Compiling contracts...\n', 'stdout'));
 
             // set source file path
             this._sourceFilePath = args.program;
 
             if (!(await this.compileSource())) {
+                this.aborted('Compiling failed.', 2);
                 return;
             }
+
+            this.sendEvent(new OutputEvent('Preparing vite...\n', 'stdout'));
 
             await this.initVite();
             httpServer.setup({
@@ -136,7 +139,27 @@ export default class SolidityppDebugSession extends DebugSession {
 
     private async compileSource(): Promise<boolean> {
         const compileResult = await Compiler.compile(this.sourceFilePath);
-        console.log(compileResult.contracts);
+        console.log(compileResult);
+        // handle errors
+        let success = true;
+        for(let err of compileResult.errors) {
+            if (err.severity === 'error') {
+                success = false;
+            }
+            // output error message
+            this.sendEvent(<DebugProtocol.OutputEvent>{
+                event: 'output',
+                body: {
+                    category: 'stderr',
+                    output: err.formattedMessage
+                }
+            });
+        }
+
+        if (!success) {
+            return false;
+        }
+
         const contracts = compileResult.contracts[this.sourceFilePath];
 
         const message = this.sourceFilePath + ' compiled.\n';
