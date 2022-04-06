@@ -267,14 +267,24 @@ export function isReceiveBlock(blockType) {
     return blockType === 4 || blockType === 5 || blockType === 7;
 }
 
-export async function transfer(account, amount) {
+export async function transfer(account, amount, tokenId = VITE_TOKEN_ID) {
     const sendTx = await genesisAccount.sendTx({
         toAddress: account.address,
-        tokenId: VITE_TOKEN_ID,
+        tokenId: tokenId,
         amount: amount
     });
 
     await receiveAllOnroadTx(viteClient, account);
+
+    return sendTx;
+}
+
+export async function sendToken(account, address, amount, tokenId = VITE_TOKEN_ID) {
+    const sendTx = await account.sendTx({
+        toAddress: address,
+        tokenId: tokenId,
+        amount: amount
+    });
 
     return sendTx;
 }

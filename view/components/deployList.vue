@@ -157,7 +157,7 @@ export default {
             let rollbackSet = {};
 
             listener.on(async (resultList) => {
-                console.log(resultList);
+                console.log('newAccountBlocks', resultList);
                 if (!this.selectedDeployInfo) {
                     return;
                 }
@@ -191,9 +191,10 @@ export default {
                     if (!block) {
                         return;
                     }
-
+                    console.log('block', block);
+                    
                     let relatedDeployInfoList = [];
-                    this.deployInfoList.forEach((deployInfo) => {
+                    this.deployInfoList.forEach((deployInfo) => {                        
                         let toAccount = this.addressMap[block.toAddress];
                         let fromAccount = this.addressMap[block.fromAddress];
 

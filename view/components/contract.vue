@@ -1,5 +1,26 @@
 <template>
     <div>
+        <!-- send token -->
+        <div>
+            <div class="minor-title">Send token to the contract</div>
+            <el-row type="flex" align="middle" class="row">
+                <el-col class="label" :span="5">token id</el-col>
+                <el-col class="label" :span="15">
+                    <el-input size="small" v-model="contract.tokenId" value='tti_5649544520544f4b454e6e40'></el-input>
+                </el-col>
+            </el-row>
+
+            <el-row type="flex" align="middle" class="row">
+                <el-col class="label" :span="5">amount</el-col>
+                <el-col class="label" :span="15">
+                    <el-input size="small" v-model="contract.amount"></el-input>
+                </el-col>
+            </el-row>
+
+            <div class="button-wrapper">
+                <el-button class="el-button el-button--primary el-button--small" @click="sendToken(contract.toAddress, contract.amount, contract.tokenId)">send</el-button>
+            </div>
+        </div>
         <!-- functions -->
         <div class="params" v-for="(func, funcIndex) in functions" :key="funcIndex">
             <div class="minor-title">{{functionSignature(func)}}</div>
@@ -186,6 +207,26 @@ export default {
                 this.$store.commit('addLog', {
                     deployInfo: this.deployInfo,
                     title: `call ${func.name} failed`,
+                    log: err,
+                    type: 'error'
+                });
+                return;
+            }
+        },
+        async sendToken(addr, amount, tokenId) {
+            const tti = tokenId ? tokenId : 'tti_5649544520544f4b454e6e40';
+            try {
+                console.log('send token', addr, amount, tti);
+                await vite.sendToken(
+                    this.selectedAccount,
+                    addr,
+                    amount,
+                    tti
+                );
+            } catch (err) {
+                this.$store.commit('addLog', {
+                    deployInfo: this.deployInfo,
+                    title: `failed to send token ${tti}`,
                     log: err,
                     type: 'error'
                 });
