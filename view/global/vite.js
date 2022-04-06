@@ -1,5 +1,5 @@
 import WS_RPC from '@vite/vitejs-ws';
-import { utils, wallet } from '@vite/vitejs';
+import { wallet } from '@vite/vitejs';
 import { abi as abiutils } from '@vite/vitejs';
 import { ViteAPI } from '@vite/vitejs';
 import receiveAllOnroadTx from 'utils/receiveAllOnroadTx';
@@ -202,7 +202,6 @@ export async function queryVmLogList(contractBlock, abi) {
     if (!contractBlock.logHash) {
         return;
     }
-
     let vmLogList = await viteClient.request(
         'ledger_getVmLogList',
         contractBlock.hash
@@ -211,24 +210,32 @@ export async function queryVmLogList(contractBlock, abi) {
     if (vmLogList) {
         vmLogList.forEach(vmLog => {
             let topics = vmLog.topics;
-            for (let j = 0; j < abi.length; j++) {
-                let abiItem = abi[j];
-
-                if (abiutils.encodeLogSignature(abiItem) === topics[0]) {
-                    let dataBytes = '';
+            for (let abiItem of abi) {
+                let signature = abiutils.encodeLogSignature(abiItem);
+                if (abiItem.type === 'event' && signature === topics[0]) { 
+                    let dataHex;
                     if (vmLog.data) {
-                        dataBytes = utils._Buffer.from(vmLog.data, 'base64');
+                        dataHex = Buffer.from(vmLog.data, 'base64').toString('hex');
                     }
-                    let log = {
-                        topic: topics[0],
-                        args: abiutils.decodeLog(
-                            abiItem.inputs,
-                            dataBytes.toString('hex'),
-                            topics.slice(1)
-                        ),
-                        event: abiItem.name
+                    let returnValues = abiutils.decodeLog(
+                        abiItem,
+                        dataHex,
+                        topics
+                    );
+                    console.log('event parsed', returnValues);
+                    let item = {
+                        returnValues: returnValues,
+                        event: abiItem.name,
+                        raw: {
+                            data: dataHex,
+                            topics: topics
+                        },
+                        signature: signature,
+                        accountBlockHeight: contractBlock.height,
+                        accountBlockHash: contractBlock.hash,
+                        address: contractBlock.address
                     };
-                    vmLogs.push(log);
+                    vmLogs.push(item);
                     break;
                 }
             }
