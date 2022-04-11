@@ -12,7 +12,7 @@
                 >
                     <el-row class="deploy-wrapper">
                         <el-row :gutter="20" justify="space-between">
-                            <el-col :span="16">
+                            <el-col :span="10">
                                 <deploy :deploy-info="deployInfo"></deploy>
                             </el-col>
                             <el-col :span="8">

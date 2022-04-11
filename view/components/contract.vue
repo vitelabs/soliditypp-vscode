@@ -5,14 +5,14 @@
             <div class="minor-title">Send token to the contract</div>
             <el-row type="flex" align="middle" class="row">
                 <el-col class="label" :span="5">token id</el-col>
-                <el-col class="label" :span="15">
+                <el-col class="label" :span="10">
                     <el-input size="small" v-model="contract.tokenId" value='tti_5649544520544f4b454e6e40'></el-input>
                 </el-col>
             </el-row>
 
             <el-row type="flex" align="middle" class="row">
                 <el-col class="label" :span="5">amount</el-col>
-                <el-col class="label" :span="15">
+                <el-col class="label" :span="10">
                     <el-input size="small" v-model="contract.amount"></el-input>
                 </el-col>
             </el-row>
@@ -29,7 +29,6 @@
                 class="select-row"
                 type="flex"
                 align="middle"
-                justify="center"
                 v-if="func.stateMutability==='payable'"
             >
                 <el-col :span="4" class="label">
@@ -54,7 +53,6 @@
             <el-row
                 class="select-row"
                 type="flex"
-                justify="center"
                 align="middle"
                 :key="index"
                 v-for="(input, index) in func.inputs"
@@ -64,7 +62,7 @@
                         <div>{{input.name}} ({{input.type}})</div>
                     </el-col>
 
-                    <el-col :span="17" :offset="1">
+                    <el-col :span="10" :offset="1">
                         <el-input size="small" v-model="input.value"></el-input>
                     </el-col>
                 </template>
@@ -238,6 +236,9 @@ export default {
 </script>
 
 <style lang="scss">
+.row {
+    margin: 10px 0;
+}
 .deployed-contract-list {
   .el-collapse-item__header,
   .el-collapse-item__wrap {
@@ -257,8 +258,8 @@ export default {
 }
 
 .button-wrapper {
-  text-align: center;
-  margin-top: 20px;
+  text-align: left;
+  margin-left: 210px;
 }
 
 .selector {

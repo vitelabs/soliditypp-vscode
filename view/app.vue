@@ -44,6 +44,7 @@ export default {
                     this.subscribeSnapshotBlocks();
                     this.isReady = true;
                 });
+                this.$store.dispatch('updateQuota');
             });
         } catch (err) {
             console.log(err);
@@ -59,7 +60,7 @@ export default {
             this.subscribeSnapshotBlocks();
         }
     },
-    
+
     methods: {
         async subscribeSnapshotBlocks() {
             let client = vite.getVite();

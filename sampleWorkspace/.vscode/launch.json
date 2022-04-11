@@ -1,0 +1,28 @@
+{
+	"version": "0.2.2",
+	"configurations": [
+		{
+			"type": "soliditypp",
+			"request": "launch",
+			"name": "SampleStorage",
+			"program": "${workspaceFolder}/SimpleStorage.solpp",
+			"stopOnEntry": true,
+			"trace": false
+		},
+		{
+			"type": "soliditypp",
+			"request": "launch",
+			"name": "HelloWorld",
+			"program": "${workspaceFolder}/HelloWorld.solpp",
+			"stopOnEntry": true,
+			"trace": false
+		}
+	],
+	"compounds": [
+        {
+            "name": "Compile multiple programs",
+            "configurations": ["SampleStorage", "HelloWorld"]
+        }
+    ]
+}
+

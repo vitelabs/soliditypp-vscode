@@ -13,10 +13,10 @@
 unit is attov, 1 vite = 1e18 attov"
                 ></help>
             </el-col>
-            <el-col :span="16">
+            <el-col :span="14">
                 <el-input v-model="amount" size="small"></el-input>
             </el-col>
-            <el-col :span="4">
+            <el-col :span="6">
                 <units class="units" v-model="amountUnits"></units>
             </el-col>
         </el-row>

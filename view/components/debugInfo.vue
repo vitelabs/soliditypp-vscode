@@ -2,7 +2,7 @@
     <div>
         <el-form class="form" ref="form" label-position="left" size="mini">
             <el-row :gutter="20" class="form-row" type="flex">
-                <el-col :span="12">
+                <el-col :span="10">
                     <el-form-item label="Network: ">
                         <el-select
                             @input="onNetSelect"
@@ -20,7 +20,7 @@
                     </el-form-item>
                 </el-col>
 
-                <el-col :span="12">
+                <el-col :span="14">
                     <el-form-item label="Current Node: ">
                         <code>{{ currentNode }}</code
                         ><el-button
@@ -34,13 +34,13 @@
             </el-row>
 
             <el-row :gutter="20" class="form-row" type="flex">
-                <el-col :span="12">
+                <el-col :span="10">
                     <el-form-item label="Snapshot Block Height: ">
                         {{ snapshotHeight }}
                     </el-form-item>
                 </el-col>
 
-                <el-col :span="12">
+                <el-col :span="14">
                     <el-form-item label="Account Block Number: ">
                         <div v-if="balance">{{ balance.blockCount }}</div>
                     </el-form-item>
@@ -48,7 +48,7 @@
             </el-row>
 
             <el-row :gutter="20" class="form-row">
-                <el-col :span="12">
+                <el-col :span="10">
                     <el-form-item label="Balance: ">
                         <div>
                             <template v-if="balance">
@@ -80,17 +80,18 @@
                     </el-form-item>
                 </el-col>
 
-                <el-col :span="12">
+                <el-col :span="14">
                     <el-form-item label="Address: ">
                         <template v-if="!enableVc">
                             <el-select
+                                class="address-select"
                                 v-model="selectedAddress"
                                 placeholder="Please select Address"
                             >
                                 <el-option
                                     v-for="item in accountsFilter"
                                     :key="item.address"
-                                    :label="item.address"
+                                    :label="readable(item.address)"
                                     :value="item.address"
                                 ></el-option>
                             </el-select>
@@ -183,7 +184,7 @@ export default {
             isShowTransfer: false,
             dynamicNetUrlInput: '',
             isShowDynamicNetEditor: false,
-            sysNetMap:NET_MAPS
+            sysNetMap:NET_MAPS,
         };
     },
     computed: {
@@ -196,7 +197,8 @@ export default {
             'mnemonics',
             'enableVc',
             'dynamicNetMap',
-            'currentNode'
+            'currentNode',
+            'quotaMap'
         ]),
         ...mapGetters([
             'addressMap',
@@ -204,7 +206,6 @@ export default {
             'netTypeList',
             'isDebugEnv',
             'currentNode',
-            'isDebugEnv',
             'accountsFilter'
         ]),
         ...mapActions(['changeNetType']),
@@ -275,7 +276,11 @@ export default {
                 });
                 return;
             }
-        }
+        },
+        readable(address) {
+            const quota = this.quotaMap[address];
+            return address.replace(/(\w{11})\w{38}(\w{6})/, `$1...$2 (${quota && quota.currentQuota || 0} Quota)`)
+        },
     }
 };
 </script>
@@ -286,5 +291,8 @@ export default {
 }
 .edit-net {
     margin-left: 8px;
+}
+.address-select {
+    width: 280px;
 }
 </style>

@@ -15,9 +15,8 @@
             </el-col>
             <el-col :span="4" class="prop-label">assembly</el-col>
             <el-col :span="12" :offset="1">
-                <el-button size="small" @click="showAsm()"
-                >show assembly</el-button
-                >
+                <el-button size="small" @click="showAsm()">
+                    show assembly</el-button>
             </el-col>
         </el-row>
         <el-row class="prop-row" type="flex" align="middle">
@@ -26,9 +25,7 @@
             </el-col>
             <el-col :span="4" class="prop-label">binary</el-col>
             <el-col :span="12" :offset="1">
-                <el-button size="small" @click="showCode()"
-                >show binary</el-button
-                >
+                <el-button size="small" @click="showBinary()">show binary</el-button>
             </el-col>
         </el-row>
 
@@ -38,9 +35,7 @@
             </el-col>
             <el-col :span="4" class="prop-label">offchain code</el-col>
             <el-col :span="12" :offset="1">
-                <el-button size="small" @click="showOffchaincode()"
-                >show offchain code</el-button
-                >
+                <el-button size="small" @click="showOffchaincode()">show offchain code</el-button>
             </el-col>
         </el-row>
 
@@ -141,21 +136,28 @@ export default {
 
     computed: {
         ...mapState(['snapshotHeight', 'accounts']),
-        ...mapGetters(['addressMap', 'selectedAccount'])
+        ...mapGetters(['addressMap', 'selectedAccount']),
+        idx() {
+            return this.deployInfo.index;
+        }
     },
 
     methods: {
         showAbi() {
-            this.isShowAbi = true;
+            const abi = window.open(this.$router.resolve(`/abi/${this.idx}`).href, `abi${this.idx}`);
+            // this.isShowAbi = true;
         },
-        showCode() {
-            this.isShowCode = true;
+        showBinary() {
+            window.open(this.$router.resolve(`/binary/${this.idx}`).href, `binary${this.idx}`);
+            // this.isShowCode = true;
         },
         showOffchaincode() {
-            this.isShowOffchainCode = true;
+            window.open(this.$router.resolve(`/offchain/${this.idx}`).href, `offchain${this.idx}`);
+            // this.isShowOffchainCode = true;
         },
         showAsm() {
-            this.isShowAsm = true;
+            window.open(this.$router.resolve(`/asm/${this.idx}`).href, `asm${this.idx}`);
+            // this.isShowAsm = true;
         }
     }
 };
@@ -176,6 +178,9 @@ export default {
         cursor: pointer;
         color: #67c23a;
     }
+}
+.prop-row {
+    margin: 7px 0;
 }
 </style>
 
