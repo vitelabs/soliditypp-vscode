@@ -66,7 +66,8 @@
             "type": "soliditypp",
             "request": "launch",
             "name": "Soliditypp Debug",
-            "program": "${file}"
+            "program": "${file}",
+            "gviteVersion": "v2.11.2"
           }
         ],
         "configurationSnippets": [
@@ -77,7 +78,8 @@
               "type": "soliditypp",
               "request": "launch",
               "name": "Soliditypp Debug",
-              "program": "${file}"
+              "program": "${file}",
+              "gviteVersion": "v2.11.2"
             }
           }
         ]
