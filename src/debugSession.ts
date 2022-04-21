@@ -183,84 +183,43 @@ export default class SolidityppDebugSession extends DebugSession {
     }
 
     private async initVite() {
+        // launch.json configuration
+        const launch : vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+            'launch',
+            vscode.workspace.workspaceFolders![0].uri
+        );
+        const configurations = launch.get<any[]>("configurations");
+        if (!configurations) {
+            return;
+        }
+        let gviteVersion: string = 'v2.11.2-rc1';
+        configurations.forEach((config) => {
+            if(config['type']==='soliditypp') {
+                console.log("read debugger config", config);
+                if (config['gviteVersion']) {
+                    gviteVersion = config['gviteVersion'];
+                }
+            }
+        });
+
+        this.sendEvent(new OutputEvent('Node version: gvite ' + gviteVersion + '\n', 'stdout'));
         const nodeConfig = {
             "nodes": {
-                "latest": {
+                "debugger": {
                   "name": "gvite",
-                  "version": "v2.11.2-rc1",
+                  "version": gviteVersion,
                   "http": "http://127.0.0.1:23456"
                 }
               },
-              "defaultNode": "latest"
+              "defaultNode": "debugger"
         };
         this.localNetwork = await vite.startLocalNetwork(nodeConfig);
-        // this.cleanVite();
-
-        // let execCmd = `startup.${EXEC_SUFFIX}`;
-
-        // if (!inWindows()) {
-        //     execCmd = `./${execCmd}`;
-        // }
-
-        // this._viteChildProcess = exec(
-        //     execCmd,
-        //     {
-        //         cwd: VITE_DIR
-        //     },
-        //     () => {}
-        // );
-
-        // this._viteChildProcess.stderr.on('data', stderr => {
-        //     // init vite failed
-        //     this.aborted(
-        //         `An error occurred with gvite , error is ${stderr}`,
-        //         1
-        //     );
-        // });
-
-        // this._viteChildProcess.stdout.on('data', data => {
-        //     this.sendEvent(new OutputEvent(`${data}`, 'stdout'));
-        // });
-
-        // this._viteChildProcess.on('close', code => {
-        //     // init vite failed
-        //     if (code > 0) {
-        //         this.sendEvent(<DebugProtocol.OutputEvent>{
-        //             event: 'output',
-        //             body: {
-        //                 category: 'stderr',
-        //                 output: `vite exited with code ${code}`
-        //             }
-        //         });
-        //     }
-
-        //     this.terminateSession(code);
-        // });
     }
 
     private cleanVite() {
         if (this.localNetwork) {
             this.localNetwork.stop();
         }
-        // if (this._viteChildProcess && !this._viteChildProcess.killed) {
-        //     if (inWindows()) {
-        //         exec('taskkill /pid ' + this._viteChildProcess.pid + ' /T /F');
-        //     } else {
-        //         // kill shell
-        //         this._viteChildProcess.kill('SIGKILL');
-        //     }
-        // }
-
-        // let execCmd = `clean.${EXEC_SUFFIX}`;
-
-        // if (!inWindows()) {
-        //     execCmd = `./${execCmd}`;
-        // }
-
-        // spawnSync(execCmd, [], {
-        //     cwd: VITE_DIR,
-        //     shell: true
-        // });
     }
 
     protected terminateRequest(

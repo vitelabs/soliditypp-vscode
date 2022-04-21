@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-import SolidityConfigurationProvider from "./debugConfigurationProvider";
 import SolidityppDebugAdapterDescriptorFactory from "./debugAdapterDescriptorFactory";
 import { debuggerType } from "./constant";
 import { completeItemList } from "./autoComplete";
@@ -23,10 +22,6 @@ export async function activate(context: vscode.ExtensionContext) {
   let debuggerPanel: vscode.WebviewPanel | undefined;
   // let debuggerStatus: DEBUGGER_STATUS = DEBUGGER_STATUS.STOPPED;
 
-  const provider = new SolidityConfigurationProvider();
-  context.subscriptions.push(
-    vscode.debug.registerDebugConfigurationProvider(debuggerType, provider)
-  );
 
   const factory = new SolidityppDebugAdapterDescriptorFactory();
   context.subscriptions.push(
