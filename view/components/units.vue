@@ -1,15 +1,17 @@
 <template>
-    <div>
-        <el-select v-model="selectValue" size="small">
-            <el-option value="vite">vite</el-option>
-            <el-option value="attov">attov</el-option>
-        </el-select>
-    </div>
+    <el-select :style="{width: width}" v-model="selectValue">
+        <el-option value="vite">vite</el-option>
+        <el-option value="attov">attov</el-option>
+    </el-select>
 </template>
 <script>
 export default {
     props: {
-        value: String
+        value: String,
+        width: {
+            type: String,
+            default: '70px'
+        },
     },
     model: {
         prop: 'value',

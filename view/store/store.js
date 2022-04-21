@@ -242,7 +242,7 @@ const store = new Vuex.Store({
         async updateQuota({commit, state}, address) {
             if (address == undefined) {
                 for(let ac of state.accounts) {
-                    let address = ac.address
+                    let address = ac.address;
                     let quota = await vite.getVite().request('contract_getQuotaByAccount', address);
                     commit('updateQuota', {address, quota});
                 }

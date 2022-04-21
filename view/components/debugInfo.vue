@@ -1,164 +1,145 @@
 <template>
-    <div>
-        <el-form class="form" ref="form" label-position="left" size="mini">
-            <el-row :gutter="20" class="form-row" type="flex">
-                <el-col :span="10">
-                    <el-form-item label="Network: ">
-                        <el-select
-                            @input="onNetSelect"
-                            :value="netType"
-                            placeholder="Please select network"
-                        >
-                            <el-option
-                                v-for="item in netTypeList"
-                                :key="item"
-                                :label="item"
-                                :value="item"
-                            >
-                            </el-option>
-                        </el-select>
-                    </el-form-item>
-                </el-col>
-
-                <el-col :span="14">
-                    <el-form-item label="Current Node: ">
-                        <code>{{ currentNode }}</code
-                        ><el-button
-                            v-if="!sysNetMap[netType]"
-                            @click="onEditNet"
-                            class="edit-net"
-                        >Edit</el-button
-                        >
-                    </el-form-item>
-                </el-col>
-            </el-row>
-
-            <el-row :gutter="20" class="form-row" type="flex">
-                <el-col :span="10">
-                    <el-form-item label="Snapshot Block Height: ">
-                        {{ snapshotHeight }}
-                    </el-form-item>
-                </el-col>
-
-                <el-col :span="14">
-                    <el-form-item label="Account Block Number: ">
-                        <div v-if="balance">{{ balance.blockCount }}</div>
-                    </el-form-item>
-                </el-col>
-            </el-row>
-
-            <el-row :gutter="20" class="form-row">
-                <el-col :span="10">
-                    <el-form-item label="Balance: ">
-                        <div>
-                            <template v-if="balance">
-                                <span
-                                    v-for="(tokenBalance,
-                                            tokenId,
-                                            index) in balance.balanceInfoMap"
-                                    :key="tokenId"
-                                >
-                                    <span v-if="index > 0">,</span>
-                                    {{
-                                        transformBalance(
-                                            tokenBalance.balance,
-                                            tokenBalance.tokenInfo.decimals
-                                        )
-                                    }}
-                                    {{ tokenBalance.tokenInfo.tokenSymbol }}
-                                </span>
-                            </template>
-                            <el-button
-                                v-if="isDebugEnv"
-                                @click="isShowTransfer = true"
-                                icon="el-icon-plus"
-                                class="add-account-button"
-                                size="mini"
-                                circle
-                            ></el-button>
-                        </div>
-                    </el-form-item>
-                </el-col>
-
-                <el-col :span="14">
-                    <el-form-item label="Address: ">
-                        <template v-if="!enableVc">
-                            <el-select
-                                class="address-select"
-                                v-model="selectedAddress"
-                                placeholder="Please select Address"
-                            >
-                                <el-option
-                                    v-for="item in accountsFilter"
-                                    :key="item.address"
-                                    :label="readable(item.address)"
-                                    :value="item.address"
-                                ></el-option>
-                            </el-select>
-                            <el-button
-                                v-if="isDebugEnv"
-                                @click="addAccount()"
-                                icon="el-icon-plus"
-                                class="add-account-button"
-                                size="mini"
-                                circle
-                            ></el-button>
-                        </template>
-                        <div v-else>
-                            <span v-if="selectedAddress && vcConnected">{{
-                                selectedAddress
-                            }}</span>
-                            <vc-login v-else></vc-login>
-                        </div>
-                    </el-form-item>
-                </el-col>
-            </el-row>
-
-            <el-row>
-                <el-alert
-                    :title="`Selected Address: ${selectedAccount.address}`"
-                    :closable="false"
-                    type="success"
+    <div class="env-info">
+        <el-form class="node-form">
+            <el-form-item class="form-item">
+                <label>Network:</label>
+                <el-select
+                    class="network-select"
+                    @input="onNetSelect"
+                    :value="netType"
+                    placeholder="Please select network"
+                    size="small"
                 >
-                </el-alert>
-            </el-row>
+                    <el-option
+                        v-for="item in netTypeList"
+                        :key="item"
+                        :label="item"
+                        :value="item"
+                    >
+                    </el-option>
+                </el-select>
+            </el-form-item>
 
-            <el-dialog
-                width="40%"
-                :visible.sync="isShowTransfer"
-                title="transfer"
-            >
-                <div>
-                    <transfer
-                        @afterTransfer="afterTransfer"
-                        :account="selectedAccount"
-                    />
+            <el-form-item class="form-item">
+                <label>Current Node:</label>
+                <code>{{ currentNode }}</code
+                ><el-button
+                    v-if="!sysNetMap[netType]"
+                    @click="onEditNet"
+                    class="edit-net"
+                    size="small"
+                >Edit</el-button
+                >
+            </el-form-item>
+
+            <el-form-item class="form-item">
+                <label>Snapshot Block Height: </label>
+                {{ snapshotHeight }}
+            </el-form-item>
+
+            <el-form-item class="form-item">
+                <label>Account Block Number: </label>
+                <span v-if="balance">{{ balance.blockCount }}</span>
+            </el-form-item>
+
+            <el-form-item class="form-tiem">
+                <label>Balance: </label>
+                <template v-if="balance">
+                    <span
+                        v-for="(tokenBalance,
+                                tokenId,
+                                index) in balance.balanceInfoMap"
+                        :key="tokenId"
+                    >
+                        <span v-if="index > 0">,</span>
+                        {{
+                            transformBalance(
+                                tokenBalance.balance,
+                                tokenBalance.tokenInfo.decimals
+                            )
+                        }}
+                        {{ tokenBalance.tokenInfo.tokenSymbol }}
+                    </span>
+                </template>
+                <el-button
+                    v-if="isDebugEnv"
+                    @click="isShowTransfer = true"
+                    class="button-circle"
+                    size="mini"
+                    circle
+                >
+                    <i class="el-icon-plus"></i>
+                </el-button>
+            </el-form-item>
+
+            <el-form-item class="form-item">
+                <label>Address:</label>
+                <template v-if="!enableVc">
+                    <el-select
+                        v-model="selectedAddress"
+                        placeholder="Please select Address"
+                        size="small"
+                    >
+                        <el-option
+                            v-for="item in accountsFilter"
+                            :key="item.address"
+                            :label="readable(item.address)"
+                            :value="item.address"
+                        ></el-option>
+                    </el-select>
+                    <el-button
+                        v-if="isDebugEnv"
+                        @click="addAccount()"
+                        class="button-circle"
+                        size="mini"
+                        circle
+                    >
+                        <i class="el-icon-plus"></i>
+                    </el-button>
+                </template>
+                <div v-else>
+                    <span v-if="selectedAddress && vcConnected">{{
+                        selectedAddress
+                    }}</span>
+                    <vc-login v-else></vc-login>
                 </div>
-            </el-dialog>
+            </el-form-item>
         </el-form>
+
+        <div class="selected-address">
+            <span>Selected Address:</span>
+            <code>{{ selectedAddress }}</code> 
+            <span>({{ selectedAddressQuota }} quota)</span>
+        </div>
+
+        <el-dialog
+            width="30%"
+            :visible.sync="isShowTransfer"
+            title="Transfer"
+        >
+            <div>
+                <transfer
+                    @afterTransfer="afterTransfer"
+                    :account="selectedAccount"
+                />
+            </div>
+        </el-dialog>
+
         <el-dialog
             width="40%"
             :visible.sync="isShowDynamicNetEditor"
             title="Custom Network"
         >
-            <div>
-                <el-form
-                    class="net-item-editor-form"
-                    ref="netEditorForm"
-                    label-position="left"
-                    size="mini"
-                >
-                    <el-form-item :label="'URL:'">
-                        <el-input
-                            v-model="dynamicNetUrlInput"
-                            :account="selectedAccount"
-                        />
-                    </el-form-item>
-                </el-form>
-            </div>
-            <el-button @click="onSaveDynamicUrl('custom', dynamicNetUrlInput)"
-            >Save</el-button
-            >
+            <el-form ref="netEditorForm" @submit.prevent label-position="right" label-width="70px;">
+                <el-form-item>
+                    <el-input v-model="dynamicNetUrlInput">
+                        <template slot="prepend">URL:</template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button @click="onSaveDynamicUrl('custom', dynamicNetUrlInput)">Save</el-button>
+                </el-form-item>
+            </el-form>
         </el-dialog>
     </div>
 </template>
@@ -230,7 +211,11 @@ export default {
         balance() {
             const { accountState } = this.selectedAccount;
             return accountState && accountState.balance;
-        }
+        },
+        selectedAddressQuota() {
+            const quota = this.quotaMap[this.selectedAccount.address];
+            return quota ? quota.currentQuota : '0';
+        },
     },
     methods: {
         onNetSelect(value) {
@@ -278,21 +263,62 @@ export default {
             }
         },
         readable(address) {
-            const quota = this.quotaMap[address];
-            return address.replace(/(\w{11})\w{38}(\w{6})/, `$1...$2 (${quota && quota.currentQuota || 0} Quota)`)
+            return address.replace(/(\w{11})\w{38}(\w{6})/, '$1...$2');
         },
     }
 };
 </script>
 
 <style lang="scss" scoped>
-.node-input {
-    width: auto;
+.env-info {
+    background: #fff;
+    padding: 10px;
 }
+.node-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-left: 10px;
+    .form-item {
+        margin-bottom: 0;
+    }
+    label {
+        display: inline-block;
+        width: 160px;
+        color: #666;
+    }
+}
+.selected-address{
+    margin-top: -10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f0f9eb;
+    border-radius: 3px;
+    /* box-shadow: 1px 1px 2px rgba(0,0,0,.15); */
+    span{
+        font-size: 14px;
+        color: #666;
+    }
+    code {
+        margin: 0 10px;
+        font-size: 16px;
+        color: #007aff;
+    }
+}
+
 .edit-net {
     margin-left: 8px;
 }
-.address-select {
-    width: 280px;
+.button-circle {
+    position: relative;
+    top: 6px;
+    left: 6px;
+    width: 24px;
+    height: 24px;
+    i {
+        position: relative;
+        top: -4px;
+        left: -4px;
+        font-size: 16px;
+    }
 }
 </style>

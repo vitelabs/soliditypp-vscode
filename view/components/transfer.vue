@@ -1,24 +1,19 @@
 <template>
-    <div>
-        <el-row type="flex" align="middle" class="row">
-            <el-col class="key-col col no-border label" :span="5">address</el-col>
-            <el-col class="key-col col no-border" :span="16">{{account.address}}</el-col>
-        </el-row>
-
-        <el-row type="flex" align="middle" class="row">
-            <el-col class="key-col col no-border label" :span="5">amount</el-col>
-            <el-col class="key-col col no-border" :span="15">
-                <el-input size="small" v-model="amount"></el-input>
-            </el-col>
-            <el-col :span="4">
-                <units class="units" v-model="amountUnits"></units>
-            </el-col>
-        </el-row>
-
-        <div class="button-wrapper">
-            <el-button @click="transfer">transfer</el-button>
-        </div>
-    </div>
+    <el-form label-position="right" ref="form" label-width="70px">
+        <el-form-item label="Address">
+            {{account.address}}
+        </el-form-item>
+        <el-form-item label="Amount">
+            <el-input class="amount" v-model="amount">
+                <template slot="append">
+                    <units class="units" v-model="amountUnits"></units>
+                </template>
+            </el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="transfer">transfer</el-button>
+        </el-form-item>
+    </el-form>
 </template>
 
 <script>
@@ -63,16 +58,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.label {
-  text-align: center;
-}
-.row {
-  margin: 10px 0;
-}
-.button-wrapper {
-  text-align: center;
+.amount {
+    width: 360px;
 }
 .units {
-  margin-left: 5px;
+    width: 90px;
 }
 </style>

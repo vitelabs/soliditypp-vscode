@@ -1,79 +1,46 @@
 <template>
-    <div>
+    <section class="contract-deploy">
         <!-- send token -->
-        <div>
-            <div class="minor-title">Send token to the contract</div>
-            <el-row type="flex" align="middle" class="row">
-                <el-col class="label" :span="5">token id</el-col>
-                <el-col class="label" :span="10">
-                    <el-input size="small" v-model="contract.tokenId" value='tti_5649544520544f4b454e6e40'></el-input>
-                </el-col>
-            </el-row>
-
-            <el-row type="flex" align="middle" class="row">
-                <el-col class="label" :span="5">amount</el-col>
-                <el-col class="label" :span="10">
-                    <el-input size="small" v-model="contract.amount"></el-input>
-                </el-col>
-            </el-row>
-
-            <div class="button-wrapper">
-                <el-button class="el-button el-button--primary el-button--small" @click="sendToken(contract.toAddress, contract.amount, contract.tokenId)">send</el-button>
-            </div>
-        </div>
+        <dl>
+            <dt class="minor-title">Send token to the contract</dt>
+            <dd>
+                <el-input size="small" v-model="contract.tokenId" value='tti_5649544520544f4b454e6e40'>
+                    <template slot="prepend">token id</template>
+                </el-input>
+            </dd>
+            <dd>
+                <el-input size="small" v-model="contract.amount">
+                    <template slot="prepend">amount</template>
+                </el-input>
+            </dd>
+            <dd>
+                <el-button type="primary" size="small" @click="sendToken(contract.toAddress, contract.amount, contract.tokenId)">send</el-button>
+            </dd>
+        </dl>
         <!-- functions -->
-        <div class="params" v-for="(func, funcIndex) in functions" :key="funcIndex">
-            <div class="minor-title">{{functionSignature(func)}}</div>
+        <dl class="params" v-for="(func, funcIndex) in functions" :key="funcIndex">
+            <dt class="minor-title">{{functionSignature(func)}}</dt>
             <!-- token -->
-            <el-row
-                class="select-row"
-                type="flex"
-                align="middle"
-                v-if="func.stateMutability==='payable'"
-            >
-                <el-col :span="4" class="label">
-                    <div>
-                        amount
-                    </div>
-                </el-col>
-
-                <el-col :span="9" :offset="1">
-                    <el-input size="small" v-model="func.amount"></el-input>
-                </el-col>
-
-                <el-col :span="4">
-                    <select-token class="units" v-model="func.token"></select-token>
-                </el-col>
-
-                <el-col :span="4">
-                    <token-units class="units" v-if="func.token" v-model="func.tokenUnit" :decimals="func.token.decimals || 0"></token-units>
-                </el-col>
-            </el-row>
+            <dd class="flex-container" v-if="func.stateMutability==='payable'">
+                <el-input size="small" v-model="func.amount">
+                    <template slot="prepend">amount</template>
+                </el-input>
+                <select-token class="units" v-model="func.token"></select-token>
+                <token-units class="units" v-if="func.token" v-model="func.tokenUnit" :decimals="func.token.decimals || 0"></token-units>
+            </dd>
             <!-- params -->
-            <el-row
-                class="select-row"
-                type="flex"
-                align="middle"
-                :key="index"
-                v-for="(input, index) in func.inputs"
-            >
-                <template>
-                    <el-col :span="4" class="label">
-                        <div>{{input.name}} ({{input.type}})</div>
-                    </el-col>
-
-                    <el-col :span="10" :offset="1">
-                        <el-input size="small" v-model="input.value"></el-input>
-                    </el-col>
-                </template>
-            </el-row>
+            <dd :key="index" v-for="(input, index) in func.inputs">
+                <el-input size="small" v-model="input.value">
+                    <template slot="prepend">{{input.name}} ({{input.type}})</template>
+                </el-input>
+            </dd>
             <!-- call -->
-            <div class="button-wrapper">
-                <el-button v-if="func.stateMutability === 'view' || func.stateMutability === 'pure'" class="el-button el-button--small" @click="callContract(contract.toAddress, func)">query {{func.name}}()</el-button>
-                <el-button v-else class="el-button el-button--primary el-button--small" @click="callContract(contract.toAddress, func)">call {{func.name}}()</el-button>
-            </div>
-        </div>
-    </div>
+            <dd>
+                <el-button type="warning" v-if="func.stateMutability === 'view' || func.stateMutability === 'pure'" class="el-button el-button--small" @click="callContract(contract.toAddress, func)">query {{func.name}}()</el-button>
+                <el-button type="primary" v-else class="el-button el-button--small" @click="callContract(contract.toAddress, func)">call {{func.name}}()</el-button>
+            </dd>
+        </dl>
+    </section>
 </template>
 
 <script>
@@ -235,35 +202,26 @@ export default {
 };
 </script>
 
-<style lang="scss">
-.row {
-    margin: 10px 0;
+<style lang="scss" scoped>
+.contract-deploy {
+    padding: 0 20px;
 }
-.deployed-contract-list {
-  .el-collapse-item__header,
-  .el-collapse-item__wrap {
-    padding: 0 10px;
-  }
+dl {
+    margin: 20px 0;
+    width: 52%;
+    dt,
+    dd {
+        margin: 10px 0;
+    }
 }
 
 .minor-title {
   font-weight: 600;
   font-size: 13px;
-  margin-bottom: 10px;
 }
 
-.label {
-  text-align: center;
-  font-size: 12px;
-}
-
-.button-wrapper {
-  text-align: left;
-  margin-left: 210px;
-}
-
-.selector {
-  width: 100%;
+.flex-container {
+    display: flex;
 }
 
 .units {

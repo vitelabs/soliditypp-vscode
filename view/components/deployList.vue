@@ -10,20 +10,11 @@
                     :key="index"
                     v-for="(deployInfo, index) in deployInfoList"
                 >
-                    <el-row class="deploy-wrapper">
-                        <el-row :gutter="20" justify="space-between">
-                            <el-col :span="10">
-                                <deploy :deploy-info="deployInfo"></deploy>
-                            </el-col>
-                            <el-col :span="8">
-                                <base-info :deploy-info="deployInfo"></base-info>
-                            </el-col>
-                        </el-row>
-                    </el-row>
-
-                    <el-row class="contract-list">
-                        <contract-list :deploy-info="deployInfo"></contract-list>
-                    </el-row>
+                    <div class="container">
+                        <deploy :deploy-info="deployInfo"></deploy>
+                        <base-info :deploy-info="deployInfo"></base-info>
+                    </div>
+                    <contract-list :deploy-info="deployInfo"></contract-list>
                 </el-tab-pane>
             </el-tabs>
         </SplitArea>
@@ -38,7 +29,7 @@
         </SplitArea>
     </Split>
 </template>
-    
+
 <script>
 import { mapState, mapGetters } from 'vuex';
 
@@ -192,9 +183,9 @@ export default {
                         return;
                     }
                     console.log('block', block);
-                    
+
                     let relatedDeployInfoList = [];
-                    this.deployInfoList.forEach((deployInfo) => {                        
+                    this.deployInfoList.forEach((deployInfo) => {
                         let toAccount = this.addressMap[block.toAddress];
                         let fromAccount = this.addressMap[block.fromAddress];
 
@@ -248,44 +239,36 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.left-panel-wrapper {
+    background: rgba(129,110,110, .1);
+}
 .deploy-list-tabs {
-  .el-tabs__header {
-    margin: 0;
-  }
+    .el-tabs__header {
+        margin: 0;
+    }
 }
 .deploy-list-collapse {
-  .el-collapse-item__header {
-    padding-left: 10px;
-  }
-  .el-collapse-item__wrap {
-    padding-left: 10px;
-  }
+    .el-collapse-item__header {
+        padding-left: 10px;
+    }
+    .el-collapse-item__wrap {
+        padding-left: 10px;
+    }
 }
 
-.add-account-button.el-button--mini.is-circle {
-  padding: 1px;
-  width: 16px;
-  height: 16px;
-  i {
-    vertical-align: middle;
-  }
-}
 .deploy-list-tabs {
-  .el-tabs__content {
-    height: calc(100% - 41px);
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-.form {
-    border-bottom: 1px solid rgba(0,0,0,0.04);
+    padding: 10px 20px;
+    .el-tabs__content {
+        height: calc(100% - 41px);
+    }
 }
 
-.deploy-wrapper {
-    padding: 15px 0;
-    width: 100%;
-    border-bottom: 1px solid rgba(0,0,0,0.04);
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+    padding-bottom: 10px;
 }
+
 </style>

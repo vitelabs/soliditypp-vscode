@@ -1,17 +1,15 @@
 <template>
     <div class="contract-list">
         <div v-if="contractList.length">
-            <el-row v-for="(contract, index) in contractList"
-                    :key="index">
-                <el-row>
-                    <h5>
-                        {{`${contract.contractName} #${index}: ${contract.toAddress}`}}
-                    </h5>
-                </el-row>
-                <el-row>
+            <el-collapse v-model="activeContract">
+                <el-collapse-item
+                    v-for="(contract, idx) in contractList"
+                    :key="idx"
+                    :title="`${contract.contractName} #${idx}: ${contract.toAddress}`"
+                    :name="idx">
                     <contract :deploy-info="deployInfo" :contract="contract"></contract>
-                </el-row>
-            </el-row>
+                </el-collapse-item>
+            </el-collapse>
         </div>
         <div v-else>
             <el-alert
@@ -40,17 +38,22 @@ import { wallet } from '@vite/vitejs';
 export default {
     props: ['deployInfo'],
     components: { contract },
+    data() {
+        return {
+            activeContract: 0,
+            loadContractAddress: ''
+        };
+    },
     computed: {
         ...mapState(['contracts']),
         contractList() {
             return this.contracts.filter(item => item.contractName === this.deployInfo.compileInfo.contractName);
         }
     },
-    data() {
-        return {
-            activeNames: 0,
-            loadContractAddress: ''
-        };
+    watch: {
+        contractList(val) {
+            this.activeContract = val.length - 1;
+        }
     },
     methods: {
         loadContract() {
@@ -70,7 +73,11 @@ export default {
 
 <style lang="scss" scoped>
 .contract-list {
-    padding-top: 20px;
+    background: #fff;
+    padding: 20px;
+    h3 {
+        font-size: 14px;
+    }
 }
 </style>
 

@@ -5,41 +5,27 @@
         element-loading-background="rgba(0, 0, 0, 0.8)"
         class="deploy"
     >
-        <el-row class="row" type="flex" align="middle">
-            <el-col :span="4" class="label">
-                amount
-                <help
-                    text="The amount of vite token is transferred by send create block which is used to create a contract. The basic unit of token is vite, the smallest
-unit is attov, 1 vite = 1e18 attov"
-                ></help>
-            </el-col>
-            <el-col :span="14">
-                <el-input v-model="amount" size="small"></el-input>
-            </el-col>
-            <el-col :span="6">
-                <units class="units" v-model="amountUnits"></units>
-            </el-col>
-        </el-row>
-        <el-row class="row" type="flex" align="middle">
-            <el-col :span="4" class="label">Response Latency time</el-col>
-            <el-col :span="20">
-                <el-input v-model="responseLatency" size="small"></el-input>
-            </el-col>
-        </el-row>
+        <div class="container">
+            <label>Amount
+                <help text="The amount of vite token is transferred by send create block which is used to create a contract. The basic unit of token is vite, the smallest
+    unit is attov, 1 vite = 1e18 attov"></help>
+            </label>
+            <el-input class="item-input" v-model="amount" size="small">
+                <template slot="append">
+                    <el-select class="unit-select" v-model="amountUnits" size="small">
+                        <el-option value="vite">vite</el-option>
+                        <el-option value="attov">attov</el-option>
+                    </el-select>
+                </template>
+            </el-input>
+            <label>Response Latency Time</label>
+            <el-input class="item-input" v-model="responseLatency" size="small"></el-input>
+            <label>Quota Multiplier</label>
+            <el-input class="item-input" v-model="quotaMultiplier" size="small"></el-input>
+            <label>Random degree</label>
+            <el-input class="item-input" v-model="randomDegree" size="small"></el-input>
+        </div>
 
-        <el-row class="row" type="flex" align="middle">
-            <el-col :span="4" class="label">Quota multiplier</el-col>
-            <el-col :span="20">
-                <el-input v-model="quotaMultiplier" size="small"></el-input>
-            </el-col>
-        </el-row>
-
-        <el-row class="row" type="flex" align="middle">
-            <el-col :span="4" class="label">Random degree</el-col>
-            <el-col :span="20">
-                <el-input v-model="randomDegree" size="small"></el-input>
-            </el-col>
-        </el-row>
         <template v-if="constructAbi && constructAbi.inputs">
             <el-row
                 class="row"
@@ -65,19 +51,14 @@ unit is attov, 1 vite = 1e18 attov"
 <script>
 import { mapGetters } from 'vuex';
 import * as vite from 'global/vite';
-import units from 'components/units';
 
 export default {
     props: ['deployInfo'],
 
-    components: {
-        units
-    },
-
     data() {
         return {
             amount: '0',
-            amountUnits: '',
+            amountUnits: 'vite',
             responseLatency: 0,
             quotaMultiplier: 10,
 
@@ -186,17 +167,23 @@ export default {
 .deploy {
     font-size: 12px;
 }
-.label {
-  text-align: center;
-}
-.row {
-  margin-bottom: 10px;
-}
-.units {
-  margin-left: 5px;
+.container {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    label {
+        line-height: 32px;
+        margin-bottom: 10px;
+        text-align: right;
+        padding-right: 10px;
+    }
+    .item-input {
+        margin-bottom: 10px;
+    }
+    .unit-select {
+        width: 80px;
+    }
 }
 .deploy-button-wrapper {
-  margin: 10px 0;
-  text-align: center;
+    text-align: right;
 }
 </style>

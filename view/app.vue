@@ -87,6 +87,7 @@ export default {
 <style lang="scss" scoped>
 .main-layout {
     height: 100vh;
+    padding: 0;
     & > div {
         height: 100%;
     }
