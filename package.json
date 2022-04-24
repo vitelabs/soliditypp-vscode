@@ -48,7 +48,10 @@
     "debuggers": [
       {
         "type": "soliditypp",
-        "label": "Soliditypp",
+        "languages": [
+          "solpp"
+        ],
+        "label": "Soliditypp Debug",
         "configurationAttributes": {
           "required": [
             "program"

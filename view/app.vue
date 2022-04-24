@@ -44,6 +44,7 @@ export default {
                     this.subscribeSnapshotBlocks();
                     this.isReady = true;
                 });
+                this.$store.dispatch('updateQuota');
             });
         } catch (err) {
             console.log(err);
@@ -59,7 +60,7 @@ export default {
             this.subscribeSnapshotBlocks();
         }
     },
-    
+
     methods: {
         async subscribeSnapshotBlocks() {
             let client = vite.getVite();
@@ -86,6 +87,7 @@ export default {
 <style lang="scss" scoped>
 .main-layout {
     height: 100vh;
+    padding: 0;
     & > div {
         height: 100%;
     }

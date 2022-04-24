@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp >=0.8.0;
+
+contract HelloWorld {
+    uint public data = 123;
+
+    function set(uint a) external {
+        data = a; 
+    }
+}

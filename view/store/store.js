@@ -51,7 +51,8 @@ const store = new Vuex.Store({
         contracts: [],
         mnemonics: mnemonicsDefault,
         enableVc,
-        dynamicNetMap: { ...NET_MAPS,...initCustomNetsMap }
+        dynamicNetMap: { ...NET_MAPS,...initCustomNetsMap },
+        quotaMap: {}
     },
     getters: {
         addressMap(state, getters) {
@@ -189,11 +190,14 @@ const store = new Vuex.Store({
                 type,
                 dataType
             });
+        },
+        updateQuota(state, {address, quota}) {
+            state.quotaMap[address] = quota;
         }
     },
 
     actions: {
-        changeNetType({ state, getters, commit }, netType) {
+        changeNetType({ state, getters, commit, dispatch }, netType) {
             if (netType !== state.netType) {
                 commit('setNetType', netType);
                 commit(
@@ -201,22 +205,21 @@ const store = new Vuex.Store({
                     getters.accountsFilter[0] &&
                         getters.accountsFilter[0].address
                 );
-                vite.getVite().setProvider(
-                    new WS_RPC(getters.currentNode, 60000),
-                    () => {
-                        console.log(
-                            `connect to ${getters.currentNode} success.`
-                        );
-                    },
-                    true
-                );
+                const conn= new WS_RPC(getters.currentNode, 60000);
+                vite.getVite().setProvider(conn, () => {
+                    console.log(`connect to ${getters.currentNode} success.`);
+                    dispatch('updateQuota');
+                //FIXME set abort to true will lead an error cause which already aborted
+                // }, true);
+                }, false);
             }
         },
-        addAccount({ commit }, newAccount) {
+        async addAccount({ commit, dispatch }, newAccount) {
             commit('addAccount', { account: newAccount });
             commit('setSelectedAddress', newAccount.address);
+            await dispatch('updateQuota', newAccount.address);
         },
-        importWallet({ commit, state }, payload) {
+        async importWallet({ commit, dispatch, state }, payload) {
             if (payload === state.mnemonics) {
                 return;
             }
@@ -225,6 +228,7 @@ const store = new Vuex.Store({
             let newAccount = vite.createAccount(payload, 0);
             commit('setAccounts', [newAccount]);
             commit('setSelectedAddress', newAccount.address);
+            await dispatch('updateQuota', newAccount.address);
         },
         enableVc({ commit }, status) {
             commit('setEnableVc', status);
@@ -234,6 +238,18 @@ const store = new Vuex.Store({
             const customNetsMap = storage.get(CUSTOM_NET_MAP);
             storage.set(CUSTOM_NET_MAP,{...customNetsMap,[name]:url});
             commit('setDynamicNetItem', { name, url });
+        },
+        async updateQuota({commit, state}, address) {
+            if (address == undefined) {
+                for(let ac of state.accounts) {
+                    let address = ac.address;
+                    let quota = await vite.getVite().request('contract_getQuotaByAccount', address);
+                    commit('updateQuota', {address, quota});
+                }
+            } else {
+                const quota = await vite.getVite().request('contract_getQuotaByAccount', address);
+                commit('updateQuota', {address, quota});
+            }
         }
     }
 });

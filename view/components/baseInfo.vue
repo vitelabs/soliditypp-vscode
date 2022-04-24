@@ -1,48 +1,23 @@
 <template>
-    <div class="base-info">
-        <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="2">
-                <help text="Abi of contract"></help>
-            </el-col>
-            <el-col :span="4" class="prop-label">abi</el-col>
-            <el-col :span="12" :offset="1">
-                <el-button size="small" @click="showAbi()">show abi</el-button>
-            </el-col>
-        </el-row>
-        <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="2">
-                <help text="assembly of contract"></help>
-            </el-col>
-            <el-col :span="4" class="prop-label">assembly</el-col>
-            <el-col :span="12" :offset="1">
-                <el-button size="small" @click="showAsm()"
-                >show assembly</el-button
-                >
-            </el-col>
-        </el-row>
-        <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="2">
-                <help text="Compiled code of contract"></help>
-            </el-col>
-            <el-col :span="4" class="prop-label">binary</el-col>
-            <el-col :span="12" :offset="1">
-                <el-button size="small" @click="showCode()"
-                >show binary</el-button
-                >
-            </el-col>
-        </el-row>
-
-        <el-row class="prop-row" type="flex" align="middle">
-            <el-col :span="2">
-                <help text="Compiled offchain code of contract"></help>
-            </el-col>
-            <el-col :span="4" class="prop-label">offchain code</el-col>
-            <el-col :span="12" :offset="1">
-                <el-button size="small" @click="showOffchaincode()"
-                >show offchain code</el-button
-                >
-            </el-col>
-        </el-row>
+    <div class="contract-info">
+        <ul>
+            <li>
+                <el-button size="small" @click="showAbi()">show ABI</el-button>
+                <span>ABI of contract</span>
+            </li>
+            <li>
+                <el-button size="small" @click="showAsm()">show assembly</el-button>
+                <span>Assembly of contract</span>
+            </li>
+            <li>
+                <el-button size="small" @click="showBinary()">show binary</el-button>
+                <span>Compiled code of contract</span>
+            </li>
+            <li>
+                <el-button size="small" @click="showOffchaincode()">show offchain code</el-button>
+                <span>Compiled offchain code of contract</span>
+            </li>
+        </ul>
 
         <el-dialog
             :visible.sync="isShowAbi"
@@ -141,34 +116,46 @@ export default {
 
     computed: {
         ...mapState(['snapshotHeight', 'accounts']),
-        ...mapGetters(['addressMap', 'selectedAccount'])
+        ...mapGetters(['addressMap', 'selectedAccount']),
+        idx() {
+            return this.deployInfo.index;
+        }
     },
 
     methods: {
         showAbi() {
-            this.isShowAbi = true;
+            window.open(this.$router.resolve(`/abi/${this.idx}`).href, `abi${this.idx}`);
+            // this.isShowAbi = true;
         },
-        showCode() {
-            this.isShowCode = true;
+        showBinary() {
+            window.open(this.$router.resolve(`/binary/${this.idx}`).href, `binary${this.idx}`);
+            // this.isShowCode = true;
         },
         showOffchaincode() {
-            this.isShowOffchainCode = true;
+            window.open(this.$router.resolve(`/offchain/${this.idx}`).href, `offchain${this.idx}`);
+            // this.isShowOffchainCode = true;
         },
         showAsm() {
-            this.isShowAsm = true;
+            window.open(this.$router.resolve(`/asm/${this.idx}`).href, `asm${this.idx}`);
+            // this.isShowAsm = true;
         }
     }
 };
 </script>
 <style lang="scss" scoped>
-.base-info {
+.contract-info {
     font-size: 12px;
-}
-.address-input {
-    width: 100%;
-}
-.add-account-button {
-    margin-left: 10px;
+    ul {
+        list-style: none;
+        margin-top: -10px;
+        li {
+            margin: 10px 0;
+            span {
+                margin-left: 12px;
+                color: #666;
+            }
+        }
+    }
 }
 .copy-icon {
     font-size: 20px;
@@ -177,9 +164,6 @@ export default {
         color: #67c23a;
     }
 }
-</style>
-
-<style lang="scss">
 .grey-dialog {
     background: #333 !important;
     //   color: #fff;
