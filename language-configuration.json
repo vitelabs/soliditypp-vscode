@@ -1,0 +1,42 @@
+{
+  "comments": {
+    "lineComment": "//",
+    "blockComment": [ "/*", "*/" ]
+  },
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"]
+  ],
+  "autoClosingPairs": [
+    { "open": "{", "close": "}" },
+    { "open": "[", "close": "]" },
+    { "open": "(", "close": ")" },
+    { "open": "/**", "close": " */", "notIn": ["string"] },
+    { "open": "\"", "close": "\"", "notIn": ["string"] }
+  ],
+  "surroundingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"],
+    ["\"", "\""]
+  ],
+  "folding": {
+    "markers": {
+      "start": "^\\s*//\\s*#?region\\b",
+      "end": "^\\s*//\\s*#?endregion\\b"
+    }
+  },
+  "properties": {
+    "solpp.serverPort": {
+      "type": "number",
+      "default": 8081,
+      "description": "This is the port that Simple HTTP Server will be running on."
+    },
+    "solpp.serverHost": {
+      "type": "string",
+      "default": "127.0.0.1",
+      "description": "This is the host that Simple HTTP Server will be running on."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.abi": "json"
+    },
+    "solppdebugger.trace.extension": true,
+    "solppdebugger.console.viewColumn": "One",
+    "solppdebugger.solppc.watch": true,
+}

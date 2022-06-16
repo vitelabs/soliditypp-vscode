@@ -1,8 +1,8 @@
 {
   "fileTypes": [
-    "solpp"
+    "sol"
   ],
-  "name": "Soliditypp",
+  "name": "Solidity",
   "patterns": [
     {
       "include": "#natspec"
@@ -122,8 +122,15 @@
       }
     },
     "natspec-tag-return": {
-      "match": "(@return)\\b",
-      "name": "storage.type.return.natspec"
+      "match": "(@return)(\\s+([A-Za-z_]\\w*))?\\b",
+      "captures": {
+        "1": {
+          "name": "storage.type.return.natspec"
+        },
+        "3": {
+          "name": "variable.other.natspec"
+        }
+      }
     },
     "comment": {
       "patterns": [
@@ -332,7 +339,7 @@
       "name": "constant.other.underscore"
     },
     "control-other": {
-      "match": "\\b(new|delete|emit|await)\\b",
+      "match": "\\b(new|delete|emit)\\b",
       "name": "keyword.control"
     },
     "constant": {
@@ -357,7 +364,7 @@
       "name": "constant.language.time"
     },
     "constant-currency": {
-      "match": "\\b(vite|attov)\\b",
+      "match": "\\b(ether|wei|gwei|finney|szabo)\\b",
       "name": "constant.language.currency"
     },
     "number": {
@@ -416,7 +423,7 @@
     "type-primitive": {
       "patterns": [
         {
-          "begin": "\\b(address|vitetoken|string\\d*|bytes\\d*|int\\d*|uint\\d*|bool|hash\\d*)\\b(?:\\[\\])(\\()",
+          "begin": "\\b(address|string\\d*|bytes\\d*|int\\d*|uint\\d*|bool|hash\\d*)\\b(?:\\[\\])(\\()",
           "beginCaptures": {
             "1": {
               "name": "support.type.primitive"
@@ -439,7 +446,7 @@
           ]
         },
         {
-          "match": "\\b(address|vitetoken|string\\d*|bytes\\d*|int\\d*|uint\\d*|bool|hash\\d*)\\b",
+          "match": "\\b(address|string\\d*|bytes\\d*|int\\d*|uint\\d*|bool|hash\\d*)\\b",
           "name": "support.type.primitive"
         }
       ]
@@ -469,11 +476,11 @@
           "name": "variable.language.builtin.abi"
         },
         {
-          "match": "\\b(msg\\.sender|msg\\.token|msg\\.value|msg|block|tx|now)\\b",
+          "match": "\\b(msg\\.sender|msg|block|tx|now)\\b",
           "name": "variable.language.transaction"
         },
         {
-          "match": "\\b(tx\\.origin|tx\\.gasprice|msg\\.data|msg\\.sig)\\b",
+          "match": "\\b(tx\\.origin|tx\\.gasprice|msg\\.data|msg\\.sig|msg\\.value)\\b",
           "name": "variable.language.transaction"
         }
       ]
@@ -489,7 +496,7 @@
           "name": "keyword.control.contract"
         },
         {
-          "match": "\\b(addmod|mulmod|keccak256|blake2b|sha256|sha3|ripemd160|ecrecover)\\b",
+          "match": "\\b(addmod|mulmod|keccak256|sha256|sha3|ripemd160|ecrecover)\\b",
           "name": "support.function.math"
         },
         {
@@ -655,17 +662,6 @@
     "declaration-contract": {
       "patterns": [
         {
-          "match": "\\b(contract)\\b\\s+(\\w+)\\b\\s*(?=\\{)",
-          "captures": {
-            "1": {
-              "name": "storage.type.contract"
-            },
-            "2": {
-              "name": "entity.name.type.contract"
-            }
-          }
-        },
-        {
           "begin": "\\b(contract)\\b\\s+(\\w+)\\b\\s+\\b(is)\\b\\s+",
           "end": "(?=\\{)",
           "beginCaptures": {
@@ -685,22 +681,23 @@
               "name": "entity.name.type.contract.extend"
             }
           ]
+        },
+        {
+          "match": "\\b(contract)(\\s+([A-Za-z_]\\w*))?\\b",
+          "captures": {
+            "1": {
+              "name": "storage.type.contract"
+            },
+            "2": {
+              "name": "entity.name.type.contract"
+            }
+          }
         }
+        
       ]
     },
     "declaration-interface": {
       "patterns": [
-        {
-          "match": "\\b(interface)\\b\\s+(\\w+)\\b\\s*(?=\\{)",
-          "captures": {
-            "1": {
-              "name": "storage.type.interface"
-            },
-            "2": {
-              "name": "entity.name.type.interface"
-            }
-          }
-        },
         {
           "begin": "\\b(interface)\\b\\s+(\\w+)\\b\\s+\\b(is)\\b\\s+",
           "end": "(?=\\{)",
@@ -721,7 +718,19 @@
               "name": "entity.name.type.interface.extend"
             }
           ]
+        },
+        {
+          "match": "\\b(interface)(\\s+([A-Za-z_]\\w*))?\\b",
+          "captures": {
+            "1": {
+              "name": "storage.type.interface"
+            },
+            "2": {
+              "name": "entity.name.type.interface"
+            }
+          }
         }
+        
       ]
     },
     "declaration-library": {
@@ -974,6 +983,9 @@
             },
             {
               "include": "#modifier-call"
+            },
+            {
+              "include": "#punctuation"
             }
           ]
         },
@@ -1095,10 +1107,13 @@
       }
     },
     "function-call": {
-      "match": "\\b([A-Za-z_]\\w*)\\s*\\(",
+      "match": "\\b([A-Za-z_]\\w*)\\s*(\\()",
       "captures": {
         "1": {
           "name": "entity.name.function"
+        },
+        "2": {
+          "name": "punctuation.parameters.begin"
         }
       }
     },
@@ -1155,5 +1170,5 @@
       ]
     }
   },
-  "scopeName": "source.soliditypp"
+  "scopeName": "source.solidity"
 }
