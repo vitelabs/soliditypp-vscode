@@ -17,7 +17,7 @@ watchEffect,
 } from "vue";
 
 import { vscode } from "./vscode";
-import { Address, ViteNetwork } from "./types";
+import { type Address, ViteNetwork } from "./types";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
