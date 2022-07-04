@@ -68,15 +68,13 @@ function dataReceiver (ev: any) {
       break;
     case "updateSnapshotChainHeight":
       {
-        const { height } = data.message;
-        for (const nodeName in height) {
-          const node = nodesMap.get(nodeName) as ViteNode;
-          node.info = {
-            ...node.info,
-            snapshotChainHeight: height[nodeName],
-          };
-          state.nodesMap.set(node.name, {...node});
-        }
+        const { nodeName, height } = data.message;
+        const node = nodesMap.get(nodeName) as ViteNode;
+        node.info = {
+          ...node.info,
+          snapshotChainHeight: height,
+        };
+        state.nodesMap.set(node.name, {...node});
       }
       break;
   }

@@ -155,12 +155,11 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async updateSnapshotChainHeight(): Promise<void> {
-    const height: { [key: string]: number | string } = {};
-    for (const node of this.ctx.viteNodeMap.values()) {
+    for (const node of this.ctx.getViteNodesList()) {
       if (node.status === ViteNodeStatus.Running || node.status === ViteNodeStatus.Syncing) {
         const provider = this.ctx.getProvider(node.name);
         try {
-          height[node.name] = await provider.request("ledger_getSnapshotChainHeight");
+          const height = await provider.request("ledger_getSnapshotChainHeight");
           if (node.status === ViteNodeStatus.Syncing) {
             node.status = ViteNodeStatus.Running;
             await this.postMessage({
@@ -169,6 +168,13 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
             });
             this._onDidChangeNode.fire(node);
           }
+          await this.postMessage({
+            command: "updateSnapshotChainHeight",
+            message: {
+              nodeName: node.name,
+              height,
+            },
+          });
         } catch (error: any) {
           node.status = ViteNodeStatus.Timeout;
           node.error = error;
@@ -180,11 +186,5 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
         }
       }
     }
-    await this.postMessage({
-      command: "updateSnapshotChainHeight",
-      message: {
-        height,
-      },
-    });
   }
 }

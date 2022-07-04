@@ -194,8 +194,8 @@ function call(func: ABIItem, info: DeployInfo) {
   <main>
     <section class="component-container">
       <label>Select an address to interact with a contract</label>
-      <vscode-dropdown v-for="item in state.addressMap.values()" @change="changeAddress($event.target.value)">
-        <vscode-option :value="item.address">{{ item.address }}</vscode-option>
+      <vscode-dropdown @change="changeAddress($event.target.value)">
+        <vscode-option  v-for="item in state.addressMap.values()" :value="item.address">{{ item.address }}</vscode-option>
       </vscode-dropdown>
       <p>Balance: {{ state.selectedAddressInfo.balance }}, Quota: {{ state.selectedAddressInfo.quota }}</p>
     </section>
@@ -237,8 +237,10 @@ function call(func: ABIItem, info: DeployInfo) {
                 {{input.name}} ({{input.type}})
               </vscode-text-field>
             </div>
-            <div class="component-item" v-for="(output, i) in func.outputs" :key="i">
-                {{output.value}}
+            <div class="component-item" v-for="(output, idx) in func.outputs" :key="idx">
+              <span v-if="output.value">
+                <strong>{{idx}}:</strong> {{output.type}} {{output.value}}
+              </span>
             </div>
             <div class="component-item">
               <vscode-button @click="query(func, item)"

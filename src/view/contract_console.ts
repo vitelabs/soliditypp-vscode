@@ -161,7 +161,7 @@ export class ContractConsoleViewPanel {
   }
 
   public static render(ctx: Ctx, deployInfo: DeployInfo) {
-    const column = ctx.config.consoleViewColumn ??  vscode.window.activeTextEditor?.viewColumn;
+    const column = ctx.config.consoleViewColumn ?? vscode.window.activeTextEditor?.viewColumn;
 
     if (ContractConsoleViewPanel.currentPanel) {
       ContractConsoleViewPanel.currentPanel._panel.reveal(column, true);

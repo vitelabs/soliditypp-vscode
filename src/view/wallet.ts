@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 const vite = require("@vite/vitejs");
 import { getWebviewContent } from "./webview";
-import { Address, MessageEvent, ViteNetwork, Vite_TokenId, Vite_Token_Info } from "../types/types";
+import { Address, MessageEvent, ViteNetwork, ViteNodeStatus, Vite_TokenId, Vite_Token_Info } from "../types/types";
 import { Ctx } from "../ctx";
 
 export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
@@ -59,9 +59,9 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
               message: addressList,
             });
 
-            setInterval(async ()=> {
+            setInterval(()=> {
               for (const network of [ViteNetwork.Debug, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
-                await this.updateAddressInfo(network);
+                this.updateAddressInfo(network);
               }
             }, 5000);
 
@@ -153,7 +153,18 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
   }
 
   async updateAddressInfo(network: ViteNetwork, address?: Address) {
-    const provider = this.ctx.getProviderByNetwork(network);
+    const nodesList = this.ctx.getViteNodesList(network);
+    let provider;
+    for (const node of nodesList) {
+      if (node.status === ViteNodeStatus.Running) {
+        provider = this.ctx.getProvider(node.name);
+      }
+    }
+
+    if (!provider) {
+     return;
+    }
+
     let addressList = [];
     if (address) {
       addressList.push(address);
@@ -161,18 +172,22 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
       addressList = this.ctx.getAddressList(network);
     }
     for (const address of addressList) {
-      const quotaInfo = await provider.request('contract_getQuotaByAccount', address);
-      const balanceInfo = await provider.getBalanceInfo(address);
-      const balance = balanceInfo.balance.balanceInfoMap?.[Vite_TokenId]?.balance;
-      this.postMessage({
-        command: "updateAddressInfo",
-        message: {
-          address,
-          network,
-          quota: quotaInfo.currentQuota,
-          balance: balance ? balance.slice(0, balance.length - Vite_Token_Info.decimals) : '0',
-        }
-      });
+      try {
+        const quotaInfo = await provider.request('contract_getQuotaByAccount', address);
+        const balanceInfo = await provider.getBalanceInfo(address);
+        const balance = balanceInfo.balance.balanceInfoMap?.[Vite_TokenId]?.balance;
+        this.postMessage({
+          command: "updateAddressInfo",
+          message: {
+            address,
+            network,
+            quota: quotaInfo.currentQuota,
+            balance: balance ? balance.slice(0, balance.length - Vite_Token_Info.decimals) : '0',
+          }
+        });
+      } catch (error) {
+        this.ctx.log.debug(error);
+      }
     }
   }
 }
