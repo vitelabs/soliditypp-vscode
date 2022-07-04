@@ -178,10 +178,10 @@ export function newAccount(addressObj: AddressObj, provider: any) {
 }
 
 export function getAmount(amount: string, unit = "VITE") {
-  if (unit.toUpperCase() === "VITE") {
+  if (amount && unit.toUpperCase() === "VITE") {
     return new BigNumber(amount).multipliedBy(VITE_DECIMAL).toFixed();
   } else {
-    return amount;
+    return amount ?? '0';
   }
 }
 
