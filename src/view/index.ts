@@ -130,7 +130,7 @@ export function activateContractView(ctx: Ctx): void {
   );
   // sync address
   ctx.pushCleanup(
-    walletProvider.onDidChangeAddress(() => {
+    walletProvider.onDidDeriveAddress(async () => {
       contractDeploymentProvider.updateDeps();
     })
   );
@@ -190,7 +190,6 @@ export function activateContractView(ctx: Ctx): void {
           await vscode.window.showTextDocument(doc, { preview: true });
         } else if (target.contextValue === ContractContextValue.ContractDeployed) {
           // parse a url query string to object
-          ctx.log.debug(file);
           let address: Address, network: ViteNetwork;
           const query = file.query.split("&");
           for (const item of query) {
@@ -211,7 +210,6 @@ export function activateContractView(ctx: Ctx): void {
             network: network!,
             abi: compileRet.abi,
           };
-          ctx.log.debug(deployinfo);
           // render console webview
           ContractConsoleViewPanel.render(ctx, deployinfo);
         }

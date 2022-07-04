@@ -10,8 +10,8 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
   private disposables: vscode.Disposable[] = [];
   private _onDidDispose = new vscode.EventEmitter<void>();
   readonly onDidDispose: vscode.Event<void> = this._onDidDispose.event;
-  private _onDidChangeAddress = new vscode.EventEmitter<void>();
-  readonly onDidChangeAddress: vscode.Event<void> = this._onDidChangeAddress.event;
+  private _onDidDeriveAddress = new vscode.EventEmitter<void>();
+  readonly onDidDeriveAddress: vscode.Event<void> = this._onDidDeriveAddress.event;
 
   constructor(private readonly ctx: Ctx) {}
 
@@ -58,12 +58,14 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
               command: "setAddress",
               message: addressList,
             });
-            this._onDidChangeAddress.fire();
-            setTimeout(async ()=> {
-              for (const address of addressList) {
-                await this.updateAddressInfo(address.network, address.address);
+
+            setInterval(async ()=> {
+              for (const network of [ViteNetwork.Debug, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
+                await this.updateAddressInfo(network);
               }
             }, 5000);
+
+            this._onDidDeriveAddress.fire();
           }
           break;
         case "deriveAddress":
@@ -78,7 +80,8 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                 network,
               }
             });
-            this._onDidChangeAddress.fire();
+            await this.updateAddressInfo(network, addressObj.address);
+            this._onDidDeriveAddress.fire();
           }
           break;
         case "renewWallet":
@@ -118,7 +121,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                 },
               ]
             });
-            this._onDidChangeAddress.fire();
+            this._onDidDeriveAddress.fire();
           }
           break;
         case "copyToClipboard":
