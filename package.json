@@ -222,7 +222,7 @@
         },
         "solppdebugger.console.viewColumn": {
           "type": "string",
-          "default": "Beside",
+          "default": "One",
           "enum": [
             "Beside",
             "One",

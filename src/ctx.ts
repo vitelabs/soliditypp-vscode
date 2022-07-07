@@ -61,11 +61,12 @@ export class Ctx {
         status: ViteNodeStatus.Syncing,
       }],
     ]);
+    // get custom nodes
     for (const node of this.config.viteCustomNodes) {
       this.viteNodeMap.set(node.name, {
         ...node,
         status: ViteNodeStatus.Syncing,
-      }); 
+      } as ViteNode); 
     }
   }
 
@@ -135,11 +136,17 @@ export class Ctx {
   }
 
   getProviderByNetwork(network: ViteNetwork) {
+    let provider;
     for (const node of this.viteNodeMap.values()) {
       if (node.network === network) {
-        return this.getProvider(node.name);
+        if (node.status === ViteNodeStatus.Running) {
+          return this.getProvider(node.name);
+        } else {
+          provider = this.getProvider(node.name);
+        }
       }
     }
+    return provider;
   }
 
   resetProvider(name: string) {
@@ -342,6 +349,7 @@ export class Ctx {
       let ret: Address | undefined = this.cache.get(targetId);
       // read from txt file
       if (!ret && network !== ViteNetwork.Debug) {
+      // if (!ret) {
         const outputFsPath = path.join(path.dirname(contractFile.fsPath), path.basename(contractFile.fsPath, ".json") + ".txt");
         const outputFile = vscode.Uri.parse(outputFsPath);
         await vscode.workspace.fs.stat(outputFile);

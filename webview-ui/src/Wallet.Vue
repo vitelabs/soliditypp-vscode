@@ -8,14 +8,16 @@ import {
   vsCodeTextArea,
   vsCodeDivider,
   vsCodeLink,
+  vsCodeTextField,
 } from "@vscode/webview-ui-toolkit";
 import {
   ref,
   reactive,
   onMounted,
-watchEffect,
+  watchEffect,
 } from "vue";
 
+import QRCode from 'qrcode';
 import { vscode } from "./vscode";
 import { type Address, ViteNetwork } from "./types";
 
@@ -27,6 +29,7 @@ provideVSCodeDesignSystem().register(
   vsCodeTextArea(),
   vsCodeDivider(),
   vsCodeLink(),
+  vsCodeTextField(),
 );
 
 onMounted(()=>{
@@ -54,6 +57,11 @@ const state = reactive({
   mneonic: "",
 });
 const selectedNetwork = ref(ViteNetwork.Debug);
+const addressMapObj = {
+  [ViteNetwork.Debug]: state.debugAddressMap,
+  [ViteNetwork.TestNet]: state.testNetAddressMap,
+  [ViteNetwork.MainNet]: state.mainNetAddressMap,
+}
 
 function dataReceiver (ev: any) {
   const data = ev.data;
@@ -194,6 +202,7 @@ function save() {
       mnemonic: state.mneonic,
     }
   });
+  hide();
 }
 
 function renew() {
@@ -213,73 +222,103 @@ function copyToClipboard(address: Address) {
     message: address,
   })
 }
+
+const balanceAction = ref("");
+function hideBalanceAction() {
+  balanceAction.value = "";
+}
+const sendTokenParams = reactive({
+  toAddress: "",
+  amount: "",
+});
+function showSendToken(address: Address) {
+  if (balanceAction.value == `send.${address}`) {
+    balanceAction.value = "";
+  } else {
+    balanceAction.value = `send.${address}`
+  }
+  sendTokenParams.toAddress = "";
+  sendTokenParams.amount = ""
+}
+
+const canvasEl:{[key: string]: any} = {};
+const canvas = ref(canvasEl);
+function showQR(address: Address) {
+  if (balanceAction.value == `receive.${address}`) {
+    balanceAction.value = "";
+  } else {
+    balanceAction.value = `receive.${address}`
+  }
+  QRCode.toCanvas(canvas.value[address], address, (error: any) => {
+    if (error) console.error(error)
+  })
+}
+
+function sendTx(address: Address, network: ViteNetwork) {
+  vscode.postMessage({
+    command: "sendTx",
+    message: {
+      fromAddress: address,
+      toAddress: sendTokenParams.toAddress,
+      amount: sendTokenParams.amount,
+      network,
+    }
+  });
+  hideBalanceAction();
+}
+
+function receiveTx(address: Address, network: ViteNetwork) {
+  vscode.postMessage({
+    command: "receiveTx",
+    message: {
+      address,
+      network,
+    }
+  });
+}
 </script>
 
 <template>
   <main>
-    <section class="component-container">
+    <section class="component-container" v-for="(addressMap, network) in addressMapObj">
       <div class="wallet-title">
-        <vscode-tag>{{ ViteNetwork.Debug }}</vscode-tag>
-        <vscode-button appearance="icon" aria-label="New Address" title="New Address" @click="deriveAddress(ViteNetwork.Debug)">
+        <vscode-tag>{{ network }}</vscode-tag>
+        <vscode-button appearance="icon" aria-label="Derive Address" title="New Address" @click="deriveAddress(network)">
           <span class="codicon codicon-add"></span>
         </vscode-button>
       </div>
-      <div class="address-info" v-for="(item, idx) in state.debugAddressMap.values()">
-        <vscode-option title="Click to copy" @click="copyToClipboard(item.address)">
-          <span class="address">{{ item.address }}</span>
+      <div class="address-info" v-for="(item, idx) in addressMap.values()">
+        <p title="Click to copy" @click="copyToClipboard(item.address)">
+          <span class="address">{{ item.address.slice(0,50) }}<strong>{{ item.address.slice(50) }}</strong></span>
           <span class="codicon codicon-copy" title="Copy"></span>
-        </vscode-option>
-        <vscode-option>Balance: {{ item.balance }} </vscode-option>
-        <vscode-option>Quota: {{ item.quota }}</vscode-option>
-        <vscode-divider v-if="idx !== state.testNetAddressMap.size - 1"></vscode-divider>
-      </div>
-    </section>
-
-    <section class="component-container">
-      <div class="wallet-title">
-        <vscode-tag>{{ ViteNetwork.TestNet }}</vscode-tag>
-        <vscode-button appearance="icon" aria-label="New Address" title="New Address" @click="deriveAddress(ViteNetwork.TestNet)">
-          <span class="codicon codicon-add"></span>
-        </vscode-button>
-      </div>
-      <div class="address-info" v-for="(item, idx) in state.testNetAddressMap.values()">
-        <vscode-option title="Click to copy" @click="copyToClipboard(item.address)">
-          <span class="address">{{ item.address }}</span>
-          <span class="codicon codicon-copy" title="Copy"></span>
-        </vscode-option>
-        <vscode-option>Balance: {{ item.balance }} </vscode-option>
-        <vscode-option>Quota: {{ item.quota }}</vscode-option>
-        <vscode-divider v-if="idx !== state.testNetAddressMap.size - 1"></vscode-divider>
-      </div>
-    </section>
-
-    <section class="component-container">
-      <div class="wallet-title">
-        <vscode-tag>{{ ViteNetwork.MainNet }}</vscode-tag>
-        <vscode-button appearance="icon" aria-label="New Address" title="New Address" @click="deriveAddress(ViteNetwork.MainNet)">
-          <span class="codicon codicon-add"></span>
-        </vscode-button>
-      </div>
-      <div class="address-info" v-for="(item, idx) in state.mainNetAddressMap.values()">
-        <vscode-option title="Click to copy" @click="copyToClipboard(item.address)">
-          <span class="address">{{ item.address }}</span>
-          <span class="codicon codicon-copy" title="Copy"></span>
-        </vscode-option>
-        <vscode-option>Balance: {{ item.balance }} </vscode-option>
-        <vscode-option>Quota: {{ item.quota }}</vscode-option>
-        <vscode-divider v-if="idx !== state.mainNetAddressMap.size - 1"></vscode-divider>
-      </div>
-    </section>
-
-    <section class="component-container button-group">
-      <!-- <vscode-button>ViteConnect</vscode-button>
-      <vscode-button @click="handleClick(false)">Import</vscode-button>
-      <vscode-button @click="handleClick(true)">Export</vscode-button> -->
-      <div class="component-item">
-        <vscode-link @click="handleClick(false)">Import</vscode-link>
-        or 
-        <vscode-link @click="handleClick(true)">Export</vscode-link>
-        wallet mnemonic.
+        </p>
+        <p class="balance" v-if="item.balance">
+          <span title="Click refresh balance" @click="receiveTx(item.address, network)">Balance: {{ item.balance }}</span>
+          <span class="codicon codicon-refresh" title="Click refresh balance" @click="receiveTx(item.address, network)"></span>
+          <vscode-link v-if="network != ViteNetwork.Debug" @click="showQR(item.address)" title="Receive Token">Receive</vscode-link>
+          <vscode-link @click="showSendToken(item.address)" title="Send Token">Send</vscode-link>
+        </p>
+        <p v-if="item.quota">Quota: {{ item.quota }}</p>
+        <section class="qrcode" :class="{'show': balanceAction === `receive.${item.address}` }">
+          <h3>Scan and send VITE</h3>
+          <canvas :ref="el => { canvas[item.address] = el }"></canvas>
+          <vscode-button appearance="secondary" @click="hideBalanceAction()">Close</vscode-button>
+        </section>
+        <section v-if="balanceAction === `send.${item.address}`">
+          <div class="component-item">
+            <vscode-text-field @input="sendTokenParams.amount = $event.target.value" placeholder="Amount"></vscode-text-field>
+          </div>
+          <div class="component-item">
+            <vscode-text-field size="60" placeholder="Address"
+              @input="sendTokenParams.toAddress = $event.target.value"
+            ></vscode-text-field>
+          </div>
+          <div class="component-item button-group">
+            <vscode-button appearance="secondary" @click="hideBalanceAction()">Close</vscode-button>
+            <vscode-button @click="sendTx(item.address, network)">Send</vscode-button>
+          </div>
+        </section>
+        <vscode-divider v-if="idx < addressMap.size - 1"></vscode-divider>
       </div>
     </section>
 
@@ -294,12 +333,24 @@ function copyToClipboard(address: Address) {
         </vscode-dropdown>
       </div>
       <div class="component-item">
-        <vscode-text-area rows="5" :value="state.mneonic"></vscode-text-area>
+        <vscode-text-area rows="5" @input="state.mneonic = $event.target.value" :value="state.mneonic"></vscode-text-area>
       </div>
       <div class="component-item button-group">
-        <vscode-button appearance="secondary" @click="hide()">Hide</vscode-button>
-        <vscode-button v-if="state.isExport" appearance="secondary" @click="renew()">Renew</vscode-button>
-        <vscode-button v-if="state.isExport" @click="save()">Save</vscode-button>
+        <vscode-button appearance="secondary" @click="hide()">Close</vscode-button>
+        <vscode-button v-if="!state.isExport" appearance="secondary" @click="renew()">Renew</vscode-button>
+        <vscode-button v-if="!state.isExport" @click="save()">Save</vscode-button>
+      </div>
+    </section>
+
+    <section class="component-container">
+      <!-- <vscode-button>ViteConnect</vscode-button>
+      <vscode-button @click="handleClick(false)">Import</vscode-button>
+      <vscode-button @click="handleClick(true)">Export</vscode-button> -->
+      <div class="component-item links">
+        <vscode-link @click="handleClick(false)">Import</vscode-link>
+        or
+        <vscode-link @click="handleClick(true)">Export</vscode-link>
+        wallet mnemonic.
       </div>
     </section>
   </main>
@@ -307,11 +358,11 @@ function copyToClipboard(address: Address) {
 
 <style>
 .component-container {
-  margin-top: 0.5rem;
+  margin: 0.5rem 0;
 }
 
 .component-item {
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .wallet-title {
@@ -321,12 +372,42 @@ function copyToClipboard(address: Address) {
   align-items: center;
   width: 100%;
   border-radius: 3px;
+  margin-bottom: 0.22rem;
 }
 
 .address-info {
   display: grid;
   grid-template-columns: 1fr;
   word-break: break-all;
+}
+
+.address-info p{
+  color: var(--vscode-foreground);
+  padding: 0 3px;
+  margin: 0;
+  cursor: pointer;
+  line-height: 1.2rem;
+}
+
+.address-info p:hover{
+  background-color: var(--list-hover-background);
+}
+
+.address-info .balance {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  column-gap: .5rem;
+  align-items: center;
+}
+
+.address-info .balance .codicon,
+.address-info .balance vscode-link{
+  display: none;
+}
+
+.address-info .balance:hover .codicon,
+.address-info .balance:hover vscode-link{
+  display: inline;
 }
 
 .address {
@@ -352,4 +433,22 @@ vscode-text-area{
   width: 100%;
   max-width: 100%;
 }
+.links {
+  color: var(--vscode-foreground);
+}
+.qrcode h3{
+  margin: .5rem 0;
+}
+.qrcode canvas{
+  display: block;
+  margin-bottom: .5rem;
+}
+.qrcode{
+  display: none;
+  margin-left: 3px;
+}
+.qrcode.show{
+  display: block;
+ }
+
 </style>

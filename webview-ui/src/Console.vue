@@ -60,16 +60,17 @@ function dataReceiver (ev: any) {
       break;
     case "pushContract":
       {
-        if (state.currentNetwork !== data.message.network) {
+        const deployInfo = data.message;
+        if (state.currentNetwork !== deployInfo.network) {
           clear();
           state.currentNetwork = data.message.network;
         }
-        if (deployedSet.has(data.message.address)) {
-          const idx = state.deployedList.findIndex(item => item.address === data.message.address);
+        if (deployedSet.has(deployInfo.address)) {
+          const idx = state.deployedList.findIndex(item => item.address === deployInfo.address);
           state.activeTab = `tab-${idx}`;
         } else {
-          state.deployedList = [data.message, ...state.deployedList];
-          deployedSet.add(data.message.address);
+          deployedSet.add(deployInfo.address);
+          state.deployedList = [deployInfo, ...state.deployedList];
         }
       }
       break;
@@ -109,9 +110,9 @@ function dataReceiver (ev: any) {
 function clear() {
   state.activeTab = "tab-0";
   state.deployedList = [];
+  deployedSet.clear();
   state.addressMap.clear();
   state.selectedAddress = "";
-  deployedSet.clear();
 }
 
 watchEffect(() => {
@@ -156,8 +157,6 @@ function send(ctor: ABIItem, info: DeployInfo) {
 }
 
 function query(func: ABIItem, info: DeployInfo) {
-  console.log(JSON.stringify(func))
-  console.log(typeof JSON.stringify(func))
   vscode.postMessage({
     command: "query",
     message: {
@@ -192,26 +191,37 @@ function call(func: ABIItem, info: DeployInfo) {
 
 <template>
   <main>
-    <section class="component-container">
-      <label>Select an address to interact with a contract</label>
+    <section class="component-container selected-address">
+      <p>Select an address to interact with a contract</p>
       <vscode-dropdown @change="changeAddress($event.target.value)">
-        <vscode-option  v-for="item in state.addressMap.values()" :value="item.address">{{ item.address }}</vscode-option>
+        <vscode-option v-for="item in state.addressMap.values()" :value="item.address">
+        {{ item.address }}
+        </vscode-option>
       </vscode-dropdown>
       <p>Balance: {{ state.selectedAddressInfo.balance }}, Quota: {{ state.selectedAddressInfo.quota }}</p>
     </section>
+    <!-- viewStyle: Tab -->
     <vscode-panels :activeid="state.activeTab" v-if="state.viewStyle==='Tab'">
       <vscode-panel-tab :id="'tab-' + idx" v-for="(deployInfo, idx) in state.deployedList">
         {{ deployInfo.contractName }}
       </vscode-panel-tab>
       <vscode-panel-view :id="'view-' + idx" v-for="(item, idx) in state.deployedList">
         <div class="is-grid">
-          <p class="contract-status">{{ item.contractName }} deployed at {{ item.address }} on {{
-            item.network }} network</p>
+          <p class="contract-status">
+            Contract
+            <span class="highlight">{{ item.contractName }}</span>
+            deployed at
+            <span class="highlight">{{ item.address }}</span>
+            on
+            <span class="highlight">{{ item.network }}</span>
+            network
+          </p>
 
           <section class="component-container" v-for="ctor in getCtorDeclarations(item.abi)">
             <h2>Send token to the contract</h2>
             <div class="component-item">
-              <vscode-text-field size="50" @input="ctor.tokenId = $event.target.value" :value="Vite_TokenId">token id</vscode-text-field>
+              <vscode-text-field size="50" @input="ctor.tokenId = $event.target.value" :value="Vite_TokenId">token id
+              </vscode-text-field>
             </div>
             <div class="component-item">
               <vscode-text-field size="50" @input="ctor.amount = $event.target.value" vaule="">amount
@@ -224,8 +234,9 @@ function call(func: ABIItem, info: DeployInfo) {
 
           <section class="component-container" v-for="(func, idx) in getFuncDeclarations(item.abi)" :key="idx">
             <h2>{{ funcSignature(func) }}</h2>
+
             <div class="component-item" v-if="func.stateMutability==='payable'">
-              <vscode-text-field size="50" @input="func.amount = $event.target.value" value="">amount
+              <vscode-text-field size="46" @input="func.amount = $event.target.value" value="">amount
               </vscode-text-field>
               <vscode-dropdown class="append" @change="func.amountUnit = $event.target.value">
                 <vscode-option v-for="unit in ['vite', 'attov']" :value="unit">{{unit}}</vscode-option>
@@ -233,15 +244,11 @@ function call(func: ABIItem, info: DeployInfo) {
             </div>
 
             <div class="component-item" v-for="(input, i) in func.inputs" :key="i">
-              <vscode-text-field @input="input.value = $event.target.value" :value="input.value" size="50">
-                {{input.name}} ({{input.type}})
+              <vscode-text-field size="60" @input="input.value = $event.target.value" :value="input.value">
+                {{input.name}}: {{input.type}}
               </vscode-text-field>
             </div>
-            <div class="component-item" v-for="(output, idx) in func.outputs" :key="idx">
-              <span v-if="output.value">
-                <strong>{{idx}}:</strong> {{output.type}} {{output.value}}
-              </span>
-            </div>
+
             <div class="component-item">
               <vscode-button @click="query(func, item)"
                 v-if="func.stateMutability === 'view' || func.stateMutability === 'pure'">
@@ -251,13 +258,26 @@ function call(func: ABIItem, info: DeployInfo) {
                 call {{func.name}}()
               </vscode-button>
             </div>
+
+            <div class="component-item" v-if="func.outputs?.find(x => x.value)" v-for="(output, idx) in func.outputs" :key="idx">
+              <span v-if="output.value">
+                <strong>{{idx}}:</strong> {{output.type}} {{output.value}}
+              </span>
+            </div>
           </section>
         </div>
       </vscode-panel-view>
     </vscode-panels>
+    <!-- viewStyle: Flow -->
     <section v-else v-for="item in state.deployedList">
-      <p class="contract-status">{{ item.contractName }} deployed at {{ item.address }} on {{
-        item.network }} network</p>
+      <p class="contract-status">
+        <span class="highlight">{{ item.contractName }}</span>
+        deployed at
+        <span class="highlight">{{ item.address }}</span>
+        on
+        <span class="highlight">{{ item.network }}</span>
+        network
+      </p>
 
       <section class="component-container" v-for="ctor in getCtorDeclarations(item.abi)">
         <h2>Send token to the contract</h2>
@@ -275,18 +295,20 @@ function call(func: ABIItem, info: DeployInfo) {
 
       <section class="component-container" v-for="(func, idx) in getFuncDeclarations(item.abi)" :key="idx">
         <h2>{{ funcSignature(func) }}</h2>
+
         <div class="component-item" v-if="func.stateMutability==='payable'">
-          <vscode-text-field size="50" @input="func.amount = $event.target.value" value="">amount</vscode-text-field>
+          <vscode-text-field size="46" @input="func.amount = $event.target.value" value="">amount</vscode-text-field>
           <vscode-dropdown class="append" @change="func.amountUnit = $event.target.value">
             <vscode-option v-for="unit in ['vite', 'attov']" :value="unit">{{unit}}</vscode-option>
           </vscode-dropdown>
         </div>
 
         <div class="component-item" v-for="(input, i) in func.inputs" :key="i">
-          <vscode-text-field @input="input.value = $event.target.value" :value="input.value" size="50">
-            {{input.name}} ({{input.type}})
+          <vscode-text-field size="60" @input="input.value = $event.target.value" :value="input.value">
+            {{input.name}}: {{input.type}}
           </vscode-text-field>
         </div>
+
         <div class="component-item">
           <vscode-button @click="query(func, item)"
             v-if="func.stateMutability === 'view' || func.stateMutability === 'pure'">
@@ -296,25 +318,40 @@ function call(func: ABIItem, info: DeployInfo) {
             call {{func.name}}()
           </vscode-button>
         </div>
+
+        <div class="component-item" v-if="func.outputs?.find(x => x.value)" v-for="(output, idx) in func.outputs" :key="idx">
+          <span v-if="output.value">
+            <strong>{{idx}}:</strong> {{output.type}} {{output.value}}
+          </span>
+        </div>
       </section>
     </section>
   </main>
 </template>
 
 <style>
+main{
+  font-family: var(--vscode-editor-font-family);
+  font-weight: var(--vscode-editor-font-weight);
+  font-size: var(--vscode-editor-font-size);
+}
+
 vscode-panel-tab {
   font-size: 18px
 }
 .is-grid {
   display: grid;
+  width: 100%;
 }
 
-.contract-status{
-  display: flex;
-  column-gap: 1rem;
-  margin: 1rem;
+.contract-status {
+  margin: .5rem 1rem 0;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+}
+
+.contract-status .highlight {
   color: #007aff;
-  font-size: 1rem;
 }
 
 .component-container {
@@ -328,21 +365,42 @@ vscode-panel-tab {
   border-radius: 5px;
 }
 
-.component-container > * {
-  margin: 0.25rem 0;
-}
 .component-container h2{
-  font-size: 1rem;
+  font-family: var(--vscode-editor-font-family);
+  font-weight: var(--vscode-editor-font-weight);
+  font-size: var(--vscode-editor-font-size);
 }
 
 .component-item {
   margin-bottom: 0.5rem;
   width: 100%;
   display: flex;
-  column-gap: 0.5rem;
+  column-gap: 0.6rem;
+  font-family: var(--vscode-editor-font-family);
+  font-weight: var(--vscode-editor-font-weight);
+  font-size: var(--vscode-editor-font-size);
 }
 
 .component-item .append{
   align-self: end;
+}
+
+vscode-text-field,
+vscode-button{
+  font-family: var(--vscode-editor-font-family);
+  font-weight: var(--vscode-editor-font-weight);
+  font-size: var(--vscode-editor-font-size);
+}
+
+.selected-address p{
+  font-family: var(--vscode-editor-font-family);
+  color: var(--vscode-foreground);
+  margin: 0;
+}
+.selected-address vscode-option{
+  font-family: var(--vscode-editor-font-family);
+}
+.selected-address vscode-dropdown{
+  margin: 0.5rem 0;
 }
 </style>

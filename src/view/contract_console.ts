@@ -23,6 +23,7 @@ export class ContractConsoleViewPanel {
 
   private static _onDidCallContract = new vscode.EventEmitter<any>();
   static readonly onDidCallContract: vscode.Event<any> = this._onDidCallContract.event;
+  private currentNetwork: ViteNetwork = ViteNetwork.Debug;
 
   private constructor(panel: vscode.WebviewPanel, private readonly ctx: Ctx, deployInfo: DeployInfo) {
     this._panel = panel;
@@ -53,7 +54,8 @@ export class ContractConsoleViewPanel {
           }
           break;
         case "getAddressList":
-          await this.updateAddressList(event.message);
+          this.currentNetwork = event.message;
+          await this.updateAddressList();
           break;
         case "send":
           {
@@ -67,7 +69,7 @@ export class ContractConsoleViewPanel {
               const ret = await operator.sendToken(toAddress, amount, ctor.tokenId);
               this.ctx.vmLog.info(ret);
 
-              await this.updateAddressList(network);
+              await this.updateAddressList();
             } catch (error) {
               this.ctx.vmLog.error(error); 
             }
@@ -109,9 +111,9 @@ export class ContractConsoleViewPanel {
                   contractAddress: toAddress,
                 }
               });
-              await this.updateAddressList(network);
-            } catch (error) {
-              this.ctx.vmLog.error(error); 
+              await this.updateAddressList();
+            } catch (error:any) {
+              this.ctx.vmLog.error(`[query ${func.name}()]`, error.message); 
             }
             ContractConsoleViewPanel._onDidCallContract.fire(event);
           }
@@ -147,9 +149,9 @@ export class ContractConsoleViewPanel {
             try {
               const ret = await contract.call(func.name, params, { amount });
               this.ctx.vmLog.info(ret);
-              await this.updateAddressList(network);
-            } catch (error) {
-              this.ctx.vmLog.error(error); 
+              await this.updateAddressList();
+            } catch (error:any) {
+              this.ctx.vmLog.error(`[call ${func.name}()]`, error.message); 
             }
             ContractConsoleViewPanel._onDidCallContract.fire(event);
           }
@@ -161,7 +163,7 @@ export class ContractConsoleViewPanel {
   }
 
   public static render(ctx: Ctx, deployInfo: DeployInfo) {
-    const column = ctx.config.consoleViewColumn ?? vscode.window.activeTextEditor?.viewColumn;
+    const column = ctx.config.consoleViewColumn ?? vscode.ViewColumn.One;
 
     if (ContractConsoleViewPanel.currentPanel) {
       ContractConsoleViewPanel.currentPanel._panel.reveal(column, true);
@@ -175,7 +177,7 @@ export class ContractConsoleViewPanel {
         ContractConsoleViewPanel.viewType,
         `${deployInfo.contractName} Console`,
         {
-          viewColumn: column ?? vscode.ViewColumn.One,
+          viewColumn: column,
           preserveFocus: true,
         },
         {
@@ -198,9 +200,15 @@ export class ContractConsoleViewPanel {
     }
   }
 
-  private async updateAddressList(network: ViteNetwork) {
-    const list = this.ctx.getAddressList(network);
-    const provider = this.ctx.getProviderByNetwork(network);
+  public static updateDeps(){
+    if (ContractConsoleViewPanel.currentPanel) {
+      ContractConsoleViewPanel.currentPanel.updateAddressList();
+    }
+  }
+
+  public async updateAddressList() {
+    const list = this.ctx.getAddressList(this.currentNetwork);
+    const provider = this.ctx.getProviderByNetwork(this.currentNetwork);
     const message: any[] = [];
     for (const address of list) {
       const quotaInfo = await provider.request('contract_getQuotaByAccount', address);
@@ -208,7 +216,7 @@ export class ContractConsoleViewPanel {
       const balance = balanceInfo.balance.balanceInfoMap?.[Vite_TokenId]?.balance;
       message.push({
         address,
-        network,
+        network: this.currentNetwork,
         quota: quotaInfo.currentQuota,
         balance: balance ? balance.slice(0, balance.length - Vite_Token_Info.decimals) : '0',
       });

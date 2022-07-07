@@ -132,6 +132,7 @@ export function activateContractView(ctx: Ctx): void {
   ctx.pushCleanup(
     walletProvider.onDidDeriveAddress(async () => {
       contractDeploymentProvider.updateDeps();
+      ContractConsoleViewPanel.updateDeps();
     })
   );
   // sync node

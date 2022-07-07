@@ -6,11 +6,13 @@ import {
   vsCodeTag,
   vsCodeDropdown,
   vsCodeTextField,
+  vsCodeProgressRing,
 } from "@vscode/webview-ui-toolkit";
 import {
   reactive,
   onMounted,
   watchEffect,
+  computed,
 } from "vue";
 import type { ViteNode } from "./types";
 import { vscode } from "./vscode";
@@ -21,6 +23,7 @@ provideVSCodeDesignSystem().register(
   vsCodeTag(),
   vsCodeDropdown(),
   vsCodeTextField(),
+  vsCodeProgressRing(),
 );
 
 onMounted(()=>{
@@ -39,9 +42,10 @@ const state = reactive({
   selectedNodeIdx: 0,
   nodesList: [] as ViteNode[],
   selectedAddress: "",
-  addressesList: [],
+  addressesList: [] as string[],
   selectedContractIdx: 0,
   contractsList: [] as any[],
+  isDeploying: false,
 });
 
 const params = reactive({
@@ -73,9 +77,19 @@ function dataReceiver (ev: any) {
           state.selectedAddress = state.addressesList[0];
         }
       }
+      case "updateDeploymentStatus":
+        {
+          const { isDeploying } = data.message;
+          state.isDeploying = isDeploying;
+        }
       break;
   }
 }
+
+const selectNetwork = computed(() => {
+  const node = state.nodesList[state.selectedNodeIdx];
+  return node?.network;
+});
 
 watchEffect(() => {
   const node = state.nodesList[state.selectedNodeIdx];
@@ -88,6 +102,7 @@ watchEffect(() => {
 });
 
 function deployContract() {
+  state.isDeploying = true;
   vscode.postMessage({
     command: "deployContract",
     message: {
@@ -125,9 +140,9 @@ function deployContract() {
       </vscode-dropdown>
     </section>
     <section class="component-container">
-      <label class="dropdown-title">Select Address</label>
+      <label class="dropdown-title">Select Address from {{ selectNetwork }} wallet</label>
       <vscode-dropdown @change="state.selectedAddress = $event.target.value">
-        <vscode-option v-for="addr in state.addressesList" :value="addr">{{ addr }}</vscode-option>
+        <vscode-option v-for="addr in state.addressesList" :value="addr" :title="addr">{{ addr.slice(0, 10) }}...{{ addr.slice(50) }}</vscode-option>
       </vscode-dropdown>
     </section>
     <section class="component-container">
@@ -137,7 +152,11 @@ function deployContract() {
       </vscode-dropdown>
     </section>
     <section class="component-container">
-      <vscode-button @click="deployContract">Deploy Contract</vscode-button>
+      <vscode-button @click="deployContract">
+        <vscode-progress-ring v-if="state.isDeploying" slot="start"></vscode-progress-ring>
+        <span slot="start" v-else class="codicon codicon-compass-dot"></span>
+        Deploy Contract
+      </vscode-button>
     </section>
   </main>
 </template>
@@ -145,7 +164,8 @@ function deployContract() {
 <style>
 .component-container {
   display: grid;
-  margin-top: .5rem;
+  margin: .5rem 0;
+  align-content: center;;
 }
 
 .component-item {
@@ -165,5 +185,11 @@ function deployContract() {
 
 .dropdown-title {
   color: var(--vscode-foreground);
+}
+
+vscode-progress-ring {
+  height: 1rem;
+  width: 1rem;
+  color: var(--vscode-editor-background);
 }
 </style>

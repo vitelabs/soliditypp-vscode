@@ -146,7 +146,7 @@ export class ContractTreeDataProvider implements vscode.TreeDataProvider<Contrac
         return items;
       } else {
         const item = new vscode.TreeItem("Undeployed");
-        item.iconPath = new vscode.ThemeIcon("cloud-upload");
+        item.iconPath = new vscode.ThemeIcon("compass-dot");
         return [
           item
         ];
@@ -178,7 +178,7 @@ export class ContractItem extends vscode.TreeItem {
         this.tooltip = file.fsPath;
         this.resourceUri = file.with({ scheme: CONTRACT_SCHEME, fragment: contractName });
       } else if (network && address) {
-        super(`${network}: ${address}`);
+        super(`${network}: ${address.slice(0,10)}...${address.slice(50)}`);
         this.iconPath = new vscode.ThemeIcon("compass");
         this.contextValue = ContractContextValue.ContractDeployed;
         this.tooltip = `Deployed at ${address} on ${network} network`;

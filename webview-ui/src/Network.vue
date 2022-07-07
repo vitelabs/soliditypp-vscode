@@ -43,7 +43,7 @@ const state = reactive({
   nodesMap,
 });
 const customNode = reactive({
-  name: "custom",
+  name: "",
   url: "",
   network: ViteNetwork.Debug,
   target: "",
@@ -105,7 +105,8 @@ function reconnect(node: ViteNode) {
     },
   });
 }
-function show(target: string) {
+function show(target: string, event: any) {
+  event.preventDefault();
   customNode.target = target;
 }
 function hide(){
@@ -114,14 +115,9 @@ function hide(){
 function save(){
   vscode.postMessage({
     command: "saveCustomNode",
-    message: {
-      name: customNode.name,
-      url: customNode.url,
-      network: customNode.network,
-      target: customNode.target,
-    },
+    message: Object.assign({}, customNode),
   });
-  customNode.target = "";
+  hide();
 }
 function getNodesListByNetwork(network: ViteNetwork) {
   const nodesList = Array.from(state.nodesMap.values())
@@ -142,27 +138,15 @@ function getNodesListByNetwork(network: ViteNetwork) {
         <span slot="start" class="codicon codicon-debug-start"></span>
       </vscode-button>
     </section>
-    <template v-for="network in ViteNetwork">
-      <section class="component-container node-list">
-        <vscode-tag>{{ network }}</vscode-tag>
-        <div class="component-item" v-for="(node, idx) in getNodesListByNetwork(network)">
-          <vscode-option>{{node.name.slice(0,1).toUpperCase()}}{{node.name.slice(1)}}: {{ node.url }}</vscode-option>
-          <vscode-option>Status: {{ node.status }}</vscode-option>
-          <vscode-option v-show="node.info?.snapshotChainHeight">Snapshot height: {{ node.info?.snapshotChainHeight }}
-          </vscode-option>
-          <vscode-option v-show="node.error">Error: {{ node.error }}</vscode-option>
-          <vscode-button v-show="node.error && node.name != 'local'" @click="reconnect(node)">Reconnect</vscode-button>
-          <vscode-divider></vscode-divider>
-        </div>
-      </section>
-    </template>
-    <section class="component-container">
-      <div class="component-item">
-        Add a custom node in the
-        <vscode-link href="#" @click="show('Global')">Global</vscode-link>
-        or
-        <vscode-link href="#" @click="show('Workspace')">Workspace</vscode-link>
-        settings
+    <section class="component-container nodes-list" v-for="network in ViteNetwork">
+      <vscode-tag>{{ network }}</vscode-tag>
+      <div class="component-item" v-for="node in getNodesListByNetwork(network)">
+        <p>{{node.name.slice(0,1).toUpperCase()}}{{node.name.slice(1)}}: {{ node.url }}</p>
+        <p>Status: {{ node.status }}</p>
+        <p v-show="node.info?.snapshotChainHeight">Snapshot height: {{ node.info?.snapshotChainHeight }}</p>
+        <p v-show="node.error" :title="typeof node.error === 'object' ? JSON.stringify(node.error): node.error">Error: {{ node.error }}</p>
+        <vscode-button appearance="secondary" v-show="node.error && node.name != 'local'" @click="reconnect(node)">Reconnect</vscode-button>
+        <vscode-divider></vscode-divider>
       </div>
     </section>
     <section v-if="customNode.target" class="component-container">
@@ -180,8 +164,17 @@ function getNodesListByNetwork(network: ViteNetwork) {
         </vscode-text-field>
       </div>
       <div class="component-item button-group">
-        <vscode-button appearance="secondary" @click="hide()">Hide</vscode-button>
+        <vscode-button appearance="secondary" @click="hide()">Close</vscode-button>
         <vscode-button @click="save()">Save to {{customNode.target }}</vscode-button>
+      </div>
+    </section>
+    <section class="component-container">
+      <div class="component-item links">
+        Add a custom node in the
+        <vscode-link href="#" @click="show('Global', $event)">Global</vscode-link>
+        or
+        <vscode-link href="#" @click="show('Workspace', $event)">Workspace</vscode-link>
+        settings.
       </div>
     </section>
   </main>
@@ -191,27 +184,50 @@ function getNodesListByNetwork(network: ViteNetwork) {
 .component-container {
   display: grid;
   grid-template-columns: 1fr;
-  margin-top: .5rem;
+  margin: .5rem 0;
 }
+
 .component-item {
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
 }
-.node-list .component-item {
+
+.nodes-list vscode-tag {
+  margin-bottom: 0.22rem;
+}
+
+.nodes-list .component-item {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: auto;
+  margin-top: 0;
 }
-.node-list .component-item:last-child vscode-divider {
+
+.nodes-list p{
+  color: var(--vscode-foreground);
+  padding: 0 3px;
+  margin: 0;
+  cursor: pointer;
+  line-height: 1.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nodes-list p:hover{
+  background-color: var(--list-hover-background);
+}
+
+.nodes-list .component-item:last-child vscode-divider {
   display: none;
 }
 
-vscode-tag .control{
-  background-color: var(--vscode-list-hover-background);
-}
 .button-group{
   margin-top: .5rem;
   display: flex;
   column-gap: 0.5rem;
   row-gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.links {
+  color: var(--vscode-foreground);
 }
 </style>

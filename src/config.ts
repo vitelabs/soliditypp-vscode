@@ -137,6 +137,6 @@ export class Config {
   }
 
   get viteCustomNodes() {
-    return this.get<Array<any>>("vite.customNodes");
+    return this.get<Array<{name:string; url:string; network:string}>>("vite.customNodes");
   }
 }

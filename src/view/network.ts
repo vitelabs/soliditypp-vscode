@@ -86,7 +86,22 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
         case "saveCustomNode":
           {
             const { name, url, network, target } = event.message;
-            this.ctx.config.updateConfig("vite.customNodes", [{ name, url, network }, ...this.ctx.config.viteCustomNodes], target === "Global");
+            if (name && url && network) {
+              const found = this.ctx.config.viteCustomNodes.findIndex(item => item.name === name);
+              if (found === -1) {
+                // push new node
+                this.ctx.config.updateConfig("vite.customNodes", [{ name, url, network }, ...this.ctx.config.viteCustomNodes], target === "Global");
+              } else {
+                // update node
+                this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.map(item => {
+                  if (item.name === name) {
+                    return { name, url, network };
+                  } else {
+                    return item;
+                  }
+                }), target === "Global");
+              }
+            }
           }
           break;
       }
@@ -177,7 +192,11 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
           });
         } catch (error: any) {
           node.status = ViteNodeStatus.Timeout;
-          node.error = error;
+          if (error.code) {
+            node.error = error;
+          } else {
+            node.error = error.message;
+          }
           await this.postMessage({
             command: "updateViteNode",
             message: node,

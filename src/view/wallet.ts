@@ -3,6 +3,7 @@ const vite = require("@vite/vitejs");
 import { getWebviewContent } from "./webview";
 import { Address, MessageEvent, ViteNetwork, ViteNodeStatus, Vite_TokenId, Vite_Token_Info } from "../types/types";
 import { Ctx } from "../ctx";
+import { newAccount, getAmount } from "../util";
 
 export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "ViteWalletView";
@@ -105,6 +106,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           break;
         case "setMnemonic":
           {
+            this.ctx.log.debug(event);
             const { network, mnemonic } = event.message;
             if (network === ViteNetwork.TestNet) {
               this.ctx.testNetWallet = mnemonic;
@@ -126,6 +128,43 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           break;
         case "copyToClipboard":
           await vscode.env.clipboard.writeText(event.message);
+          break;
+        case "sendTx":
+          {
+            const { fromAddress, toAddress, amount, network } = event.message;
+            // get provider and operator
+            const provider = this.ctx.getProviderByNetwork(network);
+            const senderAddressObj = this.ctx.getAddressObj(fromAddress);
+            const sender = newAccount(senderAddressObj!, provider);
+
+            try {
+              if (amount) {
+                const ret = await sender.sendToken(toAddress, getAmount(amount));
+                this.ctx.vmLog.info(ret);
+              }
+              const receiverAddressObj = this.ctx.getAddressObj(toAddress);
+              if (receiverAddressObj) {
+                const receiver = newAccount(receiverAddressObj!, provider);
+                await receiver.receiveAll();
+              }
+            } catch (error:any) {
+              this.ctx.vmLog.error(error.message);
+            }
+          }
+          break;
+        case "receiveTx":
+          {
+            const { address, network } = event.message;
+            const provider = this.ctx.getProviderByNetwork(network);
+            const receiverAddressObj = this.ctx.getAddressObj(address);
+            this.ctx.log.debug(receiverAddressObj);
+            const receiver = newAccount(receiverAddressObj!, provider);
+            try {
+              await receiver.receiveAll();
+            } catch (error:any) {
+              this.ctx.vmLog.error(error.message);
+            }
+          }
           break;
       }
 

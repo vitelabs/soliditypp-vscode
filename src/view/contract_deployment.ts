@@ -124,6 +124,12 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             } catch (error) {
               this.ctx.vmLog.error(error);
             }
+            this.postMessage({
+              command: "updateDeploymentStatus",
+              message: {
+                isDeploying: false,
+              }
+            });
           }
           break;
       }
