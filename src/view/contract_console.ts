@@ -197,11 +197,6 @@ export class ContractConsoleViewPanel {
   }
 
   private clear() {
-    if (this._panel) {
-      this._panel.webview.postMessage({
-        command: "clear",
-      });
-    }
     this.contractMap.clear();
     const provider = this.ctx.getProviderByNetwork(this.currentNetwork);
     provider.unsubscribeAll();
@@ -210,6 +205,11 @@ export class ContractConsoleViewPanel {
   public async updateContractMap(deployInfo: DeployInfo) {
     if (this.currentNetwork !== deployInfo.network) {
       this.clear();
+      if (this._panel) {
+        this._panel.webview.postMessage({
+          command: "clear",
+        });
+      }
       this.currentNetwork = deployInfo.network;
     }
 
