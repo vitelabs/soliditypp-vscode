@@ -25,7 +25,7 @@ class ContractTextDocumentContentProvider implements vscode.TextDocumentContentP
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
     const file = vscode.Uri.parse(uri.query).with({ fragment: uri.fragment });
     const ret = await readContractJsonFile(file);
-    return Promise.resolve(JSON.stringify(ret, null, 4));
+    return JSON.stringify(ret, null, 4);
   }
 };
 

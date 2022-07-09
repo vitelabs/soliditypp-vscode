@@ -47,6 +47,8 @@ export interface ViteNode {
   url: string;
   network: ViteNetwork;
   status: ViteNodeStatus;
+  type: "local" | "remote";
+  isDefault?: boolean;
   version?: string;
   info?: any;
   error?: any;
@@ -87,6 +89,11 @@ export interface ABIItem {
   [key: string]: any;
 }
 
+export interface CompileResult {
+  abi: ABIItem[];
+  bytecode: string;
+}
+
 export interface DeployInfo {
   contractName: string;
   contractFsPath: string;
@@ -94,5 +101,4 @@ export interface DeployInfo {
   abi: ABIItem[],
   network: ViteNetwork;
   address: Address;
-  owner: Address;
 }

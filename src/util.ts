@@ -3,11 +3,10 @@ import * as path from "path";
 import { strict as nativeAssert } from "assert";
 import { spawnSync } from "child_process";
 import { inspect } from "util";
-import { AddressObj } from "@vite/vitejs/distSrc/utils/type";
 const vuilder = require("@vite/vuilder");
+import BigNumber from "bignumber.js";
+import { AddressObj } from "./types/types";
 
-/* eslint-disable-next-line */
-const BigNumber = require('bignumber.js');
 const VITE_DECIMAL = new BigNumber('1e18');
 
 export function assert(condition: boolean, explanation: string): asserts condition {
@@ -20,9 +19,8 @@ export function assert(condition: boolean, explanation: string): asserts conditi
 }
 
 export class Log {
-  private enabled = true;
-  private enabledDebugger = true;
-  private readonly output: vscode.OutputChannel;
+  protected enabled = true;
+  protected readonly output: vscode.OutputChannel;
 
   constructor(outputName: string) {
     this.output = vscode.window.createOutputChannel(outputName);
@@ -30,10 +28,6 @@ export class Log {
 
   setEnabled(yes: boolean): void {
     this.enabled = yes;
-  }
-
-  setDebugger(yes: boolean): void {
-    this.enabledDebugger = yes;
   }
 
   debug(...msg: [unknown, ...unknown[]]): void {
@@ -47,16 +41,12 @@ export class Log {
   }
 
   warn(...msg: [unknown, ...unknown[]]): void {
-    if(this.enabledDebugger) {
-      debugger;
-    }
+    debugger;
     this.write("WARN", ...msg);
   }
 
   error(...msg: [unknown, ...unknown[]]): void {
-    if(this.enabledDebugger) {
-      debugger;
-    }
+    debugger;
     this.write("ERROR", ...msg);
     this.output.show(true);
   }
@@ -66,7 +56,7 @@ export class Log {
     this.output.appendLine(`${message}`);
   }
 
-  private write(label: string, ...messageParts: unknown[]): void {
+  protected write(label: string, ...messageParts: unknown[]): void {
     const message = messageParts.map(this.stringify).join(" ");
     const dateTime = new Date().toLocaleString();
     this.output.appendLine(`${label} [${dateTime}]: ${message}`);
@@ -83,7 +73,22 @@ export class Log {
 }
 
 export const log = new Log("Soliditypp Debugger Client");
-export const vmLog = new Log("VITE VM Log");
+
+class VmLog extends Log {
+  warn(...msg: [unknown, ...unknown[]]): void {
+    this.write("WARN", ...msg);
+  }
+
+  error(...msg: [unknown, ...unknown[]]): void {
+    if (this.enabled) {
+      this.write("ERROR", ...msg);
+    } else {
+      this.write("ERROR", ...(msg.map(x => x instanceof Error ? x.message : x)));
+    }
+    this.output.show(true);
+  }
+}
+export const vmLog = new VmLog("VITE VM Log");
 
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -137,10 +142,6 @@ export function memoizeAsync<Ret, TThis, Param extends string>(
 
     return result;
   };
-}
-
-export function getUri(webview: vscode.Webview, extensionUri: vscode.Uri, pathList: string[]) {
-  return webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...pathList));
 }
 
 export async function readContractJsonFile(file: vscode.Uri): Promise<any> {

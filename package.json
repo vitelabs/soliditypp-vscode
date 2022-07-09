@@ -41,15 +41,13 @@
     "@vite/vitejs": "^2.3.19-alpha.3",
     "@vite/vuilder": "0.1.0-alpha.16",
     "@vscode/debugadapter": "^1.55.1",
-    "bignumber.js": "^9.0.2",
-    "websocket": "^1.0.34"
+    "bignumber.js": "^9.0.2"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
     "@types/mocha": "^9.1.1",
     "@types/node": "~14.17.5",
     "@types/vscode": "~1.66.0",
-    "@types/websocket": "^1.0.5",
     "@typescript-eslint/eslint-plugin": "^4.14.1",
     "@typescript-eslint/parser": "^4.14.1",
     "@vscode/test-electron": "^2.1.3",
@@ -267,9 +265,45 @@
           "markdownDescription": "Config Vite mainNet node."
         },
         "solppdebugger.vite.customNodes": {
-          "type": "array",
           "default": [],
-          "markdownDescription": "Config Custom VITE node. Example: `[{ \"name\": \"\", \"url\": \"\", \"network\": \"\"  }]`"
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the custom node."
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "Url of the custom node."
+                  },
+                  "network": {
+                    "type": "string",
+                    "description": "Network of the custom node.",
+                    "default": "MainNet",
+                    "enum": [
+                      "Debug",
+                      "TestNet",
+                      "MainNet"
+                    ]
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Type of the custom node.",
+                    "default": "remote",
+                    "enum": [
+                      "local",
+                      "remote"
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          "markdownDescription": "Config Custom VITE node."
         }
       }
     },

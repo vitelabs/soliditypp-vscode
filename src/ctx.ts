@@ -2,9 +2,8 @@ import * as vscode from "vscode";
 import { createHash } from "crypto";
 import * as path from "path";
 import * as fs from "fs";
-/* eslint-disable-next-line */ 
 const vite = require("@vite/vitejs");
-const viteconnectHandler = require("@vite/vitejs/es5/viteAPI/connectHandler");
+const viteConnectHandler = require("@vite/vitejs/es5/viteAPI/connectHandler");
 import { Config } from "./config";
 import {
   ViteNetwork,
@@ -31,7 +30,7 @@ export const ADDRESS_LIST_KEY = {
 
 export class Ctx {
   private cache = new Map<string, any>();
-  public viteNodeMap: Map<string, ViteNode>;
+  private viteNodeMap: Map<string, ViteNode>;
   public readonly log: Log = log;
   public readonly vmLog: Log = vmLog;
 
@@ -47,34 +46,45 @@ export class Ctx {
         url: config.viteDebugNet,
         version: config.localGoViteVersion,
         status: ViteNodeStatus.Stopped,
+        type: "local",
+        isDefault: true,
       }],
       ["buidl", {
         name: "buidl",
         network: ViteNetwork.TestNet,
         url: config.viteTestNet,
         status: ViteNodeStatus.Syncing,
+        type: "remote",
+        isDefault: true,
       }],
       ["main", {
         name: "main",
         network: ViteNetwork.MainNet,
         url: config.viteMainNet,
         status: ViteNodeStatus.Syncing,
+        type: "remote",
+        isDefault: true,
       }],
     ]);
     // get custom nodes
     for (const node of this.config.viteCustomNodes) {
-      this.viteNodeMap.set(node.name, {
-        ...node,
-        status: ViteNodeStatus.Syncing,
-      } as ViteNode); 
+      if (node.type === "local") {
+        node.status = ViteNodeStatus.Stopped;
+      } else {
+        node.status = ViteNodeStatus.Syncing;
+      }
+      this.viteNodeMap.set(node.name, node);
     }
+    this.log.debug("Vite nodes", this.viteNodeMap.values());
   }
 
   static async create(
     config: Config,
     extCtx: vscode.ExtensionContext,
   ): Promise<Ctx> {
-    return new Ctx(config, extCtx);
+    const ctx = new Ctx(config, extCtx);
+    await ctx.initWallet();
+    return ctx;
   }
 
   registerCommand(name: string, factory: (ctx: Ctx) => Cmd) {
@@ -119,17 +129,16 @@ export class Ctx {
       return cached;
     }
     const node = this.viteNodeMap.get(nodeName);
-    // get by nodeName, otherwise get by url
     const url = node?.url ?? nodeName;
     let provider;
     if (url.startsWith("http")) {
-      provider = new vite.ViteAPI(new vite.HTTP_RPC(url, 30000), () => {
+      provider = new vite.ViteAPI(new vite.HTTP_RPC(url), () => {
         this.log.debug(url, "Connected");
       });
     } else {
-      provider = new vite.ViteAPI(new vite.WS_RPC(url, 30000), () => {
+      provider = new vite.ViteAPI(new vite.WS_RPC(url), () => {
         this.log.debug(url, "Connected");
-      }, new viteconnectHandler.RenewSubscription(Number.MAX_VALUE));
+      }, new viteConnectHandler.RenewSubscription(Number.MAX_VALUE));
     }
     this.cache.set(id, provider);
     return provider;
@@ -149,9 +158,13 @@ export class Ctx {
     return provider;
   }
 
-  resetProvider(name: string) {
-    const keyName = `vite.provider.${name}`;
-    this.cache.delete(keyName);
+  resetProvider(nodeName: string) {
+    const id = `vite.provider.${nodeName}`;
+    this.cache.delete(id);
+  }
+
+  getViteNode(nodeName: string): ViteNode | undefined {
+    return this.viteNodeMap.get(nodeName);
   }
 
   getViteNodesList(network?: ViteNetwork): ViteNode[] {

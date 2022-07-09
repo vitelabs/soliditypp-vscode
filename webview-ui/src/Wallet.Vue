@@ -294,7 +294,6 @@ function receiveTx(address: Address, network: ViteNetwork) {
         </p>
         <p class="balance" v-if="item.balance">
           <span title="Click refresh balance" @click="receiveTx(item.address, network)">Balance: {{ item.balance }}</span>
-          <span class="codicon codicon-refresh" title="Click refresh balance" @click="receiveTx(item.address, network)"></span>
           <vscode-link v-if="network != ViteNetwork.Debug" @click="showQR(item.address)" title="Receive Token">Receive</vscode-link>
           <vscode-link @click="showSendToken(item.address)" title="Send Token">Send</vscode-link>
         </p>
@@ -395,7 +394,7 @@ function receiveTx(address: Address, network: ViteNetwork) {
 
 .address-info .balance {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: 1fr auto auto;
   column-gap: .5rem;
   align-items: center;
 }

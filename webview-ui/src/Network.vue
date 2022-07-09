@@ -10,6 +10,7 @@ import {
   vsCodeDivider,
 } from "@vscode/webview-ui-toolkit";
 import {
+  ref,
   reactive,
   onMounted,
   computed,
@@ -41,12 +42,6 @@ window.addEventListener("unload", ()=>{
 const nodesMap: Map<string, ViteNode> = new Map();
 const state = reactive({
   nodesMap,
-});
-const customNode = reactive({
-  name: "",
-  url: "",
-  network: ViteNetwork.Debug,
-  target: "",
 });
 
 function dataReceiver (ev: any) {
@@ -105,19 +100,41 @@ function reconnect(node: ViteNode) {
     },
   });
 }
+
+const customNodeTarget = ref("");
+const customNode = reactive({
+  name: "",
+  url: "",
+  network: ViteNetwork.Debug,
+  type: "",
+});
+
 function show(target: string, event: any) {
   event.preventDefault();
-  customNode.target = target;
+  customNodeTarget.value = target;
 }
 function hide(){
-  customNode.target = "";
+  customNodeTarget.value = "";
 }
-function save(){
+
+function saveNode(){
   vscode.postMessage({
     command: "saveCustomNode",
-    message: Object.assign({}, customNode),
+    message: {
+      node: Object.assign({}, customNode),
+      target: customNodeTarget.value,
+    }
   });
   hide();
+}
+function deleteNode(node: ViteNode) {
+  vscode.postMessage({
+    command: "deleteCustomNode",
+    message: {
+      node: Object.assign({}, node),
+    },
+  });
+  state.nodesMap.delete(node.name);
 }
 function getNodesListByNetwork(network: ViteNetwork) {
   const nodesList = Array.from(state.nodesMap.values())
@@ -141,7 +158,10 @@ function getNodesListByNetwork(network: ViteNetwork) {
     <section class="component-container nodes-list" v-for="network in ViteNetwork">
       <vscode-tag>{{ network }}</vscode-tag>
       <div class="component-item" v-for="node in getNodesListByNetwork(network)">
-        <p>{{node.name.slice(0,1).toUpperCase()}}{{node.name.slice(1)}}: {{ node.url }}</p>
+        <p class="node-url">
+          <span>{{node.name.slice(0,1).toUpperCase()}}{{node.name.slice(1)}}: {{ node.url }}</span>
+          <vscode-link v-if="!node.isDefault" @click="deleteNode(node)" title="Delete Vite Node">Delete</vscode-link>
+        </p>
         <p>Status: {{ node.status }}</p>
         <p v-show="node.info?.snapshotChainHeight">Snapshot height: {{ node.info?.snapshotChainHeight }}</p>
         <p v-show="node.error" :title="typeof node.error === 'object' ? JSON.stringify(node.error): node.error">Error: {{ node.error }}</p>
@@ -149,23 +169,30 @@ function getNodesListByNetwork(network: ViteNetwork) {
         <vscode-divider></vscode-divider>
       </div>
     </section>
-    <section v-if="customNode.target" class="component-container">
+    <section v-if="customNodeTarget" class="component-container">
       <div class="component-item">
-        <vscode-dropdown @change="customNode.network = $event.target.value">
-          <vscode-option v-for="network in ViteNetwork" :value="network">{{ network }}</vscode-option>
+        <vscode-dropdown @change="customNode.network = $event.target.value" title="custom node network">
+          <vscode-option v-for="network in ViteNetwork" :value="network">Node Network: {{ network }}</vscode-option>
+        </vscode-dropdown>
+      </div>
+      <div class="component-item">
+        <vscode-dropdown @change="customNode.type = $event.target.value" title="custom node type">
+          <vscode-option value="local">Node Type: Local</vscode-option>
+          <vscode-option value="remote">Node Type: Remote</vscode-option>
         </vscode-dropdown>
       </div>
       <div class="component-item">
         <vscode-text-field @input="customNode.name = $event.target.value" :value="customNode.name"
-          placeholder="Node Name"></vscode-text-field>
+          placeholder="Node Name" title="custom node name"></vscode-text-field>
       </div>
       <div class="component-item">
-        <vscode-text-field size="50" @input="customNode.url = $event.target.value" :value="customNode.url" placeholder="Node URL">
+        <vscode-text-field size="50" @input="customNode.url = $event.target.value" :value="customNode.url"
+         placeholder="Node URL" title="custom node url">
         </vscode-text-field>
       </div>
       <div class="component-item button-group">
         <vscode-button appearance="secondary" @click="hide()">Close</vscode-button>
-        <vscode-button @click="save()">Save to {{customNode.target }}</vscode-button>
+        <vscode-button @click="saveNode()">Save to {{customNodeTarget }}</vscode-button>
       </div>
     </section>
     <section class="component-container">
@@ -229,5 +256,18 @@ function getNodesListByNetwork(network: ViteNetwork) {
 
 .links {
   color: var(--vscode-foreground);
+}
+.node-url {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.node-url vscode-link {
+  display: none;
+}
+
+.node-url:hover vscode-link{
+  display: inline;
 }
 </style>

@@ -50,10 +50,11 @@ const state = reactive({
 
 const params = reactive({
   amount: 0,
-  unit: "vite",
+  amountUnit: "vite",
   responseLatency: 0,
   quotaMultiplier: 100,
   randomDegree: 0,
+  paramsStr: "",
 });
 
 function dataReceiver (ev: any) {
@@ -112,6 +113,7 @@ function deployContract() {
       params: Object.assign({}, params),
     }
   });
+  params.paramsStr = "";
 }
 </script>
 
@@ -122,7 +124,7 @@ function deployContract() {
         <vscode-text-field
           title="The amount of vite token is transferred by send create block which is used to create a contract. The basic unit of token is vite, the smallest unit is attov, 1 vite = 1e18 attov"
           @input="params.amount = $event.target.value" :value="params.amount">Amount</vscode-text-field>
-        <vscode-dropdown class="append" @change="params.unit = $event.target.value">
+        <vscode-dropdown class="append" @change="params.amountUnit = $event.target.value">
           <vscode-option v-for="unit in ['vite', 'attov']" :value="unit">{{unit}}</vscode-option>
         </vscode-dropdown>
       </div>
@@ -140,7 +142,7 @@ function deployContract() {
       </vscode-dropdown>
     </section>
     <section class="component-container">
-      <label class="dropdown-title">Select Address from {{ selectNetwork }} wallet</label>
+      <label class="dropdown-title">Select Address From {{ selectNetwork }} Wallet</label>
       <vscode-dropdown @change="state.selectedAddress = $event.target.value">
         <vscode-option v-for="addr in state.addressesList" :value="addr" :title="addr">{{ addr.slice(0, 10) }}...{{ addr.slice(50) }}</vscode-option>
       </vscode-dropdown>
@@ -150,6 +152,11 @@ function deployContract() {
       <vscode-dropdown @change="state.selectedContractIdx = $event.target.value">
         <vscode-option v-for="(item, idx) in state.contractsList" :value="idx">{{ item.name }} {{ item.sourceFileName }}</vscode-option>
       </vscode-dropdown>
+    </section>
+    <section class="component-container">
+      <vscode-text-field @input="params.paramsStr = $event.target.value" :value="params.paramsStr">
+      Optional Params(separated by comma)
+      </vscode-text-field>
     </section>
     <section class="component-container">
       <vscode-button @click="deployContract">

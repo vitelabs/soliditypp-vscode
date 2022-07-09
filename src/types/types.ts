@@ -47,6 +47,8 @@ export interface ViteNode {
   url: string;
   network: ViteNetwork;
   status: ViteNodeStatus;
+  type: "local" | "remote";
+  isDefault?: boolean;
   version?: string;
   info?: any;
   error?: any;

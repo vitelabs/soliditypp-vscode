@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { ViteNode } from "./types/types";
 import { log, vmLog } from "./util";
 
 export class Config {
@@ -37,7 +38,6 @@ export class Config {
     log.info("Using configuration", Object.fromEntries(cfg));
     
     vmLog.setEnabled(this.traceExtension);
-    vmLog.setDebugger(false);
   }
 
   private async onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent) {
@@ -137,6 +137,6 @@ export class Config {
   }
 
   get viteCustomNodes() {
-    return this.get<Array<{name:string; url:string; network:string}>>("vite.customNodes");
+    return this.get<ViteNode[]>("vite.customNodes");
   }
 }

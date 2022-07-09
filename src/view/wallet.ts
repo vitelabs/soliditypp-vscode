@@ -140,12 +140,13 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             try {
               if (amount) {
                 const ret = await sender.sendToken(toAddress, getAmount(amount));
-                this.ctx.vmLog.info(ret);
+                this.ctx.vmLog.info(`[sendToken]`,`[previousHash=${ret.previousHash}]`);
               }
               const receiverAddressObj = this.ctx.getAddressObj(toAddress);
               if (receiverAddressObj) {
                 const receiver = newAccount(receiverAddressObj!, provider);
                 await receiver.receiveAll();
+                this._onDidDeriveAddress.fire();
               }
             } catch (error:any) {
               this.ctx.vmLog.error(error.message);

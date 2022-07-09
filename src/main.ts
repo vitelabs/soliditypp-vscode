@@ -10,7 +10,6 @@ import { activateContractView } from "./view";
 export async function activate(context: vscode.ExtensionContext) {
   const config = new Config(context);
   const ctx = await Ctx.create(config, context);
-  await ctx.initWallet();
 
   // Add tasks
   activateTaskProvider(ctx);

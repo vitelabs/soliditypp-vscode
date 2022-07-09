@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
-
 import { getWebviewContent } from "./webview";
 import { MessageEvent, ViteNode, ViteNodeStatus } from "../types/types";
 import { Ctx } from "../ctx";
@@ -47,28 +46,26 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
           break;
         case "mounted":
           {
-            const viteNodesList = [];
-            for (const item of this.ctx.viteNodeMap.values()) {
-              viteNodesList.push(item);
-            }
             await this.postMessage({
               command: "setViteNode",
               message: {
-                viteNodesList,
+                viteNodesList: this.ctx.getViteNodesList(),
               }
             });
-            if (this.ctx.config.localGoViteAutoStart) {
-              await this.startLocalViteNode();
-            }
             await this.updateSnapshotChainHeight();
             timer = setInterval(async() => {
               await this.updateSnapshotChainHeight();
             }, 6000);
+            if (this.ctx.config.localGoViteAutoStart) {
+              await this.startLocalViteNode();
+            }
           }
           break;
         case "startLocalViteNode":
           await this.startLocalViteNode();
-          await this.updateSnapshotChainHeight();
+          setTimeout(async() => {
+            await this.updateSnapshotChainHeight();
+          }, 3000);
           break;
         case "stopLocalViteNode":
           await this.stopLocalViteNode();
@@ -76,32 +73,42 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
         case "reconnect":
           {
             const { name } = event.message;
-            const node = this.ctx.viteNodeMap.get(name);
+            const node = this.ctx.getViteNode(name);
             delete node?.error;
             node!.status = ViteNodeStatus.Syncing;
             this.ctx.resetProvider(name);
-            await this.updateSnapshotChainHeight();
+            setTimeout(async () => {
+              await this.updateSnapshotChainHeight();
+            }, 3000);
           }
           break;
         case "saveCustomNode":
           {
-            const { name, url, network, target } = event.message;
-            if (name && url && network) {
-              const found = this.ctx.config.viteCustomNodes.findIndex(item => item.name === name);
-              if (found === -1) {
-                // push new node
-                this.ctx.config.updateConfig("vite.customNodes", [{ name, url, network }, ...this.ctx.config.viteCustomNodes], target === "Global");
-              } else {
-                // update node
-                this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.map(item => {
-                  if (item.name === name) {
-                    return { name, url, network };
-                  } else {
-                    return item;
-                  }
-                }), target === "Global");
-              }
+            const { node, target } = event.message;
+            const found = this.ctx.config.viteCustomNodes.findIndex(item => item.name === node.name);
+            if (found === -1) {
+              // push new node
+              this.ctx.config.updateConfig("vite.customNodes", [node, ...this.ctx.config.viteCustomNodes], target === "Global");
+            } else {
+              // update node
+              this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.map(item => {
+                if (item.name === node.name) {
+                  return node;
+                } else {
+                  return item;
+                }
+              }), target === "Global");
             }
+          }
+          break;
+        case "deleteCustomNode":
+          {
+            this.ctx.log.debug(event);
+            const { node } = event.message;
+            // update global config
+            this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.filter(item => item.name !== node.name), true);
+            // update workspace config
+            this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.filter(item => item.name !== node.name), false);
           }
           break;
       }
@@ -120,7 +127,7 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
   }
 
   public dispose() {
-    this.localNodePid.stop();
+    this.localNodePid?.stop();
     while (this.disposables.length) {
       const disposable = this.disposables.pop();
       if (disposable) {
@@ -130,79 +137,85 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
   }
 
   public async startLocalViteNode() {
-    const node = this.ctx.viteNodeMap.get("local");
-    delete node?.error;
-    await this.postMessage({
-      command: "updateViteNode",
-      message: {
-        ...node,
-        status: ViteNodeStatus.Syncing
-      },
-    });
-    const nodeConfig = {
-      "nodes": {
-        "local": {
-          "name": "gvite",
-          "version": node!.version,
-          "http": node!.url
-        }
-      },
-      "defaultNode": "local"
-    };
-    this.localNodePid = await vuilder.startLocalNetwork(nodeConfig);
-    node!.status = ViteNodeStatus.Syncing;
-    this._onDidChangeNode.fire(node!);
-    return this.localNodePid;
+    const node = this.ctx.getViteNode("local");
+    if (node && node.type === "local") {
+      delete node?.error;
+      await this.postMessage({
+        command: "updateViteNode",
+        message: {
+          ...node,
+          status: ViteNodeStatus.Syncing
+        },
+      });
+      const nodeConfig = {
+        "nodes": {
+          "local": {
+            "name": "gvite",
+            "version": node!.version,
+            "http": node!.url
+          }
+        },
+        "defaultNode": "local"
+      };
+      this.localNodePid = await vuilder.startLocalNetwork(nodeConfig);
+      node!.status = ViteNodeStatus.Syncing;
+      this._onDidChangeNode.fire(node!);
+      return this.localNodePid;
+    }
   }
 
   public async stopLocalViteNode() {
-    const node = this.ctx.viteNodeMap.get("local");
-    delete node?.error;
-    node!.status = ViteNodeStatus.Stopped;
+    const node = this.ctx.getViteNode("local");
+    if (node && node.type === "local") {
+      delete node?.error;
+      node!.status = ViteNodeStatus.Stopped;
 
-    this.postMessage({
-      command: "updateViteNode",
-      message: node,
-    });
+      this.postMessage({
+        command: "updateViteNode",
+        message: node,
+      });
 
-    this._onDidChangeNode.fire(node!);
-    await this.localNodePid.stop();
+      this._onDidChangeNode.fire(node!);
+      await this.localNodePid.stop();
+    }
   }
 
   private async updateSnapshotChainHeight(): Promise<void> {
     for (const node of this.ctx.getViteNodesList()) {
       if (node.status === ViteNodeStatus.Running || node.status === ViteNodeStatus.Syncing) {
-        const provider = this.ctx.getProvider(node.name);
-        try {
-          const height = await provider.request("ledger_getSnapshotChainHeight");
-          if (node.status === ViteNodeStatus.Syncing) {
-            node.status = ViteNodeStatus.Running;
+        setTimeout(async() => {
+          try {
+            const provider = this.ctx.getProvider(node.name);
+            const height = await provider.request("ledger_getSnapshotChainHeight");
+            if (node.status === ViteNodeStatus.Syncing) {
+              node.status = ViteNodeStatus.Running;
+              await this.postMessage({
+                command: "updateViteNode",
+                message: node,
+              });
+              this._onDidChangeNode.fire(node);
+            }
+            await this.postMessage({
+              command: "updateSnapshotChainHeight",
+              message: {
+                nodeName: node.name,
+                height,
+              },
+            });
+          } catch (error: any) {
+            node.status = ViteNodeStatus.Timeout;
+            if (error.code) {
+              node.error = error;
+            } else {
+              node.error = error.message;
+            }
             await this.postMessage({
               command: "updateViteNode",
               message: node,
             });
             this._onDidChangeNode.fire(node);
           }
-          await this.postMessage({
-            command: "updateSnapshotChainHeight",
-            message: {
-              nodeName: node.name,
-              height,
-            },
-          });
-        } catch (error: any) {
-          node.status = ViteNodeStatus.Timeout;
-          if (error.code) {
-            node.error = error;
-          } else {
-            node.error = error.message;
-          }
-          await this.postMessage({
-            command: "updateViteNode",
-            message: node,
-          });
-          this._onDidChangeNode.fire(node);
-        }
+        }, 0);
       }
     }
   }

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { getUri } from "../util";
 
 export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri, entryName: string) {
   const codicon = getUri(webview, extensionUri, ["webview-ui", "public", "codicons", "codicon.css"]);
@@ -25,4 +24,8 @@ export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.
       </body>
     </html>
   `;
+}
+
+function getUri(webview: vscode.Webview, extensionUri: vscode.Uri, pathList: string[]) {
+  return webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...pathList));
 }

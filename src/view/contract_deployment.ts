@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
-/* eslint-disable-next-line */
 import { Ctx } from "../ctx";
 import { newAccount, getAmount } from "../util";
 import { getWebviewContent } from "./webview";
@@ -9,7 +8,6 @@ import {
   MessageEvent,
   ViteNetwork,
   ViteNodeStatus,
-  ViteNode,
 } from "../types/types";
 import { ContractItem } from "./contract_tree";
 import * as path from "path";
@@ -51,6 +49,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
           this.ctx.log[method](...msg, `[${this.constructor.name}]`);
           break;
         case "mounted":
+          // sync compiled contract list
           await vscode.commands.executeCommand("contract.refresh");
           this.updateDeps();
           break;
@@ -65,7 +64,6 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
           break;
         case "deployContract":
           {
-            this.ctx.log.debug(event);
             const {
               selectedNode,
               selectedAddress,
@@ -96,18 +94,18 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             const provider = this.ctx.getProvider(selectedNode.name);
             const addressObj = this.ctx.getAddressObj(selectedAddress);
             const deployer = newAccount(addressObj!, provider);
-            // const deployer = new vite.account.Account(addressObj!.address).setPrivateKey(addressObj!.privateKey).setProvider(provider);
 
             // set account and provider
             contract.setDeployer(deployer).setProvider(provider);
 
-            const amount = getAmount(params.amount, params.unit);
+            const amount = getAmount(params.amount, params.amountUnit);
             try {
               const ret = await contract.deploy({
                 responseLatency: params.responseLatency,
                 quotaMultiplier: params.quotaMultiplier,
                 randomDegree: params.randomDegree,
                 amount,
+                params: params.paramsStr.split(","),
               });
               this.ctx.vmLog.info(`Deployed ${selectedContract.name} at ${ret.address} on ${selectedNode.network}`);
               const deployinfo: DeployInfo = {
