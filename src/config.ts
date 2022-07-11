@@ -125,7 +125,9 @@ export class Config {
   }
 
   get viteDebugNet() {
-    return `http://127.0.0.1:${this.localGoViteHttpPort}`;
+    // TODO need vuilder to support
+    // return `http://127.0.0.1:${this.localGoViteHttpPort}`;
+    return "http://127.0.0.1:23456";
   }
 
   get viteTestNet() {

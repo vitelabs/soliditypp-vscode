@@ -239,7 +239,6 @@ export class ContractConsoleViewPanel {
     // subscribe vmlog
     try {
       const provider = this.ctx.getProviderByNetwork(deployInfo.network);
-      // this.ctx.vmLog.debug(provider);
       // const listener = await provider.subscribe("newAccountBlock");
       const listener = await provider.subscribe("newVmLog", {
         "addressHeightRange":{
