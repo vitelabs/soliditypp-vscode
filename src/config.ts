@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { ViteNode } from "./types/types";
 import { log, vmLog } from "./util";
+// const vuilder = require("@vite/vuilder");
 
 export class Config {
   readonly extensionId = "ViteLabs.solppdebugger";
@@ -19,7 +20,7 @@ export class Config {
 
   readonly globalStorageUri: vscode.Uri;
 
-  constructor(ctx: vscode.ExtensionContext) {
+  constructor(private readonly ctx: vscode.ExtensionContext) {
     this.globalStorageUri = ctx.globalStorageUri;
 
     vscode.workspace.onDidChangeConfiguration(
@@ -38,6 +39,10 @@ export class Config {
     log.info("Using configuration", Object.fromEntries(cfg));
     
     vmLog.setEnabled(this.traceExtension);
+
+    setTimeout(async() => {
+      await this.updateViteNodeConfig();
+    }, 0);
   }
 
   private async onDidChangeConfiguration(event: vscode.ConfigurationChangeEvent) {
@@ -70,6 +75,31 @@ export class Config {
 
   updateConfig(path: string, value: any, isGlobal: boolean = false) {
     this.cfg.update(path, value, isGlobal);
+  }
+  
+  private async updateViteNodeConfig() {
+    const config =  {
+      /* eslint-disable-next-line */
+      "PublicModules": [
+        "ledger",
+        "contract",
+        "subscribe"
+      ],
+      /* eslint-disable-next-line */
+      "HttpPort": this.localGoViteHttpPort,
+    };
+    // update vite node config
+    // TODO need vuilder to support
+    // vuilder.updateNodeConfig();
+
+    // workaround for vuilder
+    const file = vscode.Uri.joinPath(this.ctx.extensionUri, "node_modules", "@vite", "vuilder", "bin", "node_config.json");
+    const ret = await vscode.workspace.fs.readFile(file);
+    const defaultConfig = JSON.parse(ret.toString());
+
+    const newConfig = Object.assign({}, defaultConfig, config);
+    const writeData = Buffer.from(JSON.stringify(newConfig, null, 2), "utf8");
+    await vscode.workspace.fs.writeFile(file, writeData);
   }
 
   get traceExtension() {
@@ -125,9 +155,7 @@ export class Config {
   }
 
   get viteDebugNet() {
-    // TODO need vuilder to support
-    // return `http://127.0.0.1:${this.localGoViteHttpPort}`;
-    return "http://127.0.0.1:23456";
+    return `http://127.0.0.1:${this.localGoViteHttpPort}`;
   }
 
   get viteTestNet() {

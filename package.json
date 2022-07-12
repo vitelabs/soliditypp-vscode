@@ -348,7 +348,7 @@
       },
       {
         "command": "wallet.refresh",
-        "title": "Refresh Wallet Info",
+        "title": "Refresh Wallet",
         "category": "Soliditypp",
         "icon": "$(refresh)"
       }
