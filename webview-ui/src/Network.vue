@@ -163,9 +163,9 @@ function getNodesListByNetwork(network: ViteNetwork) {
           <vscode-link v-if="!node.isDefault" @click="deleteNode(node)" title="Delete Vite Node">Delete</vscode-link>
         </p>
         <p>Status: {{ node.status }}</p>
-        <p v-show="node.info?.snapshotChainHeight">Snapshot height: {{ node.info?.snapshotChainHeight }}</p>
-        <p v-show="node.error" :title="typeof node.error === 'object' ? JSON.stringify(node.error): node.error">Error: {{ node.error }}</p>
-        <vscode-button appearance="secondary" v-show="node.error && node.name != 'local'" @click="reconnect(node)">Reconnect</vscode-button>
+        <p v-if="node.info?.snapshotChainHeight">Snapshot height: {{ node.info?.snapshotChainHeight }}</p>
+        <p v-if="node.error" :title="typeof node.error === 'object' ? JSON.stringify(node.error): node.error">Error: {{ node.error }}</p>
+        <vscode-button appearance="secondary" v-if="node.error && node.name != 'local'" @click="reconnect(node)">Reconnect</vscode-button>
         <vscode-divider></vscode-divider>
       </div>
     </section>

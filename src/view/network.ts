@@ -13,6 +13,7 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
   private _onDidChangeNode = new vscode.EventEmitter<ViteNode>();
   readonly onDidChangeNode: vscode.Event<ViteNode> = this._onDidChangeNode.event;
   private localNodePid: any;
+  private requestingSet: Set<string> = new Set();
 
   constructor(private readonly ctx: Ctx) {
   }
@@ -103,7 +104,6 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
           break;
         case "deleteCustomNode":
           {
-            this.ctx.log.debug(event);
             const { node } = event.message;
             // update global config
             this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.filter(item => item.name !== node.name), true);
@@ -182,11 +182,16 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
 
   private async updateSnapshotChainHeight(): Promise<void> {
     for (const node of this.ctx.getViteNodesList()) {
+      if (this.requestingSet.has(node.name)) {
+        return;
+      }
       if (node.status === ViteNodeStatus.Running || node.status === ViteNodeStatus.Syncing) {
         setTimeout(async() => {
           try {
             const provider = this.ctx.getProvider(node.name);
+            this.requestingSet.add(node.name);
             const height = await provider.request("ledger_getSnapshotChainHeight");
+            this.requestingSet.delete(node.name);
             if (node.status === ViteNodeStatus.Syncing) {
               node.status = ViteNodeStatus.Running;
               await this.postMessage({
@@ -203,6 +208,8 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
               },
             });
           } catch (error: any) {
+            this.ctx.log.debug("[request]", node.url, "[response]", error);
+            this.requestingSet.delete(node.name);
             node.status = ViteNodeStatus.Timeout;
             if (error.code) {
               node.error = error;

@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 const vite = require("@vite/vitejs");
+const vuilder = require("@vite/vuilder");
 import { getWebviewContent } from "./webview";
 import { Address, MessageEvent, ViteNetwork, ViteNodeStatus, Vite_TokenId, Vite_Token_Info } from "../types/types";
 import { Ctx } from "../ctx";
@@ -60,11 +61,9 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
               message: addressList,
             });
 
-            setInterval(()=> {
-              for (const network of [ViteNetwork.Debug, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
-                this.updateAddressInfo(network);
-              }
-            }, 5000);
+            for (const network of [ViteNetwork.Debug, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
+              await this.refresh(network);
+            }
 
             this._onDidDeriveAddress.fire();
           }
@@ -106,7 +105,6 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           break;
         case "setMnemonic":
           {
-            this.ctx.log.debug(event);
             const { network, mnemonic } = event.message;
             if (network === ViteNetwork.TestNet) {
               this.ctx.testNetWallet = mnemonic;
@@ -139,31 +137,39 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
 
             try {
               if (amount) {
-                const ret = await sender.sendToken(toAddress, getAmount(amount));
-                this.ctx.vmLog.info(`[sendToken]`,`[previousHash=${ret.previousHash}]`);
-              }
-              const receiverAddressObj = this.ctx.getAddressObj(toAddress);
-              if (receiverAddressObj) {
-                const receiver = newAccount(receiverAddressObj!, provider);
-                await receiver.receiveAll();
+                this.ctx.vmLog.info(`[sendToken][from=${fromAddress}][to=${toAddress}][amount=${amount}]`);
+                let sendBlock = await sender.sendToken(toAddress, getAmount(amount));
+
+                // get account block
+                await vuilder.utils.waitFor(async () => {
+                  const blocks = await provider.request("ledger_getAccountBlocksByAddress", fromAddress, 0, 3);
+                  for (const block of blocks) {
+                    if (block.previousHash === sendBlock.previousHash) {
+                      sendBlock = block;
+                      this.ctx.vmLog.info(`[sendToken][sendBlock=${sendBlock.hash}]`, sendBlock);
+                      return true;
+                    }
+                  }
+                  return false;
+                });
+
+                // waiting confirmed
+                await vuilder.utils.waitFor(async () => {
+                  if (sendBlock.confirmedHash) {
+                    this.ctx.vmLog.info(`[sendToken][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                    return true;
+                  }
+                  sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                  return false;
+                });
+
+                await this.receiveTx(toAddress, network);
+                await this.updateAddressInfo(network);
+                // NOTE: sync balance and quota
                 this._onDidDeriveAddress.fire();
               }
             } catch (error:any) {
-              this.ctx.vmLog.error(error.message);
-            }
-          }
-          break;
-        case "receiveTx":
-          {
-            const { address, network } = event.message;
-            const provider = this.ctx.getProviderByNetwork(network);
-            const receiverAddressObj = this.ctx.getAddressObj(address);
-            this.ctx.log.debug(receiverAddressObj);
-            const receiver = newAccount(receiverAddressObj!, provider);
-            try {
-              await receiver.receiveAll();
-            } catch (error:any) {
-              this.ctx.vmLog.error(error.message);
+              this.ctx.vmLog.error(error);
             }
           }
           break;
@@ -193,17 +199,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
   }
 
   async updateAddressInfo(network: ViteNetwork, address?: Address) {
-    const nodesList = this.ctx.getViteNodesList(network);
-    let provider;
-    for (const node of nodesList) {
-      if (node.status === ViteNodeStatus.Running) {
-        provider = this.ctx.getProvider(node.name);
-      }
-    }
-
-    if (!provider) {
-     return;
-    }
+    const provider = this.ctx.getProviderByNetwork(network);
 
     let addressList = [];
     if (address) {
@@ -213,9 +209,10 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
     }
     for (const address of addressList) {
       try {
-        const quotaInfo = await provider.request('contract_getQuotaByAccount', address);
+        const quotaInfo = await provider.request("contract_getQuotaByAccount", address);
         const balanceInfo = await provider.getBalanceInfo(address);
         const balance = balanceInfo.balance.balanceInfoMap?.[Vite_TokenId]?.balance;
+        const unreceivedBlocks = await provider.request("ledger_getUnreceivedBlocksByAddress", address, 0, 10);
         this.postMessage({
           command: "updateAddressInfo",
           message: {
@@ -223,11 +220,65 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             network,
             quota: quotaInfo.currentQuota,
             balance: balance ? balance.slice(0, balance.length - Vite_Token_Info.decimals) : '0',
+            unreceived: unreceivedBlocks.length,
           }
         });
       } catch (error) {
-        this.ctx.log.debug(error);
+        this.ctx.log.error(error);
       }
     }
+  }
+
+  async receiveTx(address: Address, network: ViteNetwork) {
+    const provider = this.ctx.getProviderByNetwork(network);
+    const receiverAddressObj = this.ctx.getAddressObj(address);
+    const receiver = newAccount(receiverAddressObj!, provider);
+    if (receiverAddressObj) {
+      const blocks = await provider.request("ledger_getUnreceivedBlocksByAddress", address, 0, 10);
+      for (const block of blocks) {
+        this.ctx.vmLog.info(`[receiveToken][UnreceivedBlock=${block.hash}]`, block);
+        let receiveBlock = receiver.receive({
+          sendBlockHash: block.hash,
+        });
+        try {
+          receiveBlock = await receiveBlock.autoSend();
+          this.ctx.vmLog.info(`[receiveToken][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+
+          // waiting confirmed
+          await vuilder.utils.waitFor(async () => {
+            if (receiveBlock.confirmedHash) {
+              this.ctx.vmLog.info(`[receiveToken][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
+              return true;
+            }
+            receiveBlock = await provider.request("ledger_getAccountBlockByHash", receiveBlock.hash);
+            return false;
+          });
+        } catch (error: any) {
+          this.ctx.vmLog.info(`[receiveToken][receiveBlock=${receiveBlock.hash}]`, error);
+        }
+      }
+    }
+  }
+
+  async refresh(network: ViteNetwork){
+    const nodesList = this.ctx.getViteNodesList(network);
+    let hasRunningNode = false;
+    for (const node of nodesList) {
+      if (node.status === ViteNodeStatus.Running) {
+        hasRunningNode = true;
+      }
+    }
+    if (!hasRunningNode) {
+      setTimeout(() => {
+        this.refresh(network);
+      } , 1000);
+      return;
+    }
+
+    const addressList = this.ctx.getAddressList(network);
+    for (const address of addressList) {
+      await this.receiveTx(address, network);
+    }
+    await this.updateAddressInfo(network);
   }
 }

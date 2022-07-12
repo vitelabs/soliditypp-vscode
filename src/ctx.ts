@@ -133,11 +133,11 @@ export class Ctx {
     let provider;
     if (url.startsWith("http")) {
       provider = new vite.ViteAPI(new vite.HTTP_RPC(url), () => {
-        this.log.debug(url, "Connected");
+        this.log.info("New Vite provider from", url);
       });
     } else {
       provider = new vite.ViteAPI(new vite.WS_RPC(url), () => {
-        this.log.debug(url, "Connected");
+        this.log.info("New Vite provider from", url);
       }, new viteConnectHandler.RenewSubscription(Number.MAX_VALUE));
     }
     this.cache.set(id, provider);
@@ -279,7 +279,10 @@ export class Ctx {
       id = ADDRESS_LIST_KEY.MainNet;
     }
     const addressList = this.cache.get(id);
-    this.cache.set(id, [...(addressList ?? []), addressObj.address]);
+    const found = addressList?.find((x: Address) => x === addressObj.address);
+    if (!found) {
+      this.cache.set(id, [...(addressList ?? []), addressObj.address]);
+    }
     return addressObj;
   }
 
@@ -339,7 +342,7 @@ export class Ctx {
         outputFile.write(`${id} ${address}\n`);
         outputFile.end();
       } catch (error) {
-        this.log.debug(error);
+        this.log.error(error);
       }
     }
     vscode.commands.executeCommand("contract.refresh");
@@ -381,6 +384,7 @@ export class Ctx {
       }
       return ret;
     } catch (error) {
+      this.log.error(error);
     }
     return;
   }

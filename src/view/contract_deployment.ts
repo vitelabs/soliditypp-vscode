@@ -84,41 +84,70 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               return;
             }
 
-            // create contract
-            const contract = new vuilder.Contract(
-              selectedContract.name,
-              bytecode,
-              abi,
-            );
-
             const provider = this.ctx.getProvider(selectedNode.name);
             const addressObj = this.ctx.getAddressObj(selectedAddress);
             const deployer = newAccount(addressObj!, provider);
-
-            // set account and provider
-            contract.setDeployer(deployer).setProvider(provider);
-
             const amount = getAmount(params.amount, params.amountUnit);
+            const paramsObj = {
+              quotaMultiplier: params.quotaMultiplier.toString(),
+              randomDegree: params.randomDegree.toString(),
+              responseLatency: params.responseLatency.toString(),
+              params: params.paramsStr.split(","),
+            };
+
+            this.ctx.vmLog.info(`[${selectedContract.name}][deploy][request]`, {
+              params: paramsObj,
+              amount,
+              network: this.selectedNetwork,
+              node: selectedNode.url,
+              deployer: selectedAddress,
+            });
+
             try {
-              const ret = await contract.deploy({
-                responseLatency: params.responseLatency,
-                quotaMultiplier: params.quotaMultiplier,
-                randomDegree: params.randomDegree,
-                amount,
-                params: params.paramsStr.split(","),
+              // deployment account block
+              const ab = deployer.createContract({
+                abi: abi,
+                code: bytecode,
+                ...paramsObj,
               });
-              this.ctx.vmLog.info(`Deployed ${selectedContract.name} at ${ret.address} on ${selectedNode.network}`);
-              const deployinfo: DeployInfo = {
-                contractName: selectedContract.name,
-                address: ret.address,
-                contractFsPath: selectedContract.fsPath,
-                sourceFsPath: selectedContract.sourcefsPath,
-                network: selectedNode.network,
-                abi,
-              };
-              this.ctx.updateDeploymentRecord(contractFile, this.selectedNetwork, ret.address);
-              // render console webview
-              ContractConsoleViewPanel.render(this.ctx, deployinfo);
+              // set amount
+              ab.amount = getAmount(params.amount, params.amountUnit);
+              // deploying
+              let sendBlock = await ab.autoSend();
+              this.ctx.vmLog.info(`[${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
+              // waiting confirmed
+              await vuilder.utils.waitFor(async() => {
+                try {
+                  sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                  if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
+                    return false;
+                  }
+                  this.ctx.vmLog.info(`[${selectedContract.name}][deploy][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                  return true;
+                } catch (error) {
+                  this.ctx.vmLog.error(`[${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, error);
+                  return true;
+                }
+              });
+              // get receive block
+              const receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
+              this.ctx.vmLog.info(`[${selectedContract.name}][deploy][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+              if (receiveBlock?.blockType !== 4) {
+                this.ctx.vmLog.error(`[${selectedContract.name}]`, "contract deployment failed:");
+              } else {
+                this.ctx.vmLog.info(`[${selectedContract.name}][deploy][response]`, `contract deployed at ${sendBlock.toAddress}`);
+                const deployinfo: DeployInfo = {
+                  contractName: selectedContract.name,
+                  address: sendBlock.toAddress,
+                  contractFsPath: selectedContract.fsPath,
+                  sourceFsPath: selectedContract.sourcefsPath,
+                  network: selectedNode.network,
+                  abi,
+                };
+                this.ctx.updateDeploymentRecord(contractFile, this.selectedNetwork, sendBlock.toAddress);
+                // render console webview
+                ContractConsoleViewPanel.render(this.ctx, deployinfo);
+              }
             } catch (error) {
               this.ctx.vmLog.error(error);
             }

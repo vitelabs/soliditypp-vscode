@@ -23,7 +23,7 @@ export class Log {
   protected readonly output: vscode.OutputChannel;
 
   constructor(outputName: string) {
-    this.output = vscode.window.createOutputChannel(outputName);
+    this.output = vscode.window.createOutputChannel(outputName, "log");
   }
 
   setEnabled(yes: boolean): void {
@@ -41,12 +41,12 @@ export class Log {
   }
 
   warn(...msg: [unknown, ...unknown[]]): void {
-    debugger;
+    // debugger;
     this.write("WARN", ...msg);
   }
 
   error(...msg: [unknown, ...unknown[]]): void {
-    debugger;
+    // debugger;
     this.write("ERROR", ...msg);
     this.output.show(true);
   }
@@ -75,10 +75,6 @@ export class Log {
 export const log = new Log("Soliditypp Debugger Client");
 
 class VmLog extends Log {
-  warn(...msg: [unknown, ...unknown[]]): void {
-    this.write("WARN", ...msg);
-  }
-
   error(...msg: [unknown, ...unknown[]]): void {
     if (this.enabled) {
       this.write("ERROR", ...msg);
@@ -88,6 +84,7 @@ class VmLog extends Log {
     this.output.show(true);
   }
 }
+
 export const vmLog = new VmLog("VITE VM Log");
 
 export function sleep(ms: number) {
@@ -178,11 +175,11 @@ export function newAccount(addressObj: AddressObj, provider: any) {
   return a;
 }
 
-export function getAmount(amount: string, unit = "VITE") {
-  if (amount && unit.toUpperCase() === "VITE") {
+export function getAmount(amount: string | number, unit?:string) {
+  if (amount && (unit === undefined || unit.toUpperCase() === "VITE")) {
     return new BigNumber(amount).multipliedBy(VITE_DECIMAL).toFixed();
   } else {
-    return amount ?? '0';
+    return amount ? amount.toString() : '0';
   }
 }
 

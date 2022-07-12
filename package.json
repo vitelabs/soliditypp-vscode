@@ -75,8 +75,8 @@
           ".sol"
         ],
         "aliases": [
-          "soliditypp",
-          "solidity++"
+          "Solidity++",
+          "Soliditypp"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -332,7 +332,7 @@
       },
       {
         "command": "contract.refresh",
-        "title": "Refresh",
+        "title": "Refresh Contract Tree",
         "category": "Soliditypp",
         "icon": "$(refresh)"
       },
@@ -345,6 +345,12 @@
         "command": "contract.stopLocalViteNode",
         "title": "Stop the Local Vite Node",
         "category": "Soliditypp"
+      },
+      {
+        "command": "wallet.refresh",
+        "title": "Refresh Wallet Info",
+        "category": "Soliditypp",
+        "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {
@@ -395,6 +401,11 @@
         {
           "command": "contract.refresh",
           "when": "view == ContractTreeDataView",
+          "group": "navigation"
+        },
+        {
+          "command": "wallet.refresh",
+          "when": "view == ViteWalletView",
           "group": "navigation"
         }
       ],

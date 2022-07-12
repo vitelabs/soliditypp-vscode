@@ -17,8 +17,9 @@ import {
 } from "vue";
 import { vscode } from "./vscode";
 import type { ABIItem, DeployInfo, Address } from "./types";
-import Ctor from "./components/Ctor.vue"
-import Func from "./components/Func.vue"
+import Ctor from "./components/Ctor.vue";
+import Func from "./components/Func.vue";
+import Event from "./components/Event.vue";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -108,6 +109,30 @@ function dataReceiver (ev: any) {
         }
       }
       break;
+    case "eventResult":
+      {
+        const { ret, event, contractAddress } = data.message;
+        const contract: any = state.deployedList.find(item => item.address === contractAddress);
+        for (const abi of contract.abi) {
+          if (abi.name === event.name && abi.type === event.type) {
+            abi.inputs.forEach((input:any, idx:number) => {
+              input.value = ret[idx];
+            });
+          }
+        }
+      }
+      break;
+    case "callResult":
+      {
+        const { sendBlock, func, contractAddress } = data.message;
+        const contract: any = state.deployedList.find(item => item.address === contractAddress);
+        for (const abi of contract.abi) {
+          if (abi.name === func.name && abi.type === func.type && abi.stateMutability === func.stateMutability) {
+            abi.confirmedHash = sendBlock.confirmedHash;
+          }
+        }
+      }
+      break;
   }
 }
 
@@ -141,6 +166,9 @@ function getFuncDeclarations(abi: ABIItem[]): ABIItem[]  {
   return abi.filter((x: any) => x.type === "function");
 }
 
+function getEventDeclarations(abi: ABIItem[]): ABIItem[]  {
+  return abi.filter((x: any) => x.type === "event");
+}
 
 function send(ctor: ABIItem, info: DeployInfo) {
   vscode.postMessage({
@@ -190,9 +218,6 @@ function call(func: ABIItem, info: DeployInfo) {
   });
 }
 
-function handle(...args: any[]) {
-  vscode.log.debug(JSON.parse(JSON.stringify(args)));
-}
 </script>
 
 <template>
@@ -225,6 +250,7 @@ function handle(...args: any[]) {
 
           <Ctor v-for="ctor in getCtorDeclarations(item.abi)" :ctor="ctor" @send="send(ctor, item)"></Ctor>
           <Func v-for="(func, idx) in getFuncDeclarations(item.abi)" :func="func" :key="idx" @call="call(func, item)" @query="query(func, item)"></Func>
+          <Event v-for="(event, idx) in getEventDeclarations(item.abi)" :event="event" :key="idx" ></Event>
 
         </div>
       </vscode-panel-view>
@@ -242,6 +268,7 @@ function handle(...args: any[]) {
 
       <Ctor v-for="ctor in getCtorDeclarations(item.abi)" :ctor="ctor" @send="send(ctor, item)"></Ctor>
       <Func v-for="(func, idx) in getFuncDeclarations(item.abi)" :func="func" :key="idx" @call="call(func, item)" @query="query(func, item)"></Func>
+      <Event v-for="(event, idx) in getEventDeclarations(item.abi)" :event="event" :key="idx" ></Event>
 
       <vscode-divider></vscode-divider>
     </section>

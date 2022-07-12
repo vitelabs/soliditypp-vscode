@@ -254,4 +254,12 @@ export function activateContractView(ctx: Ctx): void {
       await networkProvider.stopLocalViteNode();
     })
   );
+
+  ctx.pushCleanup(
+    vscode.commands.registerCommand("wallet.refresh", ()=>{
+      for (const network of [ViteNetwork.Debug, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
+        walletProvider.refresh(network);
+      }
+    })
+  );
 }

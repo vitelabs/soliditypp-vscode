@@ -9,6 +9,7 @@ import {
   vsCodeDivider,
   vsCodeLink,
   vsCodeTextField,
+  vsCodeBadge,
 } from "@vscode/webview-ui-toolkit";
 import {
   ref,
@@ -30,6 +31,7 @@ provideVSCodeDesignSystem().register(
   vsCodeDivider(),
   vsCodeLink(),
   vsCodeTextField(),
+  vsCodeBadge(),
 );
 
 onMounted(()=>{
@@ -110,13 +112,14 @@ function dataReceiver (ev: any) {
       break;
     case "updateAddressInfo": 
       {
-        const { address, network, balance, quota } = data.message;
+        const { address, network, balance, quota, unreceived } = data.message;
         if (network === ViteNetwork.Debug) {
           state.debugAddressMap.set(address, {
             address,
             network,
             balance,
             quota,
+            unreceived,
           });
         } else if (network === ViteNetwork.TestNet) {
           state.testNetAddressMap.set(address, {
@@ -124,6 +127,7 @@ function dataReceiver (ev: any) {
             network,
             balance,
             quota,
+            unreceived,
           });
         } else if (network === ViteNetwork.MainNet) {
           state.mainNetAddressMap.set(address, {
@@ -131,6 +135,7 @@ function dataReceiver (ev: any) {
             network,
             balance,
             quota,
+            unreceived,
           });
         }
       }
@@ -293,7 +298,10 @@ function receiveTx(address: Address, network: ViteNetwork) {
           <span class="codicon codicon-copy" title="Copy"></span>
         </p>
         <p class="balance" v-if="item.balance">
-          <span title="Click refresh balance" @click="receiveTx(item.address, network)">Balance: {{ item.balance }}</span>
+          <span>
+            Balance: {{ item.balance }}
+            <vscode-badge v-if="item.unreceived" :title="item.unreceived + ' unreceived transactions'">{{ item.unreceived }}</vscode-badge>
+          </span>
           <vscode-link v-if="network != ViteNetwork.Debug" @click="showQR(item.address)" title="Receive Token">Receive</vscode-link>
           <vscode-link @click="showSendToken(item.address)" title="Send Token">Send</vscode-link>
         </p>
@@ -450,4 +458,7 @@ vscode-text-area{
   display: block;
  }
 
+vscode-badge{
+  transform: scale(0.8);
+}
 </style>

@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
+const vite = require("@vite/vitejs");
 import { Ctx } from "../ctx";
 import { newAccount, getAmount } from "../util";
 import { getWebviewContent } from "./webview";
@@ -25,7 +26,7 @@ export class ContractConsoleViewPanel {
   static readonly onDidCallContract: vscode.Event<any> = this._onDidCallContract.event;
 
   private currentNetwork: ViteNetwork = ViteNetwork.Debug;
-  private contractMap: Map<Address, any> = new Map();
+  private deployeInfoMap: Map<Address, DeployInfo> = new Map();
 
   private constructor(panel: vscode.WebviewPanel, private readonly ctx: Ctx, deployInfo: DeployInfo) {
     this._panel = panel;
@@ -62,10 +63,9 @@ export class ContractConsoleViewPanel {
             const provider = this.ctx.getProviderByNetwork(network);
             const addressObj = this.ctx.getAddressObj(fromAddress);
             const operator = newAccount(addressObj!, provider);
-            // const amount = getAmount(ctor.amount);
             try {
               const ret = await operator.sendToken(toAddress, ctor.amount, ctor.tokenId);
-              this.ctx.vmLog.info(`[${contractName}][send()][previousHash=${ret.previousHash}]`);
+              this.ctx.vmLog.info(`[${contractName}][send()][previousHash=${ret.previousHash}]`, ret);
 
               await this.updateAddressList();
             } catch (error: any) {
@@ -78,31 +78,43 @@ export class ContractConsoleViewPanel {
           {
             const { fromAddress, toAddress, network, contractFile, func } = event.message;
             const contractName = contractFile.fragment;
-            // get provider and operator
+            // get provider
             const provider = this.ctx.getProviderByNetwork(network);
-            const addressObj = this.ctx.getAddressObj(fromAddress);
-            const operator = newAccount(addressObj!, provider);
-
-            // get contract
-            const contract = this.contractMap.get(toAddress);
-            // set operator and provider
-            contract.setDeployer(operator).setProvider(provider);
-
             // get inputs value
             const params = func.inputs.map((x: any) => x.value);
+            const data = vite.abi.encodeFunctionCall(func, params);
+            this.ctx.vmLog.info(`[${contractName}][query ${func.name}()][request]`, {
+              params,
+              contractAddress: toAddress,
+              network,
+            });
 
             try {
-              const ret = await contract.query(func.name, params);
-              this.ctx.vmLog.info(`[${contractName}][query ${func.name}()]`, ret);
-              this.postMessage({
-                command: "queryResult",
-                message: {
-                  ret,
-                  func,
-                  contractAddress: toAddress,
+              await vuilder.utils.waitFor(async() => {
+                const rawRet = await provider.request("contract_query", {
+                  address: toAddress,
+                  data: Buffer.from(data, "hex").toString("base64"),
+                });
+                if (rawRet) {
+                  const ret = vite.abi.decodeParameters(
+                    func.outputs.map((x: any)=>x.type),
+                    Buffer.from(rawRet, "base64").toString("hex"),
+                  );
+                  this.ctx.vmLog.info(`[${contractName}][query ${func.name}()][response]`, ret);
+                  this.postMessage({
+                    command: "queryResult",
+                    message: {
+                      ret,
+                      func,
+                      contractAddress: toAddress,
+                    }
+                  });
+                  await this.updateAddressList();
+                  return true;
+                } else {
+                  return false;
                 }
-              });
-              await this.updateAddressList();
+              }, "", 500);
             } catch (error:any) {
               this.ctx.vmLog.error(`[${contractName}][query ${func.name}()]`, error); 
             }
@@ -117,19 +129,76 @@ export class ContractConsoleViewPanel {
             const provider = this.ctx.getProviderByNetwork(network);
             const addressObj = this.ctx.getAddressObj(fromAddress);
             const operator = newAccount(addressObj!, provider);
-
-            // get contract
-            const contract = this.contractMap.get(toAddress);
-            // set operator and provider
-            contract.setDeployer(operator).setProvider(provider);
-
             // get inputs value
             const params = func.inputs.map((x: any) => x.value);
             const amount = getAmount(func.amount, func.amountUnit ?? "VITE");
 
+            this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][request]`, {
+              params,
+              amount,
+              network,
+              operator: fromAddress,
+              contractAddress: toAddress,
+            });
+
             try {
-              const ret = await contract.call(func.name, params, { amount });
-              this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][hash=${ret.hash}]`);
+              let sendBlock = operator.callContract({
+                abi: func,
+                toAddress,
+                params,
+                tokenId: Vite_TokenId,
+                amount,
+              });
+              sendBlock = await sendBlock.autoSend();
+              this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][sendBlock=${sendBlock.hash}]`, sendBlock);
+
+              // waiting confirmed
+              await vuilder.utils.waitFor(async() => {
+                try {
+                  sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                  if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
+                    return false;
+                  }
+                  this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                  this.postMessage({
+                    command: "callResult",
+                    message: {
+                      sendBlock,
+                      func,
+                      contractAddress: toAddress,
+                    }
+                  });
+                  return true;
+                } catch (error) {
+                  this.ctx.vmLog.error(`[${contractName}][call ${func.name}()][sendBlock=${sendBlock.hash}]`, error);
+                  return true;
+                }
+              });
+              // get receive block
+              const receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
+
+              if(!receiveBlock) {
+                throw new Error("receive block not found");
+              } else {
+                this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+              }
+              if (receiveBlock.blockType !== 4 && receiveBlock.blockType !== 5 || !receiveBlock.data) {
+                throw new Error("bad recieve block");
+              }
+              const data = receiveBlock.data;
+              const bytes = Buffer.from(data, "base64");
+              if (bytes.length !== 33) {
+                throw new Error("bad data in recieve block");
+              }
+              // parse error code from data in receive block
+              const errorCode = bytes[32];
+              switch (errorCode) {
+                case 1:
+                  throw new Error(`revert, methodName: ${func.name}`); // @todo: need error descriptions and debug info from RPC
+                case 2:
+                  throw new Error(`maximum call stack size exceeded, methodName: ${func.name}`);
+              }
+
               await this.updateAddressList();
             } catch (error:any) {
               this.ctx.vmLog.error(`[${contractName}][call ${func.name}()]`, error); 
@@ -197,7 +266,7 @@ export class ContractConsoleViewPanel {
   }
 
   private clear() {
-    this.contractMap.clear();
+    this.deployeInfoMap.clear();
     const provider = this.ctx.getProviderByNetwork(this.currentNetwork);
     provider.unsubscribeAll();
   }
@@ -213,22 +282,12 @@ export class ContractConsoleViewPanel {
       this.currentNetwork = deployInfo.network;
     }
 
-    if (this.contractMap.has(deployInfo.address)) {
+    if (this.deployeInfoMap.has(deployInfo.address)) {
       return;
     }
 
-    const contractFile = vscode.Uri.parse(deployInfo.contractFsPath).with({ fragment: deployInfo.contractName });
-    const compileResult: any = await this.ctx.getCompileResult(contractFile);
-
-    // create contract
-    const contract = new vuilder.Contract(
-      deployInfo.contractName,
-      compileResult.bytecode,
-      compileResult.abi,
-    );
-
-    contract.attach(deployInfo.address);
-    this.contractMap.set(deployInfo.address, contract);
+    // store to map
+    this.deployeInfoMap.set(deployInfo.address, deployInfo);
 
     // push to webview
     await this.postMessage({
@@ -236,10 +295,10 @@ export class ContractConsoleViewPanel {
       message: deployInfo,
     });
 
+    const provider = this.ctx.getProviderByNetwork(deployInfo.network);
+
     // subscribe vmlog
     try {
-      const provider = this.ctx.getProviderByNetwork(deployInfo.network);
-      // const listener = await provider.subscribe("newAccountBlock");
       const listener = await provider.subscribe("newVmLog", {
         "addressHeightRange":{
           [deployInfo.address]:{
@@ -248,14 +307,38 @@ export class ContractConsoleViewPanel {
           }
         }
       });
-
       listener.on(async (events: any[]) => {
         for (const event of events) {
-          this.ctx.vmLog.info(`[${deployInfo.contractName}]`, event);
+          this.ctx.vmLog.info(`[${deployInfo.contractName}][subscribe][newVmLog=${deployInfo.address}]`, event);
+          const topics = event.vmlog?.topics;
+          for (let abiItem of deployInfo.abi) {
+            let signature = vite.abi.encodeLogSignature(abiItem);
+            if (abiItem.type === "event" && signature === topics[0]) { 
+              let dataHex;
+              if (event.vmlog.data) {
+                dataHex = Buffer.from(event.vmlog.data, "base64").toString("hex");
+              }
+              let ret = vite.abi.decodeLog(
+                abiItem,
+                dataHex,
+                topics
+              );
+              this.postMessage({
+                command: "eventResult",
+                message: {
+                  ret,
+                  event: abiItem,
+                  contractAddress: deployInfo.address,
+                }
+              });
+              this.ctx.vmLog.info(`[${deployInfo.contractName}][subscribe][newVmLog=${deployInfo.address}][decode]`, ret);
+            }
+          }
         }
       });
+
     } catch (error) {
-      this.ctx.vmLog.error(`[${deployInfo.contractName}]`, error);
+      this.ctx.vmLog.error(`[subscribe][newVmLog=${deployInfo.contractName}]`, error);
     }
   }
 

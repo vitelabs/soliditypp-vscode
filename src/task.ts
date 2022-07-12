@@ -255,7 +255,7 @@ class SolppcTaskProvider implements vscode.TaskProvider {
         };
         diagnostics.push(diagnostic);
       } catch (e) {
-        // log.debug(e);
+        this.ctx.log.error(e);
         const errSeverity = err.severity === 'error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
         const diagnostic: vscode.Diagnostic = {
           severity: errSeverity,
