@@ -287,7 +287,7 @@ export class Ctx {
   }
 
   getAddressList(network: ViteNetwork): Address[] {
-    return this.cache.get(ADDRESS_LIST_KEY[network]);
+    return this.cache.get(ADDRESS_LIST_KEY[network]) ?? [];
   }
 
   getAddressObj(address: string): AddressObj | undefined {
