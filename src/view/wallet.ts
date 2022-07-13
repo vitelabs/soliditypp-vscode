@@ -199,7 +199,17 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
   }
 
   async updateAddressInfo(network: ViteNetwork, address?: Address) {
-    const provider = this.ctx.getProviderByNetwork(network);
+    const nodesList = this.ctx.getViteNodesList(network);
+    let provider;
+    for (const node of nodesList) {
+      if (node.status === ViteNodeStatus.Running) {
+        provider = this.ctx.getProvider(node.name);
+      }
+    }
+
+    if (!provider) {
+     return;
+    }
 
     let addressList = [];
     if (address) {

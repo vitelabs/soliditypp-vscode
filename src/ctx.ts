@@ -75,7 +75,6 @@ export class Ctx {
       }
       this.viteNodeMap.set(node.name, node);
     }
-    this.log.debug("Vite nodes", this.viteNodeMap.values());
   }
 
   static async create(

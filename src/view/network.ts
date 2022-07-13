@@ -86,30 +86,41 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
         case "saveCustomNode":
           {
             const { node, target } = event.message;
-            const found = this.ctx.config.viteCustomNodes.findIndex(item => item.name === node.name);
-            if (found === -1) {
-              // push new node
-              this.ctx.config.updateConfig("vite.customNodes", [node, ...this.ctx.config.viteCustomNodes], target === "Global");
-            } else {
+            const isGlobal = target === "Global";
+            const customNodes = this.ctx.config.viteCustomNodes ?? [];
+            const found = customNodes.find(item => item.name === node.name);
+            if (found) {
               // update node
-              this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.map(item => {
+              this.ctx.config.updateConfig("vite.customNodes", customNodes.map(item => {
                 if (item.name === node.name) {
                   return node;
                 } else {
                   return item;
                 }
-              }), target === "Global");
+              }), isGlobal);
+            } else {
+              // push new node
+              this.ctx.config.updateConfig("vite.customNodes", [node, ...customNodes], isGlobal);
             }
           }
           break;
         case "deleteCustomNode":
           {
             const { node } = event.message;
-            // update global config
-            this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.filter(item => item.name !== node.name), true);
-            // update workspace config
-            this.ctx.config.updateConfig("vite.customNodes", this.ctx.config.viteCustomNodes.filter(item => item.name !== node.name), false);
-          }
+            const customNodes = this.ctx.config.viteCustomNodes ?? [];
+            const nodes = customNodes.filter(item => item.name !== node.name);
+            if (nodes.length > 0) {
+              // update global config
+              this.ctx.config.updateConfig("vite.customNodes", nodes, true);
+              // update workspace config
+              this.ctx.config.updateConfig("vite.customNodes", nodes, false);
+            } else {
+              // update global config
+              this.ctx.config.updateConfig("vite.customNodes", undefined, true);
+              // update workspace config
+              this.ctx.config.updateConfig("vite.customNodes", undefined, false);
+            }
+         }
           break;
       }
     }, null, this.disposables);

@@ -106,13 +106,14 @@ const customNode = reactive({
   name: "",
   url: "",
   network: ViteNetwork.Debug,
-  type: "",
+  type: "remote",
 });
 
 function show(target: string, event: any) {
   event.preventDefault();
   customNodeTarget.value = target;
 }
+
 function hide(){
   customNodeTarget.value = "";
 }
@@ -128,18 +129,28 @@ function saveNode(){
   hide();
 }
 function deleteNode(node: ViteNode) {
+  state.nodesMap.delete(node.name);
+  const copyNode = Object.assign({}, node);
+  delete copyNode.info;
+  console.log(copyNode);
   vscode.postMessage({
     command: "deleteCustomNode",
     message: {
-      node: Object.assign({}, node),
+      node: copyNode,
     },
   });
-  state.nodesMap.delete(node.name);
 }
 function getNodesListByNetwork(network: ViteNetwork) {
   const nodesList = Array.from(state.nodesMap.values())
     .filter(node => node.network === network);
   return nodesList;
+}
+function getNodeError(node: ViteNode) {
+  if (typeof node.error === "object") {
+    return JSON.stringify(node.error);
+  } else {
+    return node.error;
+  }
 }
 </script>
 
@@ -164,7 +175,7 @@ function getNodesListByNetwork(network: ViteNetwork) {
         </p>
         <p>Status: {{ node.status }}</p>
         <p v-if="node.info?.snapshotChainHeight">Snapshot height: {{ node.info?.snapshotChainHeight }}</p>
-        <p v-if="node.error" :title="typeof node.error === 'object' ? JSON.stringify(node.error): node.error">Error: {{ node.error }}</p>
+        <p v-if="node.error" :title="getNodeError(node)">Error: {{ getNodeError(node) }}</p>
         <vscode-button appearance="secondary" v-if="node.error && node.name != 'local'" @click="reconnect(node)">Reconnect</vscode-button>
         <vscode-divider></vscode-divider>
       </div>
@@ -177,8 +188,8 @@ function getNodesListByNetwork(network: ViteNetwork) {
       </div>
       <div class="component-item">
         <vscode-dropdown @change="customNode.type = $event.target.value" title="custom node type">
-          <vscode-option value="local">Node Type: Local</vscode-option>
-          <vscode-option value="remote">Node Type: Remote</vscode-option>
+          <vscode-option value="remote" selected>Node Type: Remote</vscode-option>
+          <vscode-option v-if="customNode.network === ViteNetwork.Debug" value="local">Node Type: Local</vscode-option>
         </vscode-dropdown>
       </div>
       <div class="component-item">
