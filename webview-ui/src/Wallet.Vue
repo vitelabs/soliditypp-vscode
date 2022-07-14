@@ -112,31 +112,13 @@ function dataReceiver (ev: any) {
       break;
     case "updateAddressInfo": 
       {
-        const { address, network, balance, quota, unreceived } = data.message;
+        const { address, network } = data.message;
         if (network === ViteNetwork.Debug) {
-          state.debugAddressMap.set(address, {
-            address,
-            network,
-            balance,
-            quota,
-            unreceived,
-          });
+          state.debugAddressMap.set(address, data.message);
         } else if (network === ViteNetwork.TestNet) {
-          state.testNetAddressMap.set(address, {
-            address,
-            network,
-            balance,
-            quota,
-            unreceived,
-          });
+          state.testNetAddressMap.set(address, data.message);
         } else if (network === ViteNetwork.MainNet) {
-          state.mainNetAddressMap.set(address, {
-            address,
-            network,
-            balance,
-            quota,
-            unreceived,
-          });
+          state.mainNetAddressMap.set(address, data.message);
         }
       }
       break;
@@ -285,33 +267,33 @@ function receiveTx(address: Address, network: ViteNetwork) {
 
 <template>
   <main>
-    <section class="component-container" v-for="(addressMap, network) in addressMapObj">
+    <section class="component-container" v-for="(addressMap, network) in addressMapObj" :key="network">
       <div class="wallet-title">
         <vscode-tag>{{ network }}</vscode-tag>
         <vscode-button appearance="icon" aria-label="Derive Address" title="New Address" @click="deriveAddress(network)">
           <span class="codicon codicon-add"></span>
         </vscode-button>
       </div>
-      <div class="address-info" v-for="(item, idx) in addressMap.values()">
-        <p title="Click to copy" @click="copyToClipboard(item.address)">
-          <span class="address">{{ item.address.slice(0,50) }}<strong>{{ item.address.slice(50) }}</strong></span>
+      <div class="address-info" v-for="(addressInfo, idx) in addressMap.values()" :key="idx">
+        <p title="Click to copy" @click="copyToClipboard(addressInfo.address)">
+          <span class="address">{{ addressInfo.address.slice(0,50) }}<strong>{{ addressInfo.address.slice(50) }}</strong></span>
           <span class="codicon codicon-copy" title="Copy"></span>
         </p>
-        <p class="balance" v-if="item.balance">
+        <p class="balance" v-if="addressInfo.balance">
           <span>
-            Balance: {{ item.balance }}
-            <vscode-badge v-if="item.unreceived" :title="item.unreceived + ' unreceived transactions'">{{ item.unreceived }}</vscode-badge>
+            Balance: {{ addressInfo.balance }}
+            <!-- <vscode-badge v-if="addressInfo.unreceived" :title="addressInfo.unreceived + ' unreceived transactions'">{{ addressInfo.unreceived }}</vscode-badge> -->
           </span>
-          <vscode-link v-if="network != ViteNetwork.Debug" @click="showQR(item.address)" title="Receive Token">Receive</vscode-link>
-          <vscode-link @click="showSendToken(item.address)" title="Send Token">Send</vscode-link>
+          <vscode-link v-if="network != ViteNetwork.Debug" @click="showQR(addressInfo.address)" title="Receive Token">Receive</vscode-link>
+          <vscode-link @click="showSendToken(addressInfo.address)" title="Send Token">Send</vscode-link>
         </p>
-        <p v-if="item.quota">Quota: {{ item.quota }}</p>
-        <section class="qrcode" :class="{'show': balanceAction === `receive.${item.address}` }">
+        <p v-if="addressInfo.quota">Quota: {{ addressInfo.quota }}</p>
+        <section class="qrcode" :class="{'show': balanceAction === `receive.${addressInfo.address}` }">
           <h3>Scan and send VITE</h3>
-          <canvas :ref="el => { canvas[item.address] = el }"></canvas>
+          <canvas :ref="el => { canvas[addressInfo.address] = el }"></canvas>
           <vscode-button appearance="secondary" @click="hideBalanceAction()">Close</vscode-button>
         </section>
-        <section v-if="balanceAction === `send.${item.address}`">
+        <section v-if="balanceAction === `send.${addressInfo.address}`">
           <div class="component-item">
             <vscode-text-field @input="sendTokenParams.amount = $event.target.value" placeholder="Amount"></vscode-text-field>
           </div>
@@ -322,7 +304,7 @@ function receiveTx(address: Address, network: ViteNetwork) {
           </div>
           <div class="component-item button-group">
             <vscode-button appearance="secondary" @click="hideBalanceAction()">Close</vscode-button>
-            <vscode-button @click="sendTx(item.address, network)">Send</vscode-button>
+            <vscode-button @click="sendTx(addressInfo.address, network)">Send</vscode-button>
           </div>
         </section>
         <vscode-divider v-if="idx < addressMap.size - 1"></vscode-divider>
@@ -332,7 +314,7 @@ function receiveTx(address: Address, network: ViteNetwork) {
     <section v-if="state.showForm" class="component-container">
       <div class="component-item">
         <vscode-dropdown v-if="state.isExport" @change="selectedNetwork = $event.target.value">
-          <vscode-option v-for="network in ViteNetwork" :value="network" :selected="network == ViteNetwork.TestNet">{{ network }} Wallet Mneonic</vscode-option>
+          <vscode-option v-for="(network, idx) in ViteNetwork" :key="idx" :value="network" :selected="network == ViteNetwork.TestNet">{{ network }} Wallet Mneonic</vscode-option>
         </vscode-dropdown>
         <vscode-dropdown v-else @change="selectedNetwork = $event.target.value">
           <vscode-option :value="ViteNetwork.TestNet" selected>{{ ViteNetwork.TestNet }} Wallet Mneonic</vscode-option>

@@ -127,6 +127,7 @@ class SolppcTaskProvider implements vscode.TaskProvider {
     }
 
     // NOTE there is no good way to sort tasks
+    this.ctx.log.debug(`${tasks.length} tasks provided`);
     return tasks;
   }
 
@@ -144,6 +145,7 @@ class SolppcTaskProvider implements vscode.TaskProvider {
         this.contractTaskMap.set(definition.id, task);
         this.watchFile(vscode.Uri.parse(definition.id));
       }
+      this.ctx.log.debug(`resolve task ${_task.name}`);
       return task;
     }
 
@@ -269,6 +271,19 @@ class SolppcTaskProvider implements vscode.TaskProvider {
       }
     }
     this.diagnosticCollection.set(file, diagnostics);
+    // save abi to file
+    if (compileResult.contracts) {
+      const abiObj: any = {};
+      for (const fileName in compileResult.contracts) {
+        const contractObj = compileResult.contracts[fileName];
+        for (const contractName in contractObj) {
+          abiObj[contractName] = contractObj[contractName].abi;
+        }
+      }
+      const abiFile = `${file.fsPath}.abi.json`;
+      const writeData = Buffer.from(JSON.stringify(abiObj, null, 4), "utf8");
+      vscode.workspace.fs.writeFile(vscode.Uri.parse(abiFile), writeData);
+    }
   }
 }
 
@@ -384,7 +399,17 @@ export function activateTaskProvider(ctx: Ctx): void {
         if (editor && isSolppEditor(editor)) {
           file = editor.document.uri;
         } else {
-          return vscode.window.showErrorMessage("Please open a contract file, then compile");
+          const ret = await vscode.window.showOpenDialog({
+            title: "Select a contract file to compile",
+            filters: {
+              "soliditypp": ["sol", "solpp"],
+            }
+          });
+          if (ret) {
+            file = ret[0];
+          } else {
+            return vscode.window.showInformationMessage("Please open a contract file, then compile");
+          }
         }
       } else if (target instanceof vscode.TreeItem) {
         file = target.resourceUri as vscode.Uri;

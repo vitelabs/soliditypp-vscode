@@ -266,21 +266,15 @@ export class Ctx {
     }
   }
 
-  deriveAddress(wallet: any, index: number): AddressObj {
+  deriveAddress(network: ViteNetwork, index: number): AddressObj {
+    const wallet = this.getWallet(network);
     const addressObj: AddressObj = wallet.deriveAddress(index);
     this.cache.set(`vite.address.${addressObj.address}`, addressObj);
-    let id = "";
-    if (wallet.entropy === this.debugWallet.entropy) {
-      id = ADDRESS_LIST_KEY.Debug;
-    } else if (wallet.entropy === this.testNetWallet.entropy) {
-      id = ADDRESS_LIST_KEY.TestNet;
-    } else if (wallet.entropy === this.mainNetWallet.entropy) {
-      id = ADDRESS_LIST_KEY.MainNet;
-    }
-    const addressList = this.cache.get(id);
-    const found = addressList?.find((x: Address) => x === addressObj.address);
+    const id = ADDRESS_LIST_KEY[network];
+    const addressList = this.cache.get(id) ?? [];
+    const found = addressList.find((x: Address) => x === addressObj.address);
     if (!found) {
-      this.cache.set(id, [...(addressList ?? []), addressObj.address]);
+      this.cache.set(id, [...addressList, addressObj.address]);
     }
     return addressObj;
   }

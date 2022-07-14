@@ -169,4 +169,43 @@ export class Config {
   get viteCustomNodes() {
     return this.get<ViteNode[]>("vite.customNodes");
   }
+
+  addViteCusomNode(node: ViteNode, isGlobal: boolean = false) {
+    const detail = this.cfg.inspect("vite.customNodes");
+    const workspaceValue = (detail?.workspaceValue ?? []) as ViteNode[];
+    const globalValue = (detail?.globalValue ?? []) as ViteNode[];
+    let nodes = isGlobal ? globalValue : workspaceValue;
+
+    let found = false;
+    nodes = nodes.map(n => {
+      if (n.name === node.name) {
+        found = true;
+        return node;
+      } else {
+        return n;
+      }
+    });
+    if (!found) {
+      nodes.push(node);
+    }
+
+    this.updateConfig("vite.customNodes", nodes, isGlobal);
+  }
+  deleteViteCusomNode(node: ViteNode) {
+    const detail = this.cfg.inspect("vite.customNodes");
+    const workspaceValue = (detail?.workspaceValue ?? []) as ViteNode[];
+    const globalValue = (detail?.globalValue ?? []) as ViteNode[];
+    for (const n of workspaceValue) {
+      if (n.name === node.name) {
+        this.updateConfig("vite.customNodes", workspaceValue.filter((n) => n.name !== node.name), false);
+        return;
+      }
+    }
+    for (const n of globalValue) {
+      if (n.name === node.name) {
+        this.updateConfig("vite.customNodes", globalValue.filter((n) => n.name !== node.name), true);
+        return;
+      }
+    }
+  }
 }

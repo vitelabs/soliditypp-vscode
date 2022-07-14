@@ -166,9 +166,9 @@ function getNodeError(node: ViteNode) {
         <span slot="start" class="codicon codicon-debug-start"></span>
       </vscode-button>
     </section>
-    <section class="component-container nodes-list" v-for="network in ViteNetwork">
+    <section class="component-container nodes-list" v-for="(network, idx) in ViteNetwork" :key="idx">
       <vscode-tag>{{ network }}</vscode-tag>
-      <div class="component-item" v-for="node in getNodesListByNetwork(network)">
+      <div class="component-item" v-for="(node, i) in getNodesListByNetwork(network)" :key="i">
         <p class="node-url">
           <span>{{node.name.slice(0,1).toUpperCase()}}{{node.name.slice(1)}}: {{ node.url }}</span>
           <vscode-link v-if="!node.isDefault" @click="deleteNode(node)" title="Delete Vite Node">Delete</vscode-link>
@@ -183,7 +183,7 @@ function getNodeError(node: ViteNode) {
     <section v-if="customNodeTarget" class="component-container">
       <div class="component-item">
         <vscode-dropdown @change="customNode.network = $event.target.value" title="custom node network">
-          <vscode-option v-for="network in ViteNetwork" :value="network">Node Network: {{ network }}</vscode-option>
+          <vscode-option v-for="(network, idx) in ViteNetwork" :key="idx" :value="network">Node Network: {{ network }}</vscode-option>
         </vscode-dropdown>
       </div>
       <div class="component-item">

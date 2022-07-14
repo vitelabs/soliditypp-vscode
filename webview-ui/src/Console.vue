@@ -11,9 +11,11 @@ import {
   vsCodeDivider,
 } from "@vscode/webview-ui-toolkit";
 import {
+  ref,
   reactive,
   onMounted,
   watchEffect,
+  nextTick,
 } from "vue";
 import { vscode } from "./vscode";
 import type { ABIItem, DeployInfo, Address } from "./types";
@@ -53,8 +55,8 @@ const state = reactive({
   selectedAddress: "",
   selectedAddressInfo: {} as any,
   addressMap,
-  activeTab: "tab-0",
   viewStyle: "TAB",
+  activeid: "tab-0",
 });
 
 function dataReceiver (ev: any) {
@@ -72,10 +74,13 @@ function dataReceiver (ev: any) {
         }
         if (deployedSet.has(deployInfo.address)) {
           const idx = state.deployedList.findIndex(item => item.address === deployInfo.address);
-          state.activeTab = `tab-${idx}`;
+          state.activeid = `tab-${idx}`;
         } else {
           deployedSet.add(deployInfo.address);
           state.deployedList = [deployInfo, ...state.deployedList];
+          setTimeout(() => {
+            state.activeid = "tab-0";
+          }, 200);
         }
       }
       break;
@@ -137,7 +142,7 @@ function dataReceiver (ev: any) {
 }
 
 function clear() {
-  state.activeTab = "tab-0";
+  state.activeid = "tab-0";
   state.deployedList = [];
   deployedSet.clear();
   state.addressMap.clear();
@@ -217,7 +222,9 @@ function call(func: ABIItem, info: DeployInfo) {
     },
   });
 }
-
+function handleChange(event: any) {
+  state.activeid = event.target.activeid;
+}
 </script>
 
 <template>
@@ -225,18 +232,18 @@ function call(func: ABIItem, info: DeployInfo) {
     <section class="component-container selected-address">
       <p>Select an address to interact with a contract</p>
       <vscode-dropdown @change="changeAddress($event.target.value)">
-        <vscode-option v-for="item in state.addressMap.values()" :value="item.address">
+        <vscode-option v-for="(item, idx) in state.addressMap.values()" :key="idx" :value="item.address">
           {{ item.address }}
         </vscode-option>
       </vscode-dropdown>
       <p>Balance: {{ state.selectedAddressInfo.balance }}, Quota: {{ state.selectedAddressInfo.quota }}</p>
     </section>
     <!-- viewStyle: Tab -->
-    <vscode-panels :activeid="state.activeTab" v-if="state.viewStyle==='Tab'">
-      <vscode-panel-tab :id="'tab-' + idx" v-for="(deployInfo, idx) in state.deployedList">
+    <vscode-panels @change="handleChange" :activeid="state.activeid" v-if="state.viewStyle==='Tab'" aria-label="Contracts List">
+      <vscode-panel-tab v-for="(deployInfo, idx) in state.deployedList" :key="deployInfo.address" :id="'tab-' + idx">
         {{ deployInfo.contractName }}
       </vscode-panel-tab>
-      <vscode-panel-view :id="'view-' + idx" v-for="(item, idx) in state.deployedList">
+      <vscode-panel-view v-for="(item, idx) in state.deployedList" :key="idx" :id="'view-' + idx">
         <div class="is-grid">
           <p class="contract-status">
             Contract
@@ -248,15 +255,15 @@ function call(func: ABIItem, info: DeployInfo) {
             network
           </p>
 
-          <Ctor v-for="ctor in getCtorDeclarations(item.abi)" :ctor="ctor" @send="send(ctor, item)"></Ctor>
-          <Func v-for="(func, idx) in getFuncDeclarations(item.abi)" :func="func" :key="idx" @call="call(func, item)" @query="query(func, item)"></Func>
-          <Event v-for="(event, idx) in getEventDeclarations(item.abi)" :event="event" :key="idx" ></Event>
+          <Ctor v-for="(ctor, i) in getCtorDeclarations(item.abi)" :key="i" :ctor="ctor" @send="send(ctor, item)"></Ctor>
+          <Func v-for="(func, j) in getFuncDeclarations(item.abi)" :key="j" :func="func" @call="call(func, item)" @query="query(func, item)"></Func>
+          <Event v-for="(event, k) in getEventDeclarations(item.abi)" :key="k" :event="event"></Event>
 
         </div>
       </vscode-panel-view>
     </vscode-panels>
     <!-- viewStyle: Flow -->
-    <section class="flow" v-else v-for="item in state.deployedList">
+    <section class="flow" v-else v-for="(item, idx) in state.deployedList" :key="idx">
       <p class="contract-status">
         <span class="highlight">{{ item.contractName }}</span>
         deployed at
@@ -266,9 +273,9 @@ function call(func: ABIItem, info: DeployInfo) {
         network
       </p>
 
-      <Ctor v-for="ctor in getCtorDeclarations(item.abi)" :ctor="ctor" @send="send(ctor, item)"></Ctor>
-      <Func v-for="(func, idx) in getFuncDeclarations(item.abi)" :func="func" :key="idx" @call="call(func, item)" @query="query(func, item)"></Func>
-      <Event v-for="(event, idx) in getEventDeclarations(item.abi)" :event="event" :key="idx" ></Event>
+      <Ctor v-for="(ctor, i) in getCtorDeclarations(item.abi)" :key="i" :ctor="ctor" @send="send(ctor, item)"></Ctor>
+      <Func v-for="(func, j) in getFuncDeclarations(item.abi)" :key="j" :func="func" @call="call(func, item)" @query="query(func, item)"></Func>
+      <Event v-for="(event, k) in getEventDeclarations(item.abi)" :key="k" :event="event"></Event>
 
       <vscode-divider></vscode-divider>
     </section>

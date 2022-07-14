@@ -282,6 +282,12 @@ export class ContractConsoleViewPanel {
       this.currentNetwork = deployInfo.network;
     }
 
+    // push to webview
+    await this.postMessage({
+      command: "pushContract",
+      message: deployInfo,
+    });
+
     if (this.deployeInfoMap.has(deployInfo.address)) {
       return;
     }
@@ -289,11 +295,6 @@ export class ContractConsoleViewPanel {
     // store to map
     this.deployeInfoMap.set(deployInfo.address, deployInfo);
 
-    // push to webview
-    await this.postMessage({
-      command: "pushContract",
-      message: deployInfo,
-    });
 
     const provider = this.ctx.getProviderByNetwork(deployInfo.network);
 

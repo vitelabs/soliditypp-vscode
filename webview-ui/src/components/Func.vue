@@ -24,7 +24,7 @@ function funcSignature(f: ABIItem): string {
     <div class="component-item" v-if="func.stateMutability==='payable'">
       <vscode-text-field size="46" @input="func.amount = $event.target.value" value="">amount</vscode-text-field>
       <vscode-dropdown class="append" @change="func.amountUnit = $event.target.value">
-        <vscode-option v-for="unit in ['vite', 'attov']" :value="unit">{{ unit }}</vscode-option>
+        <vscode-option v-for="(unit, idx) in ['vite', 'attov']" :key="idx" :value="unit">{{ unit }}</vscode-option>
       </vscode-dropdown>
     </div>
 

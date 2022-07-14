@@ -44,15 +44,15 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           {
             const addressList = [
               {
-                address: this.ctx.deriveAddress(this.ctx.debugWallet, 0).address,
+                address: this.ctx.deriveAddress(ViteNetwork.Debug, 0).address,
                 network: ViteNetwork.Debug,
               },
               {
-                address: this.ctx.deriveAddress(this.ctx.testNetWallet, 0).address,
+                address: this.ctx.deriveAddress(ViteNetwork.TestNet, 0).address,
                 network: ViteNetwork.TestNet,
               },
               {
-                address: this.ctx.deriveAddress(this.ctx.mainNetWallet, 0).address,
+                address: this.ctx.deriveAddress(ViteNetwork.MainNet, 0).address,
                 network: ViteNetwork.MainNet,
               }
             ];
@@ -71,8 +71,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
         case "deriveAddress":
           {
             const { network, index } = event.message;
-            const wallet = this.ctx.getWallet(network);
-            let addressObj = this.ctx.deriveAddress(wallet, index);
+            let addressObj = this.ctx.deriveAddress(network, index);
             await this.postMessage({
               command: "addAddress",
               message: {
@@ -111,12 +110,11 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             } else if (network === ViteNetwork.MainNet) {
               this.ctx.mainNetWallet = mnemonic;
             }
-            const wallet = this.ctx.getWallet(network);
             await this.postMessage({
               command: "setAddress",
               message: [
                 {
-                  address: this.ctx.deriveAddress(wallet, 0).address,
+                  address: this.ctx.deriveAddress(network, 0).address,
                   network,
                 },
               ]
@@ -163,7 +161,6 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                   return false;
                 });
 
-                await this.receiveTx(toAddress, network);
                 await this.updateAddressInfo(network);
                 // NOTE: sync balance and quota
                 this._onDidDeriveAddress.fire();
@@ -233,6 +230,9 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             unreceived: unreceivedBlocks.length,
           }
         });
+        if (unreceivedBlocks.length > 0) {
+          this.receiveTx(address, network);
+        }
       } catch (error) {
         this.ctx.log.error(error);
       }
@@ -247,11 +247,14 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
       const blocks = await provider.request("ledger_getUnreceivedBlocksByAddress", address, 0, 10);
       for (const block of blocks) {
         this.ctx.vmLog.info(`[receiveToken][UnreceivedBlock=${block.hash}]`, block);
+
         let receiveBlock = receiver.receive({
           sendBlockHash: block.hash,
         });
+
+
         try {
-          receiveBlock = await receiveBlock.autoSend();
+          receiveBlock = await receiveBlock.autoSendByPoW();
           this.ctx.vmLog.info(`[receiveToken][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
 
           // waiting confirmed
@@ -263,8 +266,9 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             receiveBlock = await provider.request("ledger_getAccountBlockByHash", receiveBlock.hash);
             return false;
           });
+          this.updateAddressInfo(network, address);
         } catch (error: any) {
-          this.ctx.vmLog.info(`[receiveToken][receiveBlock=${receiveBlock.hash}]`, error);
+          this.ctx.vmLog.error(`[receiveToken][receiveBlock=${receiveBlock.hash}]`, error);
         }
       }
     }

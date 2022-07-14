@@ -125,7 +125,7 @@ function deployContract() {
           title="The amount of vite token is transferred by send create block which is used to create a contract. The basic unit of token is vite, the smallest unit is attov, 1 vite = 1e18 attov"
           @input="params.amount = $event.target.value" :value="params.amount">Amount</vscode-text-field>
         <vscode-dropdown class="append" @change="params.amountUnit = $event.target.value">
-          <vscode-option v-for="unit in ['vite', 'attov']" :value="unit">{{unit}}</vscode-option>
+          <vscode-option v-for="(unit, idx) in ['vite', 'attov']" :key="idx" :value="unit">{{unit}}</vscode-option>
         </vscode-dropdown>
       </div>
       <vscode-text-field class="input-item" @input="params.responseLatency = $event.target.value" title="" :value="params.responseLatency">
@@ -138,19 +138,19 @@ function deployContract() {
     <section class="component-container">
       <label class="dropdown-title">Select Network & Node</label>
       <vscode-dropdown @change="state.selectedNodeIdx = $event.target.value" position="above">
-        <vscode-option v-for="(node, idx) in state.nodesList" :value="idx">{{ node.network }} {{ node.url }}</vscode-option>
+        <vscode-option v-for="(node, idx) in state.nodesList" :key="idx" :value="idx">{{ node.network }} {{ node.url }}</vscode-option>
       </vscode-dropdown>
     </section>
     <section class="component-container">
       <label class="dropdown-title">Select Address From {{ selectNetwork }} Wallet</label>
       <vscode-dropdown @change="state.selectedAddress = $event.target.value">
-        <vscode-option v-for="addr in state.addressesList" :value="addr" :title="addr">{{ addr.slice(0, 10) }}...{{ addr.slice(50) }}</vscode-option>
+        <vscode-option v-for="(addr, idx) in state.addressesList" :key="idx" :value="addr" :title="addr">{{ addr.slice(0, 10) }}...{{ addr.slice(50) }}</vscode-option>
       </vscode-dropdown>
     </section>
     <section class="component-container">
       <label class="dropdown-title">Select Contract</label>
       <vscode-dropdown @change="state.selectedContractIdx = $event.target.value">
-        <vscode-option v-for="(item, idx) in state.contractsList" :value="idx">{{ item.name }} {{ item.sourceFileName }}</vscode-option>
+        <vscode-option v-for="(item, idx) in state.contractsList" :key="idx" :value="idx">{{ item.name }} {{ item.sourceFileName }}</vscode-option>
       </vscode-dropdown>
     </section>
     <section class="component-container">
