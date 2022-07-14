@@ -199,6 +199,7 @@ export class ContractItem extends vscode.TreeItem {
         this.iconPath = new vscode.ThemeIcon("file");
         this.contextValue = ContractContextValue.ContractSource;
         this.resourceUri = file;
+        vscode.commands.executeCommand("soliditypp.problemMatcher", file);
       } else {
         super(file.uri);
         this.label = file.name;

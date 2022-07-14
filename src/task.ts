@@ -233,20 +233,25 @@ class SolppcTaskProvider implements vscode.TaskProvider {
     this.ctx.pushCleanup(contractWatcher);
   }
 
-  private async problemMatcher(file: vscode.Uri) {
+  async problemMatcher(file: vscode.Uri) {
     const outputPath = `${file.fsPath}.json`;
     const output = vscode.Uri.parse(outputPath);
+    try {
+      await vscode.workspace.fs.stat(output);
+    } catch (error) {
+      return;
+    }
     const ret = await vscode.workspace.fs.readFile(output);
     const compileResult = JSON.parse(ret.toString());
     let diagnostics: vscode.Diagnostic[] = [];
 
     for (const err of compileResult.errors ?? []) {
       try {
-        const pos = err.formattedMessage.match(/^.*:(\d+):(\d+).*$/m);
+        const errSeverity = err.severity === 'error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+        const pos = err.formattedMessage.match(/^.*:(\d+):(\d+).*$/m) ?? [0,1,1];
         const line = pos[1]-1;
         const column = pos[2]-1;
-        const loc = err.sourceLocation;
-        const errSeverity = err.severity === 'error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+        const loc = err.sourceLocation ?? {start: 0, end: 0};
         const diagnostic: vscode.Diagnostic = {
           severity: errSeverity,
           range: new vscode.Range(
@@ -256,18 +261,8 @@ class SolppcTaskProvider implements vscode.TaskProvider {
           message: err.formattedMessage
         };
         diagnostics.push(diagnostic);
-      } catch (e) {
-        this.ctx.log.error(e);
-        const errSeverity = err.severity === 'error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
-        const diagnostic: vscode.Diagnostic = {
-          severity: errSeverity,
-          range: new vscode.Range(
-            new vscode.Position(0, 0),
-            new vscode.Position(0, 0),
-          ),
-          message: err.formattedMessage ?? JSON.stringify(err, null, '\t')
-        };
-        diagnostics.push(diagnostic);
+      } catch (error) {
+        this.ctx.log.error(error);
       }
     }
     this.diagnosticCollection.set(file, diagnostics);
@@ -423,6 +418,12 @@ export function activateTaskProvider(ctx: Ctx): void {
         file = vscode.Uri.parse(target);
       }
       await taskProvider.executeTask(file);
+    };
+  });
+
+  ctx.registerCommand("problemMatcher", (ctx: Ctx) => {
+    return async (uri: vscode.Uri) => {
+      taskProvider.problemMatcher(uri);
     };
   });
 }

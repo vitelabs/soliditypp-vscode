@@ -3,7 +3,7 @@ import * as path from "path";
 
 import { Ctx } from "../ctx";
 import { isSolppEditor, readContractJsonFile } from "../util";
-import { CONTRACT_SCHEME, ViteNetwork, ViteNode, ViteNodeStatus, DeployInfo, Address } from "../types/types";
+import { CONTRACT_SCHEME, ViteNetwork, ViteNodeStatus, DeployInfo, Address } from "../types/types";
 import { NetworkViewProvider } from "./network";
 import { ViteWalletViewProvider } from "./wallet";
 import { ContractDeploymentViewProvider } from "./contract_deployment";
@@ -23,7 +23,7 @@ class ContractTextDocumentContentProvider implements vscode.TextDocumentContentP
   custom a virtual document of contract, "scheme://contract/file/path#contractName"
 */
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    const file = vscode.Uri.parse(uri.query).with({ fragment: uri.fragment });
+    const file = vscode.Uri.parse(uri.query || uri.path).with({ fragment: uri.fragment });
     const ret = await readContractJsonFile(file);
     return JSON.stringify(ret, null, 4);
   }
@@ -163,7 +163,7 @@ export function activateContractView(ctx: Ctx): void {
 
   // commands
   ctx.registerCommand("openContract", (ctx: Ctx) => {
-   return async(target: vscode.Uri | ContractItem) => {
+    return async(target: vscode.Uri | ContractItem) => {
       if (target instanceof vscode.Uri) {
         const found = treeDataProvider.contractItemFlatMap.get(target.toString(true));
         if (found) {
@@ -177,6 +177,7 @@ export function activateContractView(ctx: Ctx): void {
         const file = target.resourceUri!;
         if (target.contextValue === ContractContextValue.ContractSource) {
           await vscode.commands.executeCommand("vscode.open", target.resourceUri);
+          await vscode.commands.executeCommand("soliditypp.problemMatcher", target.resourceUri);
         } else if (target.contextValue === ContractContextValue.Contract) {
           const fileName = path.basename(file.fsPath);
           const contractFile = vscode.Uri.file(`#${file.fragment} ${fileName}`).with({
@@ -187,7 +188,7 @@ export function activateContractView(ctx: Ctx): void {
           const doc = await vscode.workspace.openTextDocument(contractFile);
           await vscode.window.showTextDocument(doc, { preview: true });
         } else if (target.contextValue === ContractContextValue.ContractCompileError) {
-          const doc = await vscode.workspace.openTextDocument(file.with({ scheme: "file" }));
+          const doc = await vscode.workspace.openTextDocument(file);
           await vscode.window.showTextDocument(doc, { preview: true });
         } else if (target.contextValue === ContractContextValue.ContractDeployed) {
           // parse a url query string to object
@@ -202,7 +203,7 @@ export function activateContractView(ctx: Ctx): void {
             }
           }
           const sourceFsPath = path.join(path.dirname(file.fsPath), path.basename(file.fsPath, ".json"));
-          const compileRet:any = await ctx.getCompileResult(vscode.Uri.parse(file.fsPath).with({fragment: file.fragment}));
+          const compileRet: any = await ctx.getCompileResult(vscode.Uri.parse(file.fsPath).with({ fragment: file.fragment }));
           const deployinfo: DeployInfo = {
             contractName: file.fragment,
             address: address!,
@@ -223,8 +224,8 @@ export function activateContractView(ctx: Ctx): void {
     };
   });
 
-  ctx.registerCommand("openCompileResult",(ctx: Ctx) => {
-    return async(target: vscode.Uri | ContractItem) => {
+  ctx.registerCommand("openCompileResult", (ctx: Ctx) => {
+    return async (target: vscode.Uri | ContractItem) => {
       if (target instanceof ContractItem) {
         target = target.resourceUri!;
       }
