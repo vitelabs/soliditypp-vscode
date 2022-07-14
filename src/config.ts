@@ -36,7 +36,11 @@ export class Config {
     log.info("Extension version:", this.package.version);
 
     const cfg = Object.entries(this.cfg).filter(([_, val]) => !(val instanceof Function));
-    log.info("Using configuration", Object.fromEntries(cfg));
+    const o = Object.fromEntries(cfg);
+    o.vite = Object.assign({}, o.vite, {
+      customNodes: Array.from(this.viteCustomNodes)
+    });
+    log.info("Using configuration", o);
     
     vmLog.setEnabled(this.traceExtension);
 
