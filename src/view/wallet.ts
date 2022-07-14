@@ -166,7 +166,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                 this._onDidDeriveAddress.fire();
               }
             } catch (error:any) {
-              this.ctx.vmLog.error(error);
+              this.ctx.vmLog.info(`[sendToken]`, error);
             }
           }
           break;

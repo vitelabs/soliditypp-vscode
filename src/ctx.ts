@@ -87,7 +87,7 @@ export class Ctx {
   }
 
   registerCommand(name: string, factory: (ctx: Ctx) => Cmd) {
-    const fullName = `solidytpp.${name}`;
+    const fullName = `soliditypp.${name}`;
     const cmd = factory(this);
     const d = vscode.commands.registerCommand(fullName, cmd);
     this.pushCleanup(d);
@@ -338,7 +338,7 @@ export class Ctx {
         this.log.error(error);
       }
     }
-    vscode.commands.executeCommand("contract.refresh");
+    vscode.commands.executeCommand("soliditypp.refreshContractTree");
     return true;
   }
 

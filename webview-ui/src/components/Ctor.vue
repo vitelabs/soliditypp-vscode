@@ -30,9 +30,11 @@ function ctorSignature(f: ABIItem): string {
     </div>
     <div class="component-item">
       <vscode-button class="btn-primary" @click="emit('send')">send()</vscode-button>
+      <span>Send token to this contract</span>
     </div>
-    <div class="component-item">
-      Send token to this contract
+
+    <div class="component-item" v-if="ctor.confirmedHash">
+      <strong>confirmed hash:</strong> {{ctor.confirmedHash}}
     </div>
   </section>
 </template>

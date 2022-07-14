@@ -309,48 +309,53 @@
     },
     "commands": [
       {
-        "command": "solppc.enableWatchMode",
-        "title": "Enable Compiler Watch Mode",
+        "command": "soliditypp.enableWatchMode",
+        "title": "Enable compiler watch mode",
         "category": "Soliditypp"
       },
       {
-        "command": "solppc.disableWatchMode",
-        "title": "Disable Compiler Watch Mode",
+        "command": "soliditypp.disableWatchMode",
+        "title": "Disable compiler watch mode",
         "category": "Soliditypp"
       },
       {
-        "command": "solppc.compile",
-        "title": "Compile",
+        "command": "soliditypp.compile",
+        "title": "Compile contract",
         "category": "Soliditypp",
         "icon": "$(sync)"
       },
       {
-        "command": "contract.open",
-        "title": "Open Contract",
+        "command": "soliditypp.openContract",
+        "title": "Open contract",
         "category": "Soliditypp",
         "icon": "$(go-to-file)"
       },
       {
-        "command": "contract.refresh",
-        "title": "Refresh Contract Tree",
+        "command": "soliditypp.refreshContractTree",
+        "title": "Refresh contract tree",
         "category": "Soliditypp",
         "icon": "$(refresh)"
       },
       {
-        "command": "contract.startLocalViteNode",
-        "title": "Start A Local Vite Node",
+        "command": "soliditypp.startLocalViteNode",
+        "title": "Start a local vite node",
         "category": "Soliditypp"
       },
       {
-        "command": "contract.stopLocalViteNode",
-        "title": "Stop the Local Vite Node",
+        "command": "soliditypp.stopLocalViteNode",
+        "title": "Stop the local vite node",
         "category": "Soliditypp"
       },
       {
-        "command": "wallet.refresh",
-        "title": "Refresh Wallet",
+        "command": "soliditypp.refreshWallet",
+        "title": "Refresh wallet",
         "category": "Soliditypp",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "soliditypp.stake",
+        "title": "Stake for Quota",
+        "category": "Soliditypp"
       }
     ],
     "viewsContainers": {
@@ -399,24 +404,24 @@
     "menus": {
       "view/title": [
         {
-          "command": "contract.refresh",
+          "command": "soliditypp.refreshContractTree",
           "when": "view == ContractTreeDataView",
           "group": "navigation"
         },
         {
-          "command": "wallet.refresh",
+          "command": "soliditypp.refreshWallet",
           "when": "view == ViteWalletView",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "solppc.compile",
+          "command": "soliditypp.compile",
           "when": "view == ContractTreeDataView && viewItem == ContractSource",
           "group": "inline"
         },
         {
-          "command": "contract.open",
+          "command": "soliditypp.openContract",
           "when": "view == ContractTreeDataView && viewItem == ContractCompileError",
           "group": "inline"
         }

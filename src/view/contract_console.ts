@@ -64,8 +64,39 @@ export class ContractConsoleViewPanel {
             const addressObj = this.ctx.getAddressObj(fromAddress);
             const operator = newAccount(addressObj!, provider);
             try {
-              const ret = await operator.sendToken(toAddress, ctor.amount, ctor.tokenId);
-              this.ctx.vmLog.info(`[${contractName}][send()][previousHash=${ret.previousHash}]`, ret);
+              this.ctx.vmLog.info(`[${contractName}][send()][from=${fromAddress}][to=${toAddress}][amount=${ctor.amount}]`);
+              let sendBlock = await operator.sendToken(toAddress, ctor.amount, ctor.tokenId);
+
+              // get account block
+              await vuilder.utils.waitFor(async () => {
+                const blocks = await provider.request("ledger_getAccountBlocksByAddress", fromAddress, 0, 3);
+                for (const block of blocks) {
+                  if (block.previousHash === sendBlock.previousHash) {
+                    sendBlock = block;
+                    this.ctx.vmLog.info(`[${contractName}][send()][sendBlock=${sendBlock.hash}]`, sendBlock);
+                    return true;
+                  }
+                }
+                return false;
+              });
+
+              // waiting confirmed
+              await vuilder.utils.waitFor(async () => {
+                if (sendBlock.confirmedHash) {
+                  this.ctx.vmLog.info(`[${contractName}][send()][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                  this.postMessage({
+                    command: "sendResult",
+                    message: {
+                      sendBlock,
+                      ctor,
+                      contractAddress: toAddress,
+                    }
+                  });
+                  return true;
+                }
+                sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                return false;
+              });
 
               await this.updateAddressList();
             } catch (error: any) {
@@ -175,13 +206,19 @@ export class ContractConsoleViewPanel {
                 }
               });
               // get receive block
-              const receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
+              let receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
+              this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
 
-              if(!receiveBlock) {
-                throw new Error("receive block not found");
-              } else {
-                this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
-              }
+              // waiting confirmed
+              await vuilder.utils.waitFor(async () => {
+                if (receiveBlock.confirmedHash) {
+                  this.ctx.vmLog.info(`[${contractName}][call ${func.name}()][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
+                  return true;
+                }
+                receiveBlock = await provider.request("ledger_getAccountBlockByHash", receiveBlock.hash);
+                return false;
+              });
+
               if (receiveBlock.blockType !== 4 && receiveBlock.blockType !== 5 || !receiveBlock.data) {
                 throw new Error("bad recieve block");
               }

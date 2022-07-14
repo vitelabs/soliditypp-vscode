@@ -162,8 +162,8 @@ export function activateContractView(ctx: Ctx): void {
   // ) ;
 
   // commands
-  ctx.pushCleanup(
-    vscode.commands.registerCommand("contract.open", async(target: vscode.Uri | ContractItem) => {
+  ctx.registerCommand("openContract", (ctx: Ctx) => {
+   return async(target: vscode.Uri | ContractItem) => {
       if (target instanceof vscode.Uri) {
         const found = treeDataProvider.contractItemFlatMap.get(target.toString(true));
         if (found) {
@@ -220,11 +220,11 @@ export function activateContractView(ctx: Ctx): void {
       await treeViewer.reveal(target, {
         expand: true,
       });
-    })
-  );
+    };
+  });
 
-  ctx.pushCleanup(
-    vscode.commands.registerCommand("contract.openCompileResult", async(target: vscode.Uri | ContractItem) => {
+  ctx.registerCommand("openCompileResult",(ctx: Ctx) => {
+    return async(target: vscode.Uri | ContractItem) => {
       if (target instanceof ContractItem) {
         target = target.resourceUri!;
       }
@@ -236,30 +236,32 @@ export function activateContractView(ctx: Ctx): void {
       });
       const doc = await vscode.workspace.openTextDocument(contractFile);
       await vscode.window.showTextDocument(doc, { preview: true });
-    })
-  );
-  ctx.pushCleanup(
-    vscode.commands.registerCommand("contract.refresh", () => {
+    };
+  });
+
+  ctx.registerCommand("refreshContractTree", (ctx: Ctx) => {
+    return () => {
       treeDataProvider.refresh();
-    })
-  );
+    };
+  });
 
-  ctx.pushCleanup(
-    vscode.commands.registerCommand("contract.startLocalViteNode", async() => {
+  ctx.registerCommand("startLocalViteNode", (ctx: Ctx) => {
+    return async () => {
       await networkProvider.startLocalViteNode();
-    })
-  );
-  ctx.pushCleanup(
-    vscode.commands.registerCommand("contract.stopLocalViteNode", async()=>{
-      await networkProvider.stopLocalViteNode();
-    })
-  );
+    };
+  });
 
-  ctx.pushCleanup(
-    vscode.commands.registerCommand("wallet.refresh", ()=>{
+  ctx.registerCommand("stopLocalViteNode", (ctx: Ctx) => {
+    return async () => {
+      await networkProvider.stopLocalViteNode();
+    };
+  });
+
+  ctx.registerCommand("refreshWallet", () => {
+    return () => {
       for (const network of [ViteNetwork.Debug, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
         walletProvider.refresh(network);
       }
-    })
-  );
+    };
+  });
 }

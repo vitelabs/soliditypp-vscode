@@ -50,7 +50,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
           break;
         case "mounted":
           // sync compiled contract list
-          await vscode.commands.executeCommand("contract.refresh");
+          await vscode.commands.executeCommand("soliditypp.refreshContractTree");
           this.updateDeps();
           break;
         case "changeNetwork":

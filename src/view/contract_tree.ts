@@ -210,7 +210,7 @@ export class ContractItem extends vscode.TreeItem {
     }
     this.command = {
       title: "Opens the provided resource in the editor",
-      command: "contract.open",
+      command: "soliditypp.openContract",
       tooltip: "Opens the provided resource in the editor",
       arguments: [this.resourceUri, network, address]
     };

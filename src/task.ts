@@ -3,7 +3,7 @@ import * as path from "path";
 import * as cp from "child_process";
 import { promisify } from "util";
 
-import { Ctx } from "./ctx";
+import { Ctx, Cmd } from "./ctx";
 import * as toolchain from "./toolchain";
 import { isSolppEditor, isSolppDocument } from "./util";
 
@@ -180,7 +180,7 @@ class SolppcTaskProvider implements vscode.TaskProvider {
           // terminal.sendText(execution.commandLine);
           await exec(execution.commandLine);
           await this.problemMatcher(file);
-          await vscode.commands.executeCommand("contract.refresh", file);
+          await vscode.commands.executeCommand("soliditypp.refreshContractTree", file);
           // terminal.dispose();
         }
       } else {
@@ -201,16 +201,16 @@ class SolppcTaskProvider implements vscode.TaskProvider {
       }
       timer = setTimeout(async()=>{
         await this.problemMatcher(file);
-        await vscode.commands.executeCommand("contract.refresh", file);
+        await vscode.commands.executeCommand("soliditypp.refreshContractTree", file);
       }, 1000);
 
     });
     outputWatcher.onDidCreate(async() => {
       await this.problemMatcher(file);
-      await vscode.commands.executeCommand("contract.refresh", file);
+      await vscode.commands.executeCommand("soliditypp.refreshContractTree", file);
     });
     outputWatcher.onDidDelete(async() => {
-      await vscode.commands.executeCommand("contract.refresh", file);
+      await vscode.commands.executeCommand("soliditypp.refreshContractTree", file);
       outputWatcher.dispose();
     });
 
@@ -382,17 +382,21 @@ export function activateTaskProvider(ctx: Ctx): void {
     vscode.tasks.registerTaskProvider(TASK_TYPE, taskProvider)
   );
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand('solppc.enableWatchMode', () => {
+  ctx.registerCommand("enableWatchMode", (ctx: Ctx) => {
+    return () => {
       ctx.config.updateConfig("solppc.watch", true);
-    }),
-    vscode.commands.registerCommand('solppc.disableWatchMode', () => {
-      ctx.config.updateConfig("solppc.watch", false);
-    })
-  );
+    };
+  });
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand('solppc.compile', async(target: vscode.Uri | vscode.TreeItem | string | undefined) => {
+  ctx.registerCommand("disableWatchMode", (ctx: Ctx) => {
+    return () => {
+      ctx.config.updateConfig("solppc.watch", false);
+    };
+  });
+
+
+  ctx.registerCommand("compile", (ctx: Ctx) => {
+    return async (target: vscode.Uri | vscode.TreeItem | string | undefined) => {
       let file: vscode.Uri;
       if (target === undefined) {
         const editor = vscode.window.activeTextEditor;
@@ -419,6 +423,6 @@ export function activateTaskProvider(ctx: Ctx): void {
         file = vscode.Uri.parse(target);
       }
       await taskProvider.executeTask(file);
-    })
-  );
+    };
+  });
 }

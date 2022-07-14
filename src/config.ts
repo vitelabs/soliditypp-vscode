@@ -167,7 +167,18 @@ export class Config {
   }
 
   get viteCustomNodes() {
-    return this.get<ViteNode[]>("vite.customNodes");
+    // return this.get<ViteNode[]>("vite.customNodes");
+    const detail = this.cfg.inspect("vite.customNodes");
+    const globalValue = (detail?.globalValue ?? []) as ViteNode[];
+    const workspaceValue = (detail?.workspaceValue ?? []) as ViteNode[];
+    const m = new Map();
+    for (const v of globalValue) {
+      m.set(v.name, v);
+    }
+    for (const v of workspaceValue) {
+      m.set(v.name, v);
+    }
+    return m.values();
   }
 
   addViteCusomNode(node: ViteNode, isGlobal: boolean = false) {

@@ -138,6 +138,17 @@ function dataReceiver (ev: any) {
         }
       }
       break;
+    case "sendResult":
+      {
+        const { sendBlock, ctor, contractAddress } = data.message;
+        const contract: any = state.deployedList.find(item => item.address === contractAddress);
+        for (const abi of contract.abi) {
+          if (abi.type === ctor.type && abi.stateMutability === ctor.stateMutability) {
+            abi.confirmedHash = sendBlock.confirmedHash;
+          }
+        }
+      }
+      break;
   }
 }
 
@@ -336,6 +347,7 @@ vscode-panel-view {
   width: 100%;
   display: flex;
   column-gap: 0.6rem;
+  align-items: center;
   font-family: var(--vscode-editor-font-family);
   font-weight: var(--vscode-editor-font-weight);
   font-size: var(--vscode-editor-font-size);
