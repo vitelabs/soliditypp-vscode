@@ -39,8 +39,8 @@ class SolppcTaskProvider implements vscode.TaskProvider {
 
     // contracts in workspaceFolders
     const contracts = [
-      ...(await vscode.workspace.findFiles("**/*.sol")),
-      ...(await vscode.workspace.findFiles("**/*.solpp")),
+      ...(await vscode.workspace.findFiles("**/*.sol", "**/node_modules/**")),
+      ...(await vscode.workspace.findFiles("**/*.solpp", "**/node_modules/**")),
     ];
 
     // contracts without workspace

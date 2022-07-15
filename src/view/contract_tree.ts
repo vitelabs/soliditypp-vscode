@@ -46,8 +46,8 @@ export class ContractTreeDataProvider implements vscode.TreeDataProvider<Contrac
         });
       } else {
         const contracts = [
-          ...(await vscode.workspace.findFiles("**/*.sol")),
-          ...(await vscode.workspace.findFiles("**/*.solpp")),
+          ...(await vscode.workspace.findFiles("**/*.sol", "**/node_modules/**")),
+          ...(await vscode.workspace.findFiles("**/*.solpp", "**/node_modules/**")),
         ];
         for (const contract of contracts) {
           items.push(new ContractItem(contract));
@@ -65,11 +65,11 @@ export class ContractTreeDataProvider implements vscode.TreeDataProvider<Contrac
         }
       }
       // items sort by file basename of item.resourceUri.fsPath, case insensitive
-      return items.sort(sortByFilenName);
+      return items.sort(sortByFileName);
     } else if (element.contextValue === ContractContextValue.Folder) {
       const contracts = [
-        ...(await vscode.workspace.findFiles("**/*.sol")),
-        ...(await vscode.workspace.findFiles("**/*.solpp")),
+        ...(await vscode.workspace.findFiles("**/*.sol", "**/node_modules/**")),
+        ...(await vscode.workspace.findFiles("**/*.solpp", "**/node_modules/**")),
       ];
       const items: ContractItem[] = [];
       for (const contract of contracts) {
@@ -78,14 +78,12 @@ export class ContractTreeDataProvider implements vscode.TreeDataProvider<Contrac
           items.push(new ContractItem(contract));
         }
       }
-      return items.sort(sortByFilenName);
+      return items.sort(sortByFileName);
     } else if (element.contextValue === ContractContextValue.ContractSource && element.resourceUri) {
       // TODO support ABI and bin
       const contractJsonFile = vscode.Uri.parse(`${element.resourceUri.fsPath}.json`);
-      let ret: Uint8Array;
       try {
         await vscode.workspace.fs.stat(contractJsonFile);
-        ret = await vscode.workspace.fs.readFile(contractJsonFile);
       } catch (e) {
         const item = new vscode.TreeItem("Uncompiled");
         item.iconPath = new vscode.ThemeIcon("tools");
@@ -94,6 +92,7 @@ export class ContractTreeDataProvider implements vscode.TreeDataProvider<Contrac
         ];
       }
       try {
+        const ret = await vscode.workspace.fs.readFile(contractJsonFile);
         const compileResult = JSON.parse(ret.toString());
         let hasError = false;
         let hasWarning = false;
@@ -217,7 +216,7 @@ export class ContractItem extends vscode.TreeItem {
   }
 }
 
-function sortByFilenName(a: ContractItem, b: ContractItem) {
+function sortByFileName(a: ContractItem, b: ContractItem) {
   const aName = a.resourceUri!.fsPath.toLowerCase();
   const bName = b.resourceUri!.fsPath.toLowerCase();
   if (aName < bName) {
