@@ -29,7 +29,7 @@ class ContractTextDocumentContentProvider implements vscode.TextDocumentContentP
   }
 };
 
-export function activateContractView(ctx: Ctx): void {
+export async function activateContractView(ctx: Ctx): Promise<void> {
 
   // register contract text document content provider
   ctx.pushCleanup(
@@ -121,6 +121,11 @@ export function activateContractView(ctx: Ctx): void {
     }
     return contractsList;
   }
+  // match contract problems
+  // const contractSourceFiles = await getContractsList(ContractContextValue.ContractSource);
+  // for (const item of contractSourceFiles) {
+  //   vscode.commands.executeCommand("soliditypp.problemMatcher", item.resourceUri);
+  // }
   
   // sync contract
   ctx.pushCleanup(

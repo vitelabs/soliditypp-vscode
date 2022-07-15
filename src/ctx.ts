@@ -352,34 +352,34 @@ export class Ctx {
     if (!bytecode) {
       return;
     }
-    try {
-      const md5sum = createHash("md5").update(bytecode).digest("hex");
-      const targetId = `${contractName}:${md5sum}:${network}`;
-      let ret: Address | undefined = this.cache.get(targetId);
-      // read from txt file
-      if (!ret && network !== ViteNetwork.Debug) {
+    const md5sum = createHash("md5").update(bytecode).digest("hex");
+    const targetId = `${contractName}:${md5sum}:${network}`;
+    let ret: Address | undefined = this.cache.get(targetId);
+    // read from txt file
+    if (!ret && network !== ViteNetwork.Debug) {
       // if (!ret) {
-        const outputFsPath = path.join(path.dirname(contractFile.fsPath), path.basename(contractFile.fsPath, ".json") + ".txt");
-        const outputFile = vscode.Uri.parse(outputFsPath);
+      const outputFsPath = path.join(path.dirname(contractFile.fsPath), path.basename(contractFile.fsPath, ".json") + ".txt");
+      const outputFile = vscode.Uri.parse(outputFsPath);
+      try {
         await vscode.workspace.fs.stat(outputFile);
-        const buf = await vscode.workspace.fs.readFile(outputFile);
-        const lines = buf.toString().split("\n");
-        for (const line of lines) {
-          const [id, address] = line.split(" ");
-          if (id === targetId) {
-            ret = address;
-          }
-        }
-        if (ret) {
-          // save to cache
-          this.cache.set(targetId, ret);
+      } catch (error) {
+        this.log.debug(error);
+        return;
+      }
+      const buf = await vscode.workspace.fs.readFile(outputFile);
+      const lines = buf.toString().split("\n");
+      for (const line of lines) {
+        const [id, address] = line.split(" ");
+        if (id === targetId) {
+          ret = address;
         }
       }
-      return ret;
-    } catch (error) {
-      this.log.error(error);
+      if (ret) {
+        // save to cache
+        this.cache.set(targetId, ret);
+      }
     }
-    return;
+    return ret;
   }
 
   async clearCachedDeploymentRecord(contractFile: vscode.Uri, network: ViteNetwork) {

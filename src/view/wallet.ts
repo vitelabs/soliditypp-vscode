@@ -234,7 +234,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           this.receiveTx(address, network);
         }
       } catch (error) {
-        this.ctx.log.error(error);
+        this.ctx.vmLog.error("[getBalance][getQuota]", error);
       }
     }
   }
