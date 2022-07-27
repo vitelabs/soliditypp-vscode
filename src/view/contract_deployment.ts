@@ -95,7 +95,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               params: params.paramsStr.split(","),
             };
 
-            this.ctx.vmLog.info(`[${selectedContract.name}][deploy][request]`, {
+            this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][request]`, {
               params: paramsObj,
               amount,
               network: this.selectedNetwork,
@@ -114,7 +114,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               ab.amount = getAmount(params.amount, params.amountUnit);
               // deploying
               let sendBlock = await ab.autoSend();
-              this.ctx.vmLog.info(`[${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
+              this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
               // waiting confirmed
               await vuilder.utils.waitFor(async() => {
                 try {
@@ -122,20 +122,20 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
                   if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
                     return false;
                   }
-                  this.ctx.vmLog.info(`[${selectedContract.name}][deploy][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                  this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
                   return true;
                 } catch (error) {
-                  this.ctx.vmLog.error(`[${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, error);
+                  this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, error);
                   return true;
                 }
               });
               // get receive block
               const receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
-              this.ctx.vmLog.info(`[${selectedContract.name}][deploy][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+              this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
               if (receiveBlock?.blockType !== 4) {
-                this.ctx.vmLog.error(`[${selectedContract.name}]`, "contract deployment failed:");
+                this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}]`, "contract deploy failed.");
               } else {
-                this.ctx.vmLog.info(`[${selectedContract.name}][deploy][response]`, `contract deployed at ${sendBlock.toAddress}`);
+                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${sendBlock.toAddress}`);
                 const deployinfo: DeployInfo = {
                   contractName: selectedContract.name,
                   address: sendBlock.toAddress,
@@ -149,7 +149,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
                 ContractConsoleViewPanel.render(this.ctx, deployinfo);
               }
             } catch (error) {
-              this.ctx.vmLog.error(error);
+              this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy]`, error);
             }
             this.postMessage({
               command: "updateDeploymentStatus",

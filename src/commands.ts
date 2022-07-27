@@ -52,14 +52,14 @@ export function stake(ctx: Ctx): Cmd {
     };
     const fromAddressObj = ctx.getAddressObj(fromAddress);
     if (!fromAddressObj) {
-      ctx.vmLog.error(`[stake]${fromAddress} is not found in the wallet`);
+      ctx.vmLog.error(`[${network}][stake]${fromAddress} is not found in the wallet`);
       return;
     }
 
     // get provider and operator
     const provider = ctx.getProviderByNetwork(network);
     const sender = newAccount(fromAddressObj, provider);
-    ctx.vmLog.info(`[stake][request]`, {
+    ctx.vmLog.info(`[${network}][stake][request]`, {
       fromAddress,
       beneficiaryAddress,
       amount,
@@ -72,7 +72,7 @@ export function stake(ctx: Ctx): Cmd {
         amount: getAmount(amount),
       });
       sendBlock = await sendBlock.autoSend();
-      ctx.vmLog.info(`[stake][sendBlock=${sendBlock.hash}]`, sendBlock);
+      ctx.vmLog.info(`[${network}][stake][sendBlock=${sendBlock.hash}]`, sendBlock);
 
       // get account block
       await vuilder.utils.waitFor(async () => {
@@ -80,7 +80,7 @@ export function stake(ctx: Ctx): Cmd {
         for (const block of blocks) {
           if (block.previousHash === sendBlock.previousHash) {
             sendBlock = block;
-            ctx.vmLog.info(`[stake][sendBlock=${sendBlock.hash}]`, sendBlock);
+            ctx.vmLog.info(`[${network}][stake][sendBlock=${sendBlock.hash}]`, sendBlock);
             return true;
           }
         }
@@ -93,7 +93,7 @@ export function stake(ctx: Ctx): Cmd {
         if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
           return false;
         }
-        ctx.vmLog.info(`[stake][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+        ctx.vmLog.info(`[${network}][stake][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
         return true;
       });
 
@@ -104,13 +104,13 @@ export function stake(ctx: Ctx): Cmd {
         if (!receiveBlock.confirmedHash) {
           return false;
         }
-        ctx.vmLog.info(`[stake][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
+        ctx.vmLog.info(`[${network}][stake][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
         return true;
       });
       // refresh Wallet
       await vscode.commands.executeCommand("soliditypp.refreshWallet");
     } catch (error: any) {
-      ctx.vmLog.error(`[stake]`, error);
+      ctx.vmLog.error(`[${network}][stake]`, error);
     }
   };
 }

@@ -135,7 +135,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
 
             try {
               if (amount) {
-                this.ctx.vmLog.info(`[sendToken][from=${fromAddress}][to=${toAddress}][amount=${amount}]`);
+                this.ctx.vmLog.info(`[${network}][sendToken][from=${fromAddress}][to=${toAddress}][amount=${amount}]`);
                 let sendBlock = await sender.sendToken(toAddress, getAmount(amount));
 
                 // get account block
@@ -144,7 +144,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                   for (const block of blocks) {
                     if (block.previousHash === sendBlock.previousHash) {
                       sendBlock = block;
-                      this.ctx.vmLog.info(`[sendToken][sendBlock=${sendBlock.hash}]`, sendBlock);
+                      this.ctx.vmLog.info(`[${network}][sendToken][sendBlock=${sendBlock.hash}]`, sendBlock);
                       return true;
                     }
                   }
@@ -154,7 +154,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                 // waiting confirmed
                 await vuilder.utils.waitFor(async () => {
                   if (sendBlock.confirmedHash) {
-                    this.ctx.vmLog.info(`[sendToken][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                    this.ctx.vmLog.info(`[${network}][sendToken][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
                     return true;
                   }
                   sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
@@ -166,7 +166,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                 this._onDidDeriveAddress.fire();
               }
             } catch (error:any) {
-              this.ctx.vmLog.info(`[sendToken]`, error);
+              this.ctx.vmLog.info(`[${network}][sendToken]`, error);
             }
           }
           break;
@@ -226,7 +226,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             address,
             network,
             quota: quotaInfo.currentQuota,
-            balance: balance ? balance.slice(0, balance.length - Vite_Token_Info.decimals) : '0',
+            balance: balance ? `${balance.slice(0, balance.length - Vite_Token_Info.decimals) || '0'}` : '0',
             unreceived: unreceivedBlocks.length,
           }
         });
@@ -234,7 +234,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           this.receiveTx(address, network);
         }
       } catch (error) {
-        this.ctx.vmLog.error("[getBalance][getQuota]", error);
+        this.ctx.vmLog.error(`[${network}][getBalance][getQuota]`, error);
       }
     }
   }
@@ -246,21 +246,20 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
     if (receiverAddressObj) {
       const blocks = await provider.request("ledger_getUnreceivedBlocksByAddress", address, 0, 10);
       for (const block of blocks) {
-        this.ctx.vmLog.info(`[receiveToken][UnreceivedBlock=${block.hash}]`, block);
+        this.ctx.vmLog.info(`[${network}][receiveToken][UnreceivedBlock=${block.hash}]`, block);
 
         let receiveBlock = receiver.receive({
           sendBlockHash: block.hash,
         });
 
-
         try {
           receiveBlock = await receiveBlock.autoSendByPoW();
-          this.ctx.vmLog.info(`[receiveToken][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+          this.ctx.vmLog.info(`[${network}][receiveToken][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
 
           // waiting confirmed
           await vuilder.utils.waitFor(async () => {
             if (receiveBlock.confirmedHash) {
-              this.ctx.vmLog.info(`[receiveToken][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
+              this.ctx.vmLog.info(`[${network}][receiveToken][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
               return true;
             }
             receiveBlock = await provider.request("ledger_getAccountBlockByHash", receiveBlock.hash);
@@ -268,7 +267,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           });
           this.updateAddressInfo(network, address);
         } catch (error: any) {
-          this.ctx.vmLog.error(`[receiveToken][receiveBlock=${receiveBlock.hash}]`, error);
+          this.ctx.vmLog.error(`[${network}][receiveToken][receiveBlock=${receiveBlock.hash}]`, error);
         }
       }
     }

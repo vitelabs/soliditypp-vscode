@@ -7,11 +7,11 @@ Vite is a DAG-based, asynchronous, high-performance and fee-less blockchain wher
 The extension contains following features:
 ## Features
 * Syntax highlighting
+* Snippets
 * Code completion
 * Auto compilation when saving the contract
 * Compilation error highlighting
 * Detailed error message displaying when mouse over 
-* One-click smart contract deployment and debugging
 * Support for multiple smart contracts
 * Deployment / debugging result displaying
 * Support import mnemonics
