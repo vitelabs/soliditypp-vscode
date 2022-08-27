@@ -17,12 +17,10 @@ The extension contains following features:
 * Support import mnemonics
 * Support ViteConnect
 
-## Tutorial
-https://docs.vite.org/go-vite/contract/debug.html
+## Articles
+* [Solidity++ introduction](https://docs.vite.org/vuilder-docs/soliditypp/fundamentals/)
+* [Making fullstack dapps with vite express](https://docs.vite.org/vuilder-docs/vite-express/)
 
-## Examples
-
-https://github.com/vitelabs/soliditypp-examples
-
-## Report Issues
-https://github.com/vitelabs/soliditypp-vscode/issues
+## Feedback
+* If you have a question, ask on [discord](https://discord.com/invite/CsVY76q).
+* if something is not working, [create an issue](https://github.com/vitelabs/soliditypp-vscode/issues/new).
