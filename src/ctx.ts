@@ -180,10 +180,10 @@ export class Ctx {
         { bridge: this.config.viteConnectBridge },
         {
           bridgeVersion: 2,
-          description: "soliditypp vscode",
+          description: "Solidity++ extension for Visual Studio Code",
           url: `VS Code: ${this.config.package.displayName}`,
           icons: [],
-          name: "soliditypp debugger",
+          name: "Solidity++ Debugger",
         }
       );
       provider.on("open", () => {

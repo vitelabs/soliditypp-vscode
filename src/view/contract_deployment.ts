@@ -93,14 +93,6 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               params: params.paramsStr.split(","),
             };
 
-            this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][request]`, {
-              params: paramsObj,
-              amount,
-              network: this.selectedNetwork,
-              node: selectedNode.url,
-              deployer: selectedAddress,
-            });
-
             // create AccountBlock
             if (Number(paramsObj.responseLatency) < Number(paramsObj.randomDegree)) {
               this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy][error]: responseLatency must >= randomDegree`);
@@ -119,6 +111,8 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             });
             // set amount
             ab.amount = amount;
+
+            this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][request]`, ab.accountBlock);
 
             // get provider
             const provider = this.ctx.getProvider(selectedNode.name);

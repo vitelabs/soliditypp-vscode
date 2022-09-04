@@ -58,7 +58,6 @@ export class ContractConsoleViewPanel {
           {
             const { fromAddress, toAddress, network, ctor, contractFile } = event.message;
             const contractName = contractFile.fragment;
-            this.ctx.vmLog.info(`[${network}][${contractName}][send()][from=${fromAddress}][to=${toAddress}][amount=${ctor.amount}]`);
             // create AccountBlock
             const ab = new vite.accountBlock.AccountBlock({
               blockType: vite.constant.BlockType.TransferRequest,
@@ -68,6 +67,7 @@ export class ContractConsoleViewPanel {
               amount: ctor.amount,
               data: "",
             });
+            this.ctx.vmLog.info(`[${network}][${contractName}][send()][from=${fromAddress}][to=${toAddress}][amount=${ctor.amount}]`, ab.accountBlock);
             // get provider
             const provider = this.ctx.getProviderByNetwork(network);
             if (network === ViteNetwork.Bridge) {
@@ -139,9 +139,8 @@ export class ContractConsoleViewPanel {
             const params = func.inputs.map((x: any) => x.value);
             const data = vite.abi.encodeFunctionCall(func, params);
             this.ctx.vmLog.info(`[${network}][${contractName}][query ${func.name}()][request]`, {
-              params,
               contractAddress: toAddress,
-              network,
+              params,
             });
             // get provider
             let provider: any;
@@ -191,14 +190,6 @@ export class ContractConsoleViewPanel {
             const params = func.inputs.map((x: any) => x.value);
             const amount = getAmount(func.amount, func.amountUnit ?? "VITE");
 
-            this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][request]`, {
-              params,
-              amount,
-              network,
-              operator: fromAddress,
-              contractAddress: toAddress,
-            });
-
             // create AccountBlock
             const data = vite.accountBlock.utils.getCallContractData({
               abi: func,
@@ -212,6 +203,9 @@ export class ContractConsoleViewPanel {
               amount,
               data,
             });
+
+            this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][request]`, ab.accountBlock);
+
             // get provider
             const provider = this.ctx.getProviderByNetwork(network);
             if (network === ViteNetwork.Bridge) {

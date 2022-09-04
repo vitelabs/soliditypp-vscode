@@ -156,9 +156,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
         case "sendTx":
           {
             const { fromAddress, toAddress, amount, network } = event.message;
-            if (amount) {
-              this.ctx.vmLog.info(`[${network}][sendToken][from=${fromAddress}][to=${toAddress}][amount=${amount}]`);
-            } else {
+            if (!amount) {
               vscode.window.showWarningMessage("Please input amount");
               return;
             }
@@ -171,6 +169,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
               amount: getAmount(amount),
               data: "",
             });
+            this.ctx.vmLog.info(`[${network}][sendToken][from=${fromAddress}][to=${toAddress}][amount=${amount}]`, ab.accountBlock);
             // get provider and operator
             const provider = this.ctx.getProviderByNetwork(network);
             if (network === ViteNetwork.Bridge) {
