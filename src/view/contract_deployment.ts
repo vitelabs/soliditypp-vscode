@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
+const vite = require("@vite/vitejs");
 import { Ctx } from "../ctx";
-import { newAccount, getAmount } from "../util";
+import { getAmount } from "../util";
 import { getWebviewContent } from "./webview";
 import {
   DeployInfo,
@@ -21,7 +22,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
   readonly onDidDispose: vscode.Event<void> = this._onDidDispose.event;
   private _onDidChangeNetwork = new vscode.EventEmitter<ViteNetwork>();
   readonly onDidChangeNetwork: vscode.Event<ViteNetwork> = this._onDidChangeNetwork.event;
-  public selectedNetwork: ViteNetwork = ViteNetwork.Debug;
+  public selectedNetwork: ViteNetwork = ViteNetwork.DebugNet;
 
   constructor(private readonly ctx: Ctx) {}
 
@@ -70,8 +71,8 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               selectedContract,
               params,
             } = event.message;
-            // get node again
-            if (selectedNode.status !== ViteNodeStatus.Running) {
+            if (!(selectedNode.network === ViteNetwork.Bridge && selectedNode.status === ViteNodeStatus.Connected
+               || selectedNode.status === ViteNodeStatus.Running)) {
               vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not running`);
               break;
             }
@@ -84,9 +85,6 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               return;
             }
 
-            const provider = this.ctx.getProvider(selectedNode.name);
-            const addressObj = this.ctx.getAddressObj(selectedAddress);
-            const deployer = newAccount(addressObj!, provider);
             const amount = getAmount(params.amount, params.amountUnit);
             const paramsObj = {
               quotaMultiplier: params.quotaMultiplier.toString(),
@@ -103,54 +101,95 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               deployer: selectedAddress,
             });
 
-            try {
-              // deployment account block
-              const ab = deployer.createContract({
-                abi: abi,
-                code: bytecode,
-                ...paramsObj,
-              });
-              // set amount
-              ab.amount = getAmount(params.amount, params.amountUnit);
-              // deploying
-              let sendBlock = await ab.autoSend();
-              this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
-              // waiting confirmed
-              await vuilder.utils.waitFor(async() => {
-                try {
-                  sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
-                  if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
-                    return false;
-                  }
-                  this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
-                  return true;
-                } catch (error) {
-                  this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, error);
-                  return true;
-                }
-              });
-              // get receive block
-              const receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
-              this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
-              if (receiveBlock?.blockType !== 4) {
-                this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}]`, "contract deploy failed.");
-              } else {
-                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${sendBlock.toAddress}`);
-                const deployinfo: DeployInfo = {
-                  contractName: selectedContract.name,
-                  address: sendBlock.toAddress,
-                  contractFsPath: selectedContract.fsPath,
-                  sourceFsPath: selectedContract.sourcefsPath,
-                  network: selectedNode.network,
-                  abi,
-                };
-                this.ctx.updateDeploymentRecord(contractFile, this.selectedNetwork, sendBlock.toAddress);
-                // render console webview
-                ContractConsoleViewPanel.render(this.ctx, deployinfo);
-              }
-            } catch (error) {
-              this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy]`, error);
+            // create AccountBlock
+            if (Number(paramsObj.responseLatency) < Number(paramsObj.randomDegree)) {
+              this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy][error]: responseLatency must >= randomDegree`);
             }
+            const data = vite.accountBlock.utils.getCreateContractData({
+              abi,
+              code: bytecode,
+              ...paramsObj,
+            });
+            const ab = new vite.accountBlock.AccountBlock({
+              blockType: vite.constant.BlockType.CreateContractRequest,
+              address: selectedAddress,
+              data,
+              fee: "10" +  "0".repeat(18),
+              tokenId: vite.constant.Vite_TokenId
+            });
+            // set amount
+            ab.amount = amount;
+
+            // get provider
+            const provider = this.ctx.getProvider(selectedNode.name);
+            // deploy result
+            const deployinfo: DeployInfo = {
+              contractName: selectedContract.name,
+              address: "",
+              contractFsPath: selectedContract.fsPath,
+              sourceFsPath: selectedContract.sourcefsPath,
+              network: selectedNode.network,
+              abi,
+            };
+            // sign and send
+            if (selectedNode.network === ViteNetwork.Bridge) {
+              try {
+                const signedBlock = await provider.sendCustomRequest({
+                  method: "vite_signAndSendTx",
+                  params: {
+                    block: ab.accountBlock,
+                  }
+                });
+                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${signedBlock.hash}]`, signedBlock);
+                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${signedBlock.toAddress}`);
+                deployinfo.address = signedBlock.toAddress;
+              } catch (error) {
+                this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy]`, error);
+              }
+            } else {
+              // set provider
+              ab.setProvider(provider);
+              // set private key
+              const addressObj = this.ctx.getAddressObj(selectedAddress);
+              ab.setPrivateKey(addressObj!.privateKey);
+              try {
+                // sign and send
+                let sendBlock = await ab.autoSend();
+                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
+                // waiting confirmed
+                await vuilder.utils.waitFor(async () => {
+                  try {
+                    sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                    if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
+                      return false;
+                    }
+                    this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                    return true;
+                  } catch (error) {
+                    this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, error);
+                    return true;
+                  }
+                });
+                // get receive block
+                const receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
+                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+                if (receiveBlock?.blockType !== 4) {
+                  this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}]`, "contract deploy failed.");
+                } else {
+                  this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${sendBlock.toAddress}`);
+                  deployinfo.address = sendBlock.toAddress;
+                }
+              } catch (error) {
+                this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy]`, error);
+              }
+            }
+            // render
+            if (deployinfo.address) {
+              this.ctx.updateDeploymentRecord(contractFile, this.selectedNetwork, deployinfo.address);
+              // render console webview
+              ContractConsoleViewPanel.render(this.ctx, deployinfo);
+            }
+
             this.postMessage({
               command: "updateDeploymentStatus",
               message: {

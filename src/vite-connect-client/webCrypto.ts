@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { webcrypto } from 'crypto'
 import {
     IJsonRpcResponseSuccess,

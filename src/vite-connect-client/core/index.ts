@@ -55,7 +55,7 @@ export class Connector {
   private _handshakeTopic: string;
   private _accounts: string[];
   private _chainId: number;
-  public _socket: SocketTransport;
+  private _socket: SocketTransport;
   private _eventManager: EventManager;
   private _connected: boolean;
 
@@ -132,6 +132,18 @@ export class Connector {
         payload: ""
       }
     ]);
+    this._socket.socket!.addEventListener("open", () => {
+      this._eventManager.trigger({
+        event: "open",
+        params: null
+      });
+    });
+    this._socket.socket!.addEventListener("close", () => {
+      this._eventManager.trigger({
+        event: "close",
+        params: null
+      });
+    });
   }
 
   // -- setters / getters ----------------------------------------------- //

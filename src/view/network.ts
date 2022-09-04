@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
 import { getWebviewContent } from "./webview";
-import { MessageEvent, ViteNode, ViteNodeStatus } from "../types/types";
+import { MessageEvent, ViteNetwork, ViteNode, ViteNodeStatus } from "../types/types";
 import { Ctx } from "../ctx";
 
 export class NetworkViewProvider implements vscode.WebviewViewProvider {
@@ -57,9 +57,6 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
             timer = setInterval(async() => {
               await this.updateSnapshotChainHeight();
             }, 6000);
-            if (this.ctx.config.localGoViteAutoStart) {
-              await this.startLocalViteNode();
-            }
           }
           break;
         case "startLocalViteNode":
@@ -123,46 +120,42 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
 
   public async startLocalViteNode() {
     const node = this.ctx.getViteNode("local");
-    if (node && node.type === "local") {
-      delete node?.error;
-      await this.postMessage({
-        command: "updateViteNode",
-        message: {
-          ...node,
-          status: ViteNodeStatus.Syncing
-        },
-      });
-      const nodeConfig = {
-        "nodes": {
-          "local": {
-            "name": "gvite",
-            "version": node!.version,
-            "http": node!.url
-          }
-        },
-        "defaultNode": "local"
-      };
-      this.localNodePid = await vuilder.startLocalNetwork(nodeConfig);
-      node!.status = ViteNodeStatus.Syncing;
-      this._onDidChangeNode.fire(node!);
-      return this.localNodePid;
-    }
+    delete node?.error;
+    await this.postMessage({
+      command: "updateViteNode",
+      message: {
+        ...node,
+        status: ViteNodeStatus.Syncing
+      },
+    });
+    const nodeConfig = {
+      "nodes": {
+        "local": {
+          "name": "gvite",
+          "version": node!.version,
+          "http": node!.url
+        }
+      },
+      "defaultNode": "local"
+    };
+    this.localNodePid = await vuilder.startLocalNetwork(nodeConfig);
+    node!.status = ViteNodeStatus.Syncing;
+    this._onDidChangeNode.fire(node!);
+    return this.localNodePid;
   }
 
   public async stopLocalViteNode() {
     const node = this.ctx.getViteNode("local");
-    if (node && node.type === "local") {
-      delete node?.error;
-      node!.status = ViteNodeStatus.Stopped;
+    delete node?.error;
+    node!.status = ViteNodeStatus.Stopped;
 
-      this.postMessage({
-        command: "updateViteNode",
-        message: node,
-      });
+    this.postMessage({
+      command: "updateViteNode",
+      message: node,
+    });
 
-      this._onDidChangeNode.fire(node!);
-      await this.localNodePid.stop();
-    }
+    this._onDidChangeNode.fire(node!);
+    await this.localNodePid.stop();
   }
 
   private async updateSnapshotChainHeight(): Promise<void> {
@@ -170,7 +163,10 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
       if (this.requestingSet.has(node.name)) {
         return;
       }
-      if (node.status === ViteNodeStatus.Running || node.status === ViteNodeStatus.Syncing) {
+      if (node.network === ViteNetwork.Bridge) {
+        // TODO: vite connect not supported yet
+      } else if (node.status === ViteNodeStatus.Running || node.status === ViteNodeStatus.Syncing) {
+        // prevent blocking requests
         setTimeout(async() => {
           try {
             const provider = this.ctx.getProvider(node.name);
@@ -210,5 +206,13 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
         }, 0);
       }
     }
+  }
+  public updateDeps() {
+    return this.postMessage({
+      command: "setViteNode",
+      message: {
+        viteNodesList: this.ctx.getViteNodesList(),
+      },
+    });
   }
 }

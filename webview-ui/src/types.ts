@@ -1,29 +1,10 @@
-/*
- Copy from @vite/vitejs/src/contract/index.ts:
-*/
 export const Vite_TokenId = 'tti_5649544520544f4b454e6e40';
-export const Vite_Token_Info = {
-    decimals: 18,
-    tokenId: Vite_TokenId,
-    tokenName: 'Vite Token',
-    tokenSymbol: 'VITE'
-};
-
-export const VX_TokenId = 'tti_564954455820434f494e69b5';
-export const VX_Token_Info = {
-    decimals: 18,
-    tokenId: VX_TokenId,
-    tokenName: 'ViteX Coin',
-    tokenSymbol: 'VX'
-};
-/*
-  End of copy
-*/
 
 export enum ViteNetwork {
-  Debug = "Debug",
+  DebugNet = "DebugNet",
   TestNet = "TestNet",
   MainNet = "MainNet",
+  Bridge = "Bridge",
 }
 
 export enum ViteNodeStatus {
@@ -31,6 +12,8 @@ export enum ViteNodeStatus {
   Running = "Running",
   Stopped = "Stopped",
   Timeout = "Timeout",
+  Connected = "Connected",
+  Disconnected = "Disconnected",
 }
 
 export const CONTRACT_SCHEME = "contract";
@@ -46,8 +29,8 @@ export interface ViteNode {
   name: string;
   url: string;
   network: ViteNetwork;
+  backendNetwork?: ViteNetwork;
   status: ViteNodeStatus;
-  type: "local" | "remote";
   isDefault?: boolean;
   version?: string;
   info?: any;

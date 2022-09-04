@@ -85,6 +85,11 @@ export async function activateContractView(ctx: Ctx): Promise<void> {
   /*
      Vite Wallet webview
    */
+  // derive the first address in the wallet
+  for (const network of [ViteNetwork.DebugNet, ViteNetwork.TestNet,ViteNetwork.MainNet]) {
+    ctx.deriveAddress(network, 0);
+  }
+
   const walletProvider = new ViteWalletViewProvider(ctx);
   // register Vite Wallet webview
   ctx.pushCleanup(
@@ -98,6 +103,9 @@ export async function activateContractView(ctx: Ctx): Promise<void> {
      Vite Network webview
    */
   const networkProvider = new NetworkViewProvider(ctx);
+  if (ctx.config.localGoViteAutoStart) {
+    networkProvider.startLocalViteNode();
+  }
   // register Vite Network webview
   ctx.pushCleanup(
     vscode.window.registerWebviewViewProvider(
@@ -138,13 +146,14 @@ export async function activateContractView(ctx: Ctx): Promise<void> {
     walletProvider.onDidDeriveAddress(async () => {
       contractDeploymentProvider.updateDeps();
       ContractConsoleViewPanel.updateDeps();
+      networkProvider.updateDeps();
     })
   );
   // sync node
   ctx.pushCleanup(
     networkProvider.onDidChangeNode(async (node) => {
       contractDeploymentProvider.updateDeps();
-      if (node.network === ViteNetwork.Debug && node.status === ViteNodeStatus.Stopped) {
+      if (node.network === ViteNetwork.DebugNet && node.status === ViteNodeStatus.Stopped) {
         const contractsList = await getContractsList(ContractContextValue.ContractDeployed);
         for (const contract of contractsList) {
           ctx.clearCachedDeploymentRecord(contract.resourceUri!, node.network);
@@ -265,7 +274,7 @@ export async function activateContractView(ctx: Ctx): Promise<void> {
 
   ctx.registerCommand("refreshWallet", () => {
     return () => {
-      for (const network of [ViteNetwork.Debug, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
+      for (const network of [ViteNetwork.DebugNet, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
         walletProvider.refresh(network);
       }
     };

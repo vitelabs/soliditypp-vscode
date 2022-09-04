@@ -75,7 +75,7 @@ function dataReceiver (ev: any) {
         }
         if (addressesList) {
           state.addressesList = addressesList;
-          state.selectedAddress = state.addressesList[0];
+          state.selectedAddress = addressesList[0] ?? "";
         }
       }
       case "updateDeploymentStatus":

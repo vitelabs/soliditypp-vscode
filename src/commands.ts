@@ -1,30 +1,30 @@
 import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
+const vite = require("@vite/vitejs");
 import { Ctx, Cmd } from "./ctx";
 import { Address, ViteNetwork } from "./types/types";
-import { newAccount, getAmount } from "./util";
+import { getAmount } from "./util";
 
 export function stake(ctx: Ctx): Cmd {
   return async () => {
     const networkStr = await vscode.window.showInputBox({
-      value: ViteNetwork.TestNet,
       placeHolder: "Debug | TestNet | MainNet",
       prompt: "Enter the network, default is TestNet",
     });
-    if (!networkStr) {
-      return;
-    }
     let network: ViteNetwork = ViteNetwork.TestNet;
     switch (networkStr?.toLowerCase()) {
       case "debug":
-        network = ViteNetwork.Debug;
-      break;
+        network = ViteNetwork.DebugNet;
+        break;
       case "testnet":
         network = ViteNetwork.TestNet;
-      break;
+        break;
       case "mainnet":
         network = ViteNetwork.MainNet;
-      break;
+        break;
+      default:
+        vscode.window.showErrorMessage(`this network is not supported: ${networkStr}`);
+        return;
     }
 
     const fromAddress = await vscode.window.showInputBox({
@@ -36,6 +36,7 @@ export function stake(ctx: Ctx): Cmd {
       return;
     };
     const beneficiaryAddress: Address | undefined = await vscode.window.showInputBox({
+      value: ctx.getAddressList(network)[0],
       placeHolder: "Quota Beneficiary",
       prompt: "Enter the address to stake to",
     });
@@ -43,9 +44,8 @@ export function stake(ctx: Ctx): Cmd {
       return;
     };
     let amount = await vscode.window.showInputBox({
-      value: "134",
       placeHolder: "The minimum staking amount is 134 VITE",
-      prompt: "Enter the amount to stake, default is 134 VITE",
+      prompt: "Enter the amount to stake",
     });
     if (!amount) {
       return;
@@ -56,22 +56,34 @@ export function stake(ctx: Ctx): Cmd {
       return;
     }
 
-    // get provider and operator
-    const provider = ctx.getProviderByNetwork(network);
-    const sender = newAccount(fromAddressObj, provider);
     ctx.vmLog.info(`[${network}][stake][request]`, {
       fromAddress,
       beneficiaryAddress,
       amount,
       network,
     });
+    // get provider and operator
+    const provider = ctx.getProviderByNetwork(network);
+    const sender = new vuilder.UserAccount(fromAddress);
+    sender._setProvider(provider);
+    sender.setPrivateKey(fromAddressObj.privateKey);
+    let sendBlock = sender.stakeForQuota({
+      beneficiaryAddress,
+      amount: getAmount(amount),
+    });
+
+    let resend = false;
+    try {
+      sendBlock = await sendBlock.autoSendByPoW();
+    } catch (error) {
+      ctx.vmLog.error(`[${network}][stake][autoSendByPoW]`, error);
+      resend = true;
+    }
 
     try {
-      let sendBlock = sender.stakeForQuota({
-        beneficiaryAddress,
-        amount: getAmount(amount),
-      });
-      sendBlock = await sendBlock.autoSend();
+      if (resend) {
+        sendBlock = await sendBlock.autoSend();
+      }
       ctx.vmLog.info(`[${network}][stake][sendBlock=${sendBlock.hash}]`, sendBlock);
 
       // get account block

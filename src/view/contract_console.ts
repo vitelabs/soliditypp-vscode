@@ -2,14 +2,12 @@ import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
 const vite = require("@vite/vitejs");
 import { Ctx } from "../ctx";
-import { newAccount, getAmount } from "../util";
+import { getAmount } from "../util";
 import { getWebviewContent } from "./webview";
 import {
   MessageEvent,
   DeployInfo,
   ViteNetwork,
-  Vite_TokenId,
-  Vite_Token_Info,
   Address,
 } from "../types/types";
 
@@ -25,7 +23,7 @@ export class ContractConsoleViewPanel {
   private static _onDidCallContract = new vscode.EventEmitter<any>();
   static readonly onDidCallContract: vscode.Event<any> = this._onDidCallContract.event;
 
-  private currentNetwork: ViteNetwork = ViteNetwork.Debug;
+  private currentNetwork: ViteNetwork = ViteNetwork.DebugNet;
   private deployeInfoMap: Map<Address, DeployInfo> = new Map();
 
   private constructor(panel: vscode.WebviewPanel, private readonly ctx: Ctx, deployInfo: DeployInfo) {
@@ -60,47 +58,75 @@ export class ContractConsoleViewPanel {
           {
             const { fromAddress, toAddress, network, ctor, contractFile } = event.message;
             const contractName = contractFile.fragment;
+            this.ctx.vmLog.info(`[${network}][${contractName}][send()][from=${fromAddress}][to=${toAddress}][amount=${ctor.amount}]`);
+            // create AccountBlock
+            const ab = new vite.accountBlock.AccountBlock({
+              blockType: vite.constant.BlockType.TransferRequest,
+              address: fromAddress,
+              toAddress,
+              tokenId: vite.constant.Vite_TokenId,
+              amount: ctor.amount,
+              data: "",
+            });
+            // get provider
             const provider = this.ctx.getProviderByNetwork(network);
-            const addressObj = this.ctx.getAddressObj(fromAddress);
-            const operator = newAccount(addressObj!, provider);
-            try {
-              this.ctx.vmLog.info(`[${network}][${contractName}][send()][from=${fromAddress}][to=${toAddress}][amount=${ctor.amount}]`);
-              let sendBlock = await operator.sendToken(toAddress, ctor.amount, ctor.tokenId);
+            if (network === ViteNetwork.Bridge) {
+              try {
+                const signedBlock = await provider.sendCustomRequest({
+                  method: "vite_signAndSendTx",
+                  params: {
+                    block: ab.accountBlock,
+                  }
+                });
+                this.ctx.vmLog.info(`[${network}][${contractName}][send()][sendBlock=${signedBlock.hash}]`, signedBlock);
+                await this.updateAddressList();
+              } catch (error) {
+                this.ctx.vmLog.error(`[${network}][${contractName}][send()]`, error);
+              }
+            } else {
+              // set provider
+              ab.setProvider(provider);
+              // set private key
+              const addressObj = this.ctx.getAddressObj(fromAddress);
+              ab.setPrivateKey(addressObj!.privateKey);
+              try {
+                // sign and send
+                let sendBlock = ab.autoSend();
+                // get account block
+                await vuilder.utils.waitFor(async () => {
+                  const blocks = await provider.request("ledger_getAccountBlocksByAddress", fromAddress, 0, 3);
+                  for (const block of blocks) {
+                    if (block.previousHash === sendBlock.previousHash) {
+                      sendBlock = block;
+                      this.ctx.vmLog.info(`[${network}][${contractName}][send()][sendBlock=${sendBlock.hash}]`, sendBlock);
+                      return true;
+                    }
+                  }
+                  return false;
+                });
 
-              // get account block
-              await vuilder.utils.waitFor(async () => {
-                const blocks = await provider.request("ledger_getAccountBlocksByAddress", fromAddress, 0, 3);
-                for (const block of blocks) {
-                  if (block.previousHash === sendBlock.previousHash) {
-                    sendBlock = block;
-                    this.ctx.vmLog.info(`[${network}][${contractName}][send()][sendBlock=${sendBlock.hash}]`, sendBlock);
+                // waiting confirmed
+                await vuilder.utils.waitFor(async () => {
+                  if (sendBlock.confirmedHash) {
+                    this.ctx.vmLog.info(`[${network}][${contractName}][send()][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                    this.postMessage({
+                      command: "sendResult",
+                      message: {
+                        sendBlock,
+                        ctor,
+                        contractAddress: toAddress,
+                      }
+                    });
                     return true;
                   }
-                }
-                return false;
-              });
+                  sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                  return false;
+                });
 
-              // waiting confirmed
-              await vuilder.utils.waitFor(async () => {
-                if (sendBlock.confirmedHash) {
-                  this.ctx.vmLog.info(`[${network}][${contractName}][send()][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
-                  this.postMessage({
-                    command: "sendResult",
-                    message: {
-                      sendBlock,
-                      ctor,
-                      contractAddress: toAddress,
-                    }
-                  });
-                  return true;
-                }
-                sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
-                return false;
-              });
-
-              await this.updateAddressList();
-            } catch (error: any) {
-              this.ctx.vmLog.error(`[${network}][${contractName}][send()]`, error);
+                await this.updateAddressList();
+              } catch (error: any) {
+                this.ctx.vmLog.error(`[${network}][${contractName}][send()]`, error);
+              }
             }
             ContractConsoleViewPanel._onDidCallContract.fire(event);
           }
@@ -109,8 +135,6 @@ export class ContractConsoleViewPanel {
           {
             const { fromAddress, toAddress, network, contractFile, func } = event.message;
             const contractName = contractFile.fragment;
-            // get provider
-            const provider = this.ctx.getProviderByNetwork(network);
             // get inputs value
             const params = func.inputs.map((x: any) => x.value);
             const data = vite.abi.encodeFunctionCall(func, params);
@@ -119,6 +143,13 @@ export class ContractConsoleViewPanel {
               contractAddress: toAddress,
               network,
             });
+            // get provider
+            let provider: any;
+            if (network === ViteNetwork.Bridge) {
+              provider = this.ctx.getProviderByNetwork(this.ctx.bridgeNode.backendNetwork!);
+            } else {
+              provider = this.ctx.getProviderByNetwork(network);
+            }
 
             try {
               await vuilder.utils.waitFor(async() => {
@@ -156,10 +187,6 @@ export class ContractConsoleViewPanel {
           {
             const { fromAddress, toAddress, network, contractFile, func } = event.message;
             const contractName = contractFile.fragment;
-            // get provider and operator
-            const provider = this.ctx.getProviderByNetwork(network);
-            const addressObj = this.ctx.getAddressObj(fromAddress);
-            const operator = newAccount(addressObj!, provider);
             // get inputs value
             const params = func.inputs.map((x: any) => x.value);
             const amount = getAmount(func.amount, func.amountUnit ?? "VITE");
@@ -172,74 +199,99 @@ export class ContractConsoleViewPanel {
               contractAddress: toAddress,
             });
 
-            try {
-              let sendBlock = operator.callContract({
-                abi: func,
-                toAddress,
-                params,
-                tokenId: Vite_TokenId,
-                amount,
+            // create AccountBlock
+            const data = vite.accountBlock.utils.getCallContractData({
+              abi: func,
+              params,
+            });
+            const ab = new vite.accountBlock.AccountBlock({
+              blockType: vite.constant.BlockType.TransferRequest,
+              address: fromAddress,
+              toAddress,
+              tokenId: vite.constant.Vite_TokenId,
+              amount,
+              data,
+            });
+            // get provider
+            const provider = this.ctx.getProviderByNetwork(network);
+            if (network === ViteNetwork.Bridge) {
+              const signedBlock = await provider.sendCustomRequest({
+                method: "vite_signAndSendTx",
+                params: {
+                  block: ab.accountBlock,
+                }
               });
-              sendBlock = await sendBlock.autoSend();
-              this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][sendBlock=${sendBlock.hash}]`, sendBlock);
+              this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][sendBlock=${signedBlock.hash}]`, signedBlock);
+            } else {
+              // set provider
+              ab.setProvider(provider);
+              // set private key
+              const addressObj = this.ctx.getAddressObj(fromAddress);
+              ab.setPrivateKey(addressObj!.privateKey);
+              try {
+                // sign and send
+                let sendBlock = await ab.autoSend();
+                this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][sendBlock=${sendBlock.hash}]`, sendBlock);
 
-              // waiting confirmed
-              await vuilder.utils.waitFor(async() => {
-                try {
-                  sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
-                  if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
-                    return false;
-                  }
-                  this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
-                  this.postMessage({
-                    command: "callResult",
-                    message: {
-                      sendBlock,
-                      func,
-                      contractAddress: toAddress,
+                // waiting confirmed
+                await vuilder.utils.waitFor(async() => {
+                  try {
+                    sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                    if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
+                      return false;
                     }
-                  });
-                  return true;
-                } catch (error) {
-                  this.ctx.vmLog.error(`[${network}][${contractName}][call ${func.name}()][sendBlock=${sendBlock.hash}]`, error);
-                  return true;
+                    this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                    this.postMessage({
+                      command: "callResult",
+                      message: {
+                        sendBlock,
+                        func,
+                        contractAddress: toAddress,
+                      }
+                    });
+                    return true;
+                  } catch (error) {
+                    this.ctx.vmLog.error(`[${network}][${contractName}][call ${func.name}()][sendBlock=${sendBlock.hash}]`, error);
+                    return true;
+                  }
+                });
+                // get receive block
+                let receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
+                this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+
+                // waiting confirmed
+                await vuilder.utils.waitFor(async () => {
+                  if (receiveBlock.confirmedHash) {
+                    this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
+                    return true;
+                  }
+                  receiveBlock = await provider.request("ledger_getAccountBlockByHash", receiveBlock.hash);
+                  return false;
+                });
+
+                if (receiveBlock.blockType !== 4 && receiveBlock.blockType !== 5 || !receiveBlock.data) {
+                  throw new Error("bad recieve block");
                 }
-              });
-              // get receive block
-              let receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
-              this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
-
-              // waiting confirmed
-              await vuilder.utils.waitFor(async () => {
-                if (receiveBlock.confirmedHash) {
-                  this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
-                  return true;
+                const data = receiveBlock.data;
+                const bytes = Buffer.from(data, "base64");
+                if (bytes.length !== 33) {
+                  throw new Error("bad data in recieve block");
                 }
-                receiveBlock = await provider.request("ledger_getAccountBlockByHash", receiveBlock.hash);
-                return false;
-              });
+                // parse error code from data in receive block
+                const errorCode = bytes[32];
+                switch (errorCode) {
+                  case 1:
+                    throw new Error(`revert, methodName: ${func.name}`); // @todo: need error descriptions and debug info from RPC
+                  case 2:
+                    throw new Error(`maximum call stack size exceeded, methodName: ${func.name}`);
+                }
 
-              if (receiveBlock.blockType !== 4 && receiveBlock.blockType !== 5 || !receiveBlock.data) {
-                throw new Error("bad recieve block");
+                await this.updateAddressList();
+              } catch (error:any) {
+                this.ctx.vmLog.error(`[${network}][${contractName}][call ${func.name}()]`, error); 
               }
-              const data = receiveBlock.data;
-              const bytes = Buffer.from(data, "base64");
-              if (bytes.length !== 33) {
-                throw new Error("bad data in recieve block");
-              }
-              // parse error code from data in receive block
-              const errorCode = bytes[32];
-              switch (errorCode) {
-                case 1:
-                  throw new Error(`revert, methodName: ${func.name}`); // @todo: need error descriptions and debug info from RPC
-                case 2:
-                  throw new Error(`maximum call stack size exceeded, methodName: ${func.name}`);
-              }
-
-              await this.updateAddressList();
-            } catch (error:any) {
-              this.ctx.vmLog.error(`[${network}][${contractName}][call ${func.name}()]`, error); 
             }
+
             ContractConsoleViewPanel._onDidCallContract.fire(event);
           }
           break;
@@ -283,17 +335,22 @@ export class ContractConsoleViewPanel {
 
   public async updateAddressList() {
     const list = this.ctx.getAddressList(this.currentNetwork);
-    const provider = this.ctx.getProviderByNetwork(this.currentNetwork);
+    let provider;
+    if (this.currentNetwork === ViteNetwork.Bridge) {
+      provider = this.ctx.getProviderByNetwork(this.ctx.bridgeNode.backendNetwork!);
+    } else {
+      provider = this.ctx.getProviderByNetwork(this.currentNetwork);
+    }
     const message: any[] = [];
     for (const address of list) {
       const quotaInfo = await provider.request('contract_getQuotaByAccount', address);
       const balanceInfo = await provider.getBalanceInfo(address);
-      const balance = balanceInfo.balance.balanceInfoMap?.[Vite_TokenId]?.balance;
+      const balance = balanceInfo.balance.balanceInfoMap?.[vite.constant.Vite_TokenId]?.balance;
       message.push({
         address,
         network: this.currentNetwork,
         quota: quotaInfo.currentQuota,
-        balance: balance ? balance.slice(0, balance.length - Vite_Token_Info.decimals) : '0',
+        balance: balance ? balance.slice(0, balance.length - vite.constant.Vite_Token_Info.decimals) : '0',
       });
     }
     this.postMessage({
@@ -304,7 +361,12 @@ export class ContractConsoleViewPanel {
 
   private clear() {
     this.deployeInfoMap.clear();
-    const provider = this.ctx.getProviderByNetwork(this.currentNetwork);
+    let provider;
+    if (this.currentNetwork === ViteNetwork.Bridge) {
+      provider = this.ctx.getProviderByNetwork(this.ctx.bridgeNode.backendNetwork!);
+    } else {
+      provider = this.ctx.getProviderByNetwork(this.currentNetwork);
+    }
     provider.unsubscribeAll();
   }
 
@@ -333,7 +395,12 @@ export class ContractConsoleViewPanel {
     this.deployeInfoMap.set(deployInfo.address, deployInfo);
 
 
-    const provider = this.ctx.getProviderByNetwork(deployInfo.network);
+    let provider;
+    if (deployInfo.network === ViteNetwork.Bridge) {
+      provider = this.ctx.getProviderByNetwork(this.ctx.bridgeNode.backendNetwork!);
+    } else {
+      provider = this.ctx.getProviderByNetwork(deployInfo.network);
+    }
 
     // subscribe vmlog
     try {

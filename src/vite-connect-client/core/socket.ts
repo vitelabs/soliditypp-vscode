@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { ISocketMessage } from '@/types'
 const WebSocket = require('websocket').w3cwebsocket;
 
@@ -10,7 +11,7 @@ interface ISocketTransportOptions {
 
 class SocketTransport {
   private _bridge: string
-  private _socket: WebSocket | null
+  public socket: WebSocket | null
   private _queue: ISocketMessage[]
   private _incoming: ISocketMessage[]
   private _pingInterval: any
@@ -20,7 +21,7 @@ class SocketTransport {
 
   constructor (opts: ISocketTransportOptions) {
     this._bridge = ''
-    this._socket = null
+    this.socket = null
     this._queue = []
     this._incoming = []
     this._pingInterval = null
@@ -48,7 +49,7 @@ class SocketTransport {
   }
 
   public send (socketMessage: ISocketMessage): void {
-    if (this._socket && this._socket.readyState === 1) {
+    if (this.socket && this.socket.readyState === 1) {
       this._socketSend(socketMessage)
     } else {
       this._setToQueue(socketMessage)
@@ -64,9 +65,9 @@ class SocketTransport {
   }
 
   public close () {
-    if (this._socket && this._socket.readyState === 1) {
+    if (this.socket && this.socket.readyState === 1) {
       clearInterval(this._pingInterval)
-      this._socket.close()
+      this.socket.close()
     }
   }
 
@@ -81,12 +82,13 @@ class SocketTransport {
         ? bridge.replace('http', 'ws')
         : bridge
 
+      
     const socket = new WebSocket(url)
+    this.socket = socket
 
     socket.onmessage = (event: MessageEvent) => this._socketReceive(event)
 
     socket.onopen = () => {
-      this._socket = socket
 
       if (queuedMessages && queuedMessages.length) {
         queuedMessages.forEach((msg: ISocketMessage) => this._setToQueue(msg))
@@ -98,11 +100,11 @@ class SocketTransport {
   }
 
   private _toggleSocketPing () {
-    if (this._socket && this._socket.readyState === 1) {
+    if (this.socket && this.socket.readyState === 1) {
       this._pingInterval = setInterval(
         () => {
-          if (this._socket && this._socket.readyState === 1) {
-            this._socket.send('ping')
+          if (this.socket && this.socket.readyState === 1) {
+            this.socket.send('ping')
           }
         },
         10000 // 10 seconds
@@ -113,14 +115,14 @@ class SocketTransport {
   }
 
   private _socketSend (socketMessage: ISocketMessage) {
-    if (!this._socket) {
+    if (!this.socket) {
       throw new Error('Missing socket: required for sending message')
     }
 
     const message: string = JSON.stringify(socketMessage)
 
-    if (this._socket && this._socket.readyState === 1) {
-      this._socket.send(message)
+    if (this.socket && this.socket.readyState === 1) {
+      this.socket.send(message)
     } else {
       this._setToQueue(socketMessage)
       this._socketOpen()
@@ -140,7 +142,7 @@ class SocketTransport {
       throw error
     }
 
-    if (this._socket && this._socket.readyState === 1) {
+    if (this.socket && this.socket.readyState === 1) {
       this._callback(socketMessage)
     } else {
       this._incoming.push(socketMessage)

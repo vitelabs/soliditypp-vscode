@@ -74,7 +74,7 @@ class EventManager {
       'vc_peerPing',
       'exchange_key',
       'connect',
-      'disconnect'
+      'disconnect',
     ]
 
     if (

@@ -1,8 +1,16 @@
 import type { WebviewApi } from "vscode-webview";
 
 export class Log {
-  constructor(private readonly outputChannel: string) {
+  constructor(private readonly outputChannel: string) {}
+
+  error(...msg: [unknown, ...unknown[]]): void {
+    vscode.postMessage({
+      command: this.outputChannel,
+      subCommand: "error",
+      message: msg
+    });
   }
+
   debug(...msg: [unknown, ...unknown[]]): void {
     vscode.postMessage({
       command: this.outputChannel,
@@ -18,6 +26,7 @@ export class Log {
       message: msg
     });
   }
+
   log(...msg: [unknown, ...unknown[]]): void {
     vscode.postMessage({
       command: this.outputChannel,

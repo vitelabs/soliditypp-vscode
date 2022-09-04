@@ -105,7 +105,7 @@ const customNodeTarget = ref("");
 const customNode = reactive({
   name: "",
   url: "",
-  network: ViteNetwork.Debug,
+  network: ViteNetwork.DebugNet,
   type: "remote",
 });
 
@@ -132,7 +132,6 @@ function deleteNode(node: ViteNode) {
   state.nodesMap.delete(node.name);
   const copyNode = Object.assign({}, node);
   delete copyNode.info;
-  console.log(copyNode);
   vscode.postMessage({
     command: "deleteCustomNode",
     message: {
@@ -184,12 +183,6 @@ function getNodeError(node: ViteNode) {
       <div class="component-item">
         <vscode-dropdown @change="customNode.network = $event.target.value" title="custom node network">
           <vscode-option v-for="(network, idx) in ViteNetwork" :key="idx" :value="network">Node Network: {{ network }}</vscode-option>
-        </vscode-dropdown>
-      </div>
-      <div class="component-item">
-        <vscode-dropdown @change="customNode.type = $event.target.value" title="custom node type">
-          <vscode-option value="remote" selected>Node Type: Remote</vscode-option>
-          <vscode-option v-if="customNode.network === ViteNetwork.Debug" value="local">Node Type: Local</vscode-option>
         </vscode-dropdown>
       </div>
       <div class="component-item">

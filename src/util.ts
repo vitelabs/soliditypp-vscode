@@ -3,9 +3,7 @@ import * as path from "path";
 import { strict as nativeAssert } from "assert";
 import { spawnSync } from "child_process";
 import { inspect } from "util";
-const vuilder = require("@vite/vuilder");
 import BigNumber from "bignumber.js";
-import { AddressObj } from "./types/types";
 
 const VITE_DECIMAL = new BigNumber('1e18');
 
@@ -166,13 +164,6 @@ export async function readContractJsonFile(file: vscode.Uri): Promise<any> {
   } else {
     return compileResult;
   }
-}
-
-export function newAccount(addressObj: AddressObj, provider: any) {
-  let a = new vuilder.UserAccount(addressObj.address);
-  a.setPrivateKey(addressObj.privateKey);
-  a._setProvider(provider);
-  return a;
 }
 
 export function getAmount(amount: string | number, unit?:string) {

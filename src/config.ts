@@ -16,6 +16,7 @@ export class Config {
   readonly package: {
     version: string;
     releaseTag: string | null;
+    displayName: string;
   } = vscode.extensions.getExtension(this.extensionId)!.packageJSON;
 
   readonly globalStorageUri: vscode.Uri;
@@ -168,6 +169,10 @@ export class Config {
 
   get viteMainNet() {
     return this.get<string>("vite.mainNet");
+  }
+
+  get viteConnectBridge() {
+    return this.get<string>("vite.connectBridge");
   }
 
   get viteCustomNodes() {
