@@ -23,8 +23,7 @@ export function stake(ctx: Ctx): Cmd {
         network = ViteNetwork.MainNet;
         break;
       default:
-        vscode.window.showErrorMessage(`this network is not supported: ${networkStr}`);
-        return;
+        network = ViteNetwork.TestNet;
     }
 
     const fromAddress = await vscode.window.showInputBox({

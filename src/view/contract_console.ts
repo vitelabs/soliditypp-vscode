@@ -78,7 +78,7 @@ export class ContractConsoleViewPanel {
                     block: ab.accountBlock,
                   }
                 });
-                this.ctx.vmLog.info(`[${network}][${contractName}][send()][sendBlock=${signedBlock.hash}]`, signedBlock);
+                this.ctx.vmLog.info(`[${network}][${contractName}][send()][signedBlock=${signedBlock.hash}]`, signedBlock);
                 await this.updateAddressList();
               } catch (error) {
                 this.ctx.vmLog.error(`[${network}][${contractName}][send()]`, error);
@@ -221,7 +221,7 @@ export class ContractConsoleViewPanel {
                   block: ab.accountBlock,
                 }
               });
-              this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][sendBlock=${signedBlock.hash}]`, signedBlock);
+              this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][signedBlock=${signedBlock.hash}]`, signedBlock);
             } else {
               // set provider
               ab.setProvider(provider);

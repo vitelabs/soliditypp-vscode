@@ -181,7 +181,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                     block: ab.accountBlock,
                   }
                 });
-                this.ctx.vmLog.info(`[${network}][sendToken][sendBlock=${signedBlock.hash}]`, signedBlock);
+                this.ctx.vmLog.info(`[${network}][sendToken][signedBlock=${signedBlock.hash}]`, signedBlock);
                 await this.updateAddressInfo(network);
                 // NOTE: sync balance and quota
                 this._onDidDeriveAddress.fire();
@@ -317,6 +317,10 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           address,
           sendBlockHash: block.hash,
         });
+        // set provider
+        ab.setProvider(provider);
+        // set private key
+        ab.setPrivateKey(receiverAddressObj.privateKey);
         let receiveBlock: any;
         let resend = false;
         try {

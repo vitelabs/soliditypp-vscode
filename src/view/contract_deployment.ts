@@ -140,8 +140,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
                     block: ab.accountBlock,
                   }
                 });
-                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${signedBlock.hash}]`, signedBlock);
-                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${signedBlock.toAddress}`);
+                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][signedBlock=${signedBlock.hash}]`, signedBlock);
                 deployinfo.address = signedBlock.toAddress;
               } catch (error) {
                 this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy]`, error);
@@ -176,7 +175,6 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
                 if (receiveBlock?.blockType !== 4) {
                   this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}]`, "contract deploy failed.");
                 } else {
-                  this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${sendBlock.toAddress}`);
                   deployinfo.address = sendBlock.toAddress;
                 }
               } catch (error) {
@@ -185,6 +183,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             }
             // render
             if (deployinfo.address) {
+              this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${deployinfo.address}`);
               this.ctx.updateDeploymentRecord(contractFile, this.selectedNetwork, deployinfo.address);
               // render console webview
               ContractConsoleViewPanel.render(this.ctx, deployinfo);
