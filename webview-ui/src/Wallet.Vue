@@ -266,10 +266,10 @@ function hideViteConnectQRcode() {
   state.viteConnectUri = "";
 }
 function killSession() {
-  state.viteConnectUri = "";
   vscode.postMessage({
     command: "killSession",
   });
+  state.viteConnectUri = "";
 }
 function changeBackendNetwork(network: ViteNetwork) {
   vscode.postMessage({

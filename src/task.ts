@@ -120,10 +120,13 @@ class SolppcTaskProvider implements vscode.TaskProvider {
         showReuseMessage: false,
       };
       tasks.push(task);
+      if (!this.contractTaskMap.has(contract.fsPath)) {
+        // watch file for diagnostics
+        this.ctx.log.debug("watchfile", contract.fsPath);
+        this.watchFile(contract);
+      }
       // cache task
       this.contractTaskMap.set(contract.fsPath, task);
-      // watch file for diagnostics
-      this.watchFile(contract);
     }
 
     // NOTE there is no good way to sort tasks

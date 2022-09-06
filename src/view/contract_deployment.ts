@@ -130,9 +130,9 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               try {
                 const signedBlock = await provider.sendCustomRequest({
                   method: "vite_signAndSendTx",
-                  params: {
+                  params: [{
                     block: ab.accountBlock,
-                  }
+                  }]
                 });
                 this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][signedBlock=${signedBlock.hash}]`, signedBlock);
                 deployinfo.address = signedBlock.toAddress;

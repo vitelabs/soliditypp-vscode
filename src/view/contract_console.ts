@@ -9,6 +9,7 @@ import {
   DeployInfo,
   ViteNetwork,
   Address,
+  ViteNodeStatus,
 } from "../types/types";
 
 export class ContractConsoleViewPanel {
@@ -74,9 +75,9 @@ export class ContractConsoleViewPanel {
               try {
                 const signedBlock = await provider.sendCustomRequest({
                   method: "vite_signAndSendTx",
-                  params: {
+                  params: [{
                     block: ab.accountBlock,
-                  }
+                  }]
                 });
                 this.ctx.vmLog.info(`[${network}][${contractName}][send()][signedBlock=${signedBlock.hash}]`, signedBlock);
                 await this.updateAddressList();
@@ -211,9 +212,9 @@ export class ContractConsoleViewPanel {
             if (network === ViteNetwork.Bridge) {
               const signedBlock = await provider.sendCustomRequest({
                 method: "vite_signAndSendTx",
-                params: {
+                params: [{
                   block: ab.accountBlock,
-                }
+                }]
               });
               this.ctx.vmLog.info(`[${network}][${contractName}][call ${func.name}()][signedBlock=${signedBlock.hash}]`, signedBlock);
             } else {
@@ -328,7 +329,13 @@ export class ContractConsoleViewPanel {
   }
 
   public async updateAddressList() {
-    const list = this.ctx.getAddressList(this.currentNetwork);
+    const addressList = this.ctx.getAddressList(this.currentNetwork);
+    if (this.ctx.bridgeNode.backendNetwork === this.currentNetwork && this.ctx.bridgeNode.status === ViteNodeStatus.Connected) {
+      const bridgeAddress = this.ctx.getAddressList(ViteNetwork.Bridge);
+      for (const address of bridgeAddress) {
+        addressList.push(address);
+      }
+    }
     let provider;
     if (this.currentNetwork === ViteNetwork.Bridge) {
       provider = this.ctx.getProviderByNetwork(this.ctx.bridgeNode.backendNetwork!);
@@ -336,7 +343,7 @@ export class ContractConsoleViewPanel {
       provider = this.ctx.getProviderByNetwork(this.currentNetwork);
     }
     const message: any[] = [];
-    for (const address of list) {
+    for (const address of addressList) {
       const quotaInfo = await provider.request('contract_getQuotaByAccount', address);
       const balanceInfo = await provider.getBalanceInfo(address);
       const balance = balanceInfo.balance.balanceInfoMap?.[vite.constant.Vite_TokenId]?.balance;

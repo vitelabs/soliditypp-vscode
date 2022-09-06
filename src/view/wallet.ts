@@ -44,7 +44,8 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
         case "mounted":
           {
             const message = [];
-            for (const network of [ViteNetwork.DebugNet, ViteNetwork.TestNet, ViteNetwork.MainNet, ViteNetwork.Bridge]) {
+            const networkList = [ViteNetwork.DebugNet, ViteNetwork.TestNet, ViteNetwork.MainNet, ViteNetwork.Bridge];
+            for (const network of networkList) {
               message.push({
                 network,
                 addressList: this.ctx.getAddressList(network),
@@ -55,7 +56,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
               message,
             });
 
-            for (const network of [ViteNetwork.DebugNet, ViteNetwork.TestNet, ViteNetwork.MainNet]) {
+            for (const network of networkList) {
               this.refresh(network);
             }
 
@@ -136,7 +137,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             await this.postMessage({
               command: "setAddress",
               message: [{
-                addressList: this.ctx.getAddressList(ViteNetwork.Bridge),
+                addressList: [],
                 network: ViteNetwork.Bridge,
               }],
             });
@@ -176,12 +177,13 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
               try {
                 const signedBlock = await provider.sendCustomRequest({
                   method: "vite_signAndSendTx",
-                  params: {
+                  params: [{
                     block: ab.accountBlock,
-                  }
+                  }]
                 });
                 this.ctx.vmLog.info(`[${network}][sendToken][signedBlock=${signedBlock.hash}]`, signedBlock);
                 await this.updateAddressInfo(network);
+                await this.updateAddressInfo(this.ctx.bridgeNode.backendNetwork!);
                 // NOTE: sync balance and quota
                 this._onDidDeriveAddress.fire();
               } catch (error) {
@@ -220,6 +222,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
                 });
 
                 await this.updateAddressInfo(network);
+                await this.updateAddressInfo(ViteNetwork.Bridge);
                 // NOTE: sync balance and quota
                 this._onDidDeriveAddress.fire();
               } catch (error: any) {
@@ -258,6 +261,9 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
     let provider;
     for (const node of nodesList) {
       if (node.network === ViteNetwork.Bridge) {
+        if (this.ctx.bridgeNode.status !== ViteNodeStatus.Connected) {
+          return;
+        }
         provider = this.ctx.getProviderByNetwork(node.backendNetwork!);
       } else if (node.status === ViteNodeStatus.Running) {
         provider = this.ctx.getProvider(node.name);
@@ -415,7 +421,6 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           this.updateAddressInfo(ViteNetwork.Bridge, address);
         }
         this._onDidDeriveAddress.fire();
-
       }
     });
   }
