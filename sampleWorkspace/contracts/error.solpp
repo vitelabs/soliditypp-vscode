@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.8.0;
+pragma soliditypp >=0.8.0;
 
-contract SimpleStorage {
+contract Error {
     uint storedData;
 
-    function set(uint x) external {
+    function set(uintt x) external {
         storedData = x;
     }
 
