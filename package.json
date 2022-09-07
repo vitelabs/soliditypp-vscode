@@ -27,12 +27,13 @@
   ],
   "scripts": {
     "install:all": "npm install && npm --prefix ./webview-ui install ./webview-ui",
-    "watch:all": "npm run watch:webview & npm run watch",
-    "watch:webview": "npm --prefix ./webview-ui run watch",
-    "build:webview": "npm --prefix ./webview-ui run build",
-    "vscode:prepublish": "npm run build:webview && npm run compile",
-    "build": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "watch:webview": "npm --prefix ./webview-ui run watch",
+    "watch:all": "npm run watch:webview & npm run watch",
+    "build": "tsc -p ./",
+    "build:webview": "npm --prefix ./webview-ui run build",
+    "build:all": "npm run build:webview && npm run build",
+    "vscode:prepublish": "npm run build:webview && npm run compile",
     "pretest": "npm run build && npm run lint",
     "lint": "eslint src --ext ts"
   },
