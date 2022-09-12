@@ -240,7 +240,6 @@ export class Ctx {
     return this.getProvider("viteConnect");
   }
 
-
   get debugWallet() {
     return vite.wallet.getWallet(debugWalletMneonic);
   }
@@ -391,7 +390,6 @@ export class Ctx {
     // save to cache
     this.cache.set(id, address);
     // save to txt file
-    this.vmLog.debug(network, ViteNetwork.DebugNet, network !== ViteNetwork.DebugNet);
     if (network !== ViteNetwork.DebugNet) {
       try {
         const outputFsPath = path.join(path.dirname(contractFile.fsPath), path.basename(contractFile.fsPath, ".json") + ".txt");

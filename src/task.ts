@@ -122,7 +122,6 @@ class SolppcTaskProvider implements vscode.TaskProvider {
       tasks.push(task);
       if (!this.contractTaskMap.has(contract.fsPath)) {
         // watch file for diagnostics
-        this.ctx.log.debug("watchfile", contract.fsPath);
         this.watchFile(contract);
       }
       // cache task

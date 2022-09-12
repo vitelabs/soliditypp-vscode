@@ -44,7 +44,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
         case "mounted":
           {
             const message = [];
-            const networkList = [ViteNetwork.DebugNet, ViteNetwork.TestNet, ViteNetwork.MainNet, ViteNetwork.Bridge];
+            const networkList = Object.values(ViteNetwork);
             for (const network of networkList) {
               message.push({
                 network,
@@ -145,7 +145,6 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
           break;
         case "changeBackendNetwork":
           {
-            this.ctx.log.debug(event);
             const node = this.ctx.bridgeNode;
             node.backendNetwork = event.message;
             const addressesList = this.ctx.getAddressList(ViteNetwork.Bridge);
@@ -175,13 +174,13 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
             const provider = this.ctx.getProviderByNetwork(network);
             if (network === ViteNetwork.Bridge) {
               try {
-                const signedBlock = await provider.sendCustomRequest({
+                const sendBlock = await provider.sendCustomRequest({
                   method: "vite_signAndSendTx",
                   params: [{
                     block: ab.accountBlock,
                   }]
                 });
-                this.ctx.vmLog.info(`[${network}][sendToken][signedBlock=${signedBlock.hash}]`, signedBlock);
+                this.ctx.vmLog.info(`[${network}][sendToken][signedBlock=${sendBlock.hash}]`, sendBlock);
                 await this.updateAddressInfo(network);
                 await this.updateAddressInfo(this.ctx.bridgeNode.backendNetwork!);
                 // NOTE: sync balance and quota

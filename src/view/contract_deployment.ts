@@ -71,10 +71,13 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               selectedContract,
               params,
             } = event.message;
-            if (!(selectedNode.network === ViteNetwork.Bridge && selectedNode.status === ViteNodeStatus.Connected
-               || selectedNode.status === ViteNodeStatus.Running)) {
+
+            if (selectedNode.network === ViteNetwork.Bridge && selectedNode.status !== ViteNodeStatus.Connected) {
+              vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not connected`);
+              return;
+            } else if (selectedNode.status === ViteNodeStatus.Running) {
               vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not running`);
-              break;
+              return;
             }
             const contractFile = vscode.Uri.parse(selectedContract.fsPath).with({ fragment: selectedContract.name });
             const compileResult: any = await this.ctx.getCompileResult(contractFile);
@@ -95,7 +98,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
 
             // create AccountBlock
             if (Number(paramsObj.responseLatency) < Number(paramsObj.randomDegree)) {
-              this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy][error]: responseLatency must >= randomDegree`);
+              this.ctx.vmLog.error(`[${selectedNode.network}][${selectedContract.name}][deploy][error]: responseLatency must >= randomDegree`);
             }
             const data = vite.accountBlock.utils.getCreateContractData({
               abi,
@@ -112,10 +115,6 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             // set amount
             ab.amount = amount;
 
-            this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][request]`, ab.accountBlock);
-
-            // get provider
-            const provider = this.ctx.getProvider(selectedNode.name);
             // deploy result
             const deployinfo: DeployInfo = {
               contractName: selectedContract.name,
@@ -125,19 +124,35 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               network: selectedNode.network,
               abi,
             };
-            // sign and send
+
+            this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][request]`, ab.accountBlock);
+            // get provider
+            const provider = this.ctx.getProvider(selectedNode.name);
+            // request provider only for request
+            let reqProvider: any;
+            if (selectedNode.network === ViteNetwork.Bridge) {
+              reqProvider = this.ctx.getProviderByNetwork(selectedNode.backendNetwork);
+            } else {
+              reqProvider = provider;
+            }
+
+            let sendBlock: any;
             if (selectedNode.network === ViteNetwork.Bridge) {
               try {
-                const signedBlock = await provider.sendCustomRequest({
+                // NOTE: use backend provider get previous block
+                ab.setProvider(reqProvider);
+                await ab.autoSetPreviousAccountBlock();
+                // sign and send
+                sendBlock = await provider.sendCustomRequest({
                   method: "vite_signAndSendTx",
                   params: [{
                     block: ab.accountBlock,
                   }]
                 });
-                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][signedBlock=${signedBlock.hash}]`, signedBlock);
-                deployinfo.address = signedBlock.toAddress;
+                this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
               } catch (error) {
-                this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy]`, error);
+                this.ctx.vmLog.error(`[${selectedNode.network}][${selectedContract.name}][deploy]`, error);
+                return;
               }
             } else {
               // set provider
@@ -147,38 +162,42 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               ab.setPrivateKey(addressObj!.privateKey);
               try {
                 // sign and send
-                let sendBlock = await ab.autoSend();
-                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
-                // waiting confirmed
-                await vuilder.utils.waitFor(async () => {
-                  try {
-                    sendBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.hash);
-                    if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
-                      return false;
-                    }
-                    this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
-                    return true;
-                  } catch (error) {
-                    this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, error);
-                    return true;
-                  }
-                });
-                // get receive block
-                const receiveBlock = await provider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
-                this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
-                if (receiveBlock?.blockType !== 4) {
-                  this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}]`, "contract deploy failed.");
-                } else {
-                  deployinfo.address = sendBlock.toAddress;
-                }
+                sendBlock = await ab.autoSend();
+                this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
               } catch (error) {
-                this.ctx.vmLog.error(`[${this.selectedNetwork}][${selectedContract.name}][deploy]`, error);
+                this.ctx.vmLog.error(`[${selectedNode.network}][${selectedContract.name}][deploy]`, error);
+                return;
               }
             }
+
+            // waiting confirmed
+            await vuilder.utils.waitFor(async () => {
+              try {
+                sendBlock = await reqProvider.request("ledger_getAccountBlockByHash", sendBlock.hash);
+                if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
+                  return false;
+                }
+                this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+                return true;
+              } catch (error) {
+                this.ctx.vmLog.error(`[${selectedNode.network}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, error);
+                return true;
+              }
+            });
+
+            // get receive block
+            const receiveBlock = await reqProvider.request("ledger_getAccountBlockByHash", sendBlock.receiveBlockHash);
+            this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][receiveBlock=${receiveBlock.hash}]`, receiveBlock);
+            if (receiveBlock?.blockType !== 4) {
+              this.ctx.vmLog.error(`[${selectedNode.network}][${selectedContract.name}]`, "contract deploy failed.");
+            } else {
+              deployinfo.address = sendBlock.toAddress;
+            }
+
             // render
             if (deployinfo.address) {
-              this.ctx.vmLog.info(`[${this.selectedNetwork}][${selectedContract.name}][deploy][response]`, `contract deployed at ${deployinfo.address}`);
-              this.ctx.updateDeploymentRecord(contractFile, this.selectedNetwork, deployinfo.address);
+              this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][response]`, `contract deployed at ${deployinfo.address}`);
+              this.ctx.updateDeploymentRecord(contractFile, deployinfo.network, deployinfo.address);
               // render console webview
               ContractConsoleViewPanel.render(this.ctx, deployinfo);
             }
