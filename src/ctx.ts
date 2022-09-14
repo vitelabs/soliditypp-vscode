@@ -202,7 +202,7 @@ export class Ctx {
       if (node.url.startsWith("http")) {
         provider = new vite.ViteAPI(new vite.HTTP_RPC(node.url), () => {
           this.log.info("New Vite provider from", node.url);
-        });
+        }, new viteConnectHandler.RenewSubscription(Number.MAX_VALUE));
       } else {
         provider = new vite.ViteAPI(new vite.WS_RPC(node.url), () => {
           this.log.info("New Vite provider from", node.url);

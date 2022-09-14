@@ -241,7 +241,7 @@ function handleChange(event: any) {
 <template>
   <main>
     <section class="component-container selected-address">
-      <p>Select an address to interact with a contract</p>
+      <p>Select an address to interact with this contract</p>
       <vscode-dropdown @change="changeAddress($event.target.value)">
         <vscode-option v-for="(item, idx) in state.addressMap.values()" :key="idx" :value="item.address">
           {{ item.address }}

@@ -134,8 +134,7 @@ export class ContractTreeDataProvider implements vscode.TreeDataProvider<Contrac
       }
     } else if (element.contextValue === ContractContextValue.Contract && element.resourceUri) {
       const items: ContractItem[] = [];
-      for (const str in ViteNetwork) {
-        const network: ViteNetwork = ViteNetwork[str as keyof typeof ViteNetwork];
+      for (const network of Object.values(ViteNetwork)) {
         const address = await this.ctx.getLatestDeploymentRecord(element.resourceUri, network);
         if (address) {
           items.push(new ContractItem(element.resourceUri, element.resourceUri.fragment, network, address));

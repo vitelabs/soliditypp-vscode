@@ -43,6 +43,9 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
     }, null, this.disposables);
 
     webviewView.webview.onDidReceiveMessage(async(event: MessageEvent) => {
+      if (event.command !== "log") {
+        this.ctx.log.debug(`[recevieMessage=${this.constructor.name}]`, event);
+      }
       switch (event.command) {
         case "log":
           const method = event.subCommand as "info" | "debug" | "warn" | "error" | "log";
@@ -75,7 +78,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             if (selectedNode.network === ViteNetwork.Bridge && selectedNode.status !== ViteNodeStatus.Connected) {
               vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not connected`);
               return;
-            } else if (selectedNode.status === ViteNodeStatus.Running) {
+            } else if (selectedNode.status !== ViteNodeStatus.Running) {
               vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not running`);
               return;
             }
@@ -197,7 +200,11 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             // render
             if (deployinfo.address) {
               this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][response]`, `contract deployed at ${deployinfo.address}`);
-              this.ctx.updateDeploymentRecord(contractFile, deployinfo.network, deployinfo.address);
+              if (selectedNode.network === ViteNetwork.Bridge) {
+                this.ctx.updateDeploymentRecord(contractFile, selectedNode.backendNetwork, deployinfo.address);
+              } else {
+                this.ctx.updateDeploymentRecord(contractFile, deployinfo.network, deployinfo.address);
+              }
               // render console webview
               ContractConsoleViewPanel.render(this.ctx, deployinfo);
             }
@@ -218,6 +225,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
   }
 
   public async postMessage(message: any): Promise<boolean> {
+    this.ctx.log.debug(`[postMessage=${this.constructor.name}]`, message);
     if (this._webviewView) {
       return await this._webviewView.webview.postMessage(message);
     } else {

@@ -2,5 +2,6 @@
     "files.associations": {
         "*.abi": "json"
     },
-    "solppdebugger.trace.extension": true
+    "solppdebugger.trace.extension": true,
+    "solppdebugger.vite.localGoViteAutoStart": false,
 }

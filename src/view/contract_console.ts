@@ -36,6 +36,9 @@ export class ContractConsoleViewPanel {
     }, null, this._disposables);
 
     this._panel.webview.onDidReceiveMessage(async (event: MessageEvent) => {
+      if (event.command !== "log") {
+        this.ctx.log.debug(`[recevieMessage=${this.constructor.name}]`, event);
+      }
       switch (event.command) {
         case "log":
           const method = event.subCommand as "info" | "debug" | "warn" | "error" | "log";
@@ -318,7 +321,7 @@ export class ContractConsoleViewPanel {
               const errorCode = bytes[32];
               switch (errorCode) {
                 case 1:
-                  throw new Error(`revert, methodName: ${func.name}`); // @todo: need error descriptions and debug info from RPC
+                  throw new Error(`revert, methodName: ${func.name}`);
                 case 2:
                   throw new Error(`maximum call stack size exceeded, methodName: ${func.name}`);
               }
@@ -418,12 +421,18 @@ export class ContractConsoleViewPanel {
   public async updateContractMap(deployInfo: DeployInfo) {
     if (this.currentNetwork !== deployInfo.network) {
       this.clear();
-      if (this._panel) {
-        this._panel.webview.postMessage({
-          command: "clear",
-        });
-      }
+      this.postMessage({
+        command: "clear",
+      });
       this.currentNetwork = deployInfo.network;
+    }
+
+    if (!this.deployeInfoMap.has(deployInfo.address)) {
+      // store to map
+      this.deployeInfoMap.set(deployInfo.address, deployInfo);
+
+      // subscribe vm log
+      this.subscribeVmLog(deployInfo);
     }
 
     // push to webview
@@ -432,14 +441,9 @@ export class ContractConsoleViewPanel {
       message: deployInfo,
     });
 
-    if (this.deployeInfoMap.has(deployInfo.address)) {
-      return;
-    }
+  }
 
-    // store to map
-    this.deployeInfoMap.set(deployInfo.address, deployInfo);
-
-
+  private async subscribeVmLog(deployInfo: DeployInfo) {
     let provider;
     if (deployInfo.network === ViteNetwork.Bridge) {
       provider = this.ctx.getProviderByNetwork(this.ctx.bridgeNode.backendNetwork!);
@@ -449,6 +453,7 @@ export class ContractConsoleViewPanel {
 
     // subscribe vmlog
     try {
+      this.ctx.vmLog.info(`[${deployInfo.network}][${deployInfo.contractName}][subscribe][newVmLog=${deployInfo.address}]`);
       const listener = await provider.subscribe("newVmLog", {
         "addressHeightRange":{
           [deployInfo.address]:{
@@ -493,6 +498,7 @@ export class ContractConsoleViewPanel {
   }
 
   public async postMessage(message: any): Promise<boolean> {
+    this.ctx.log.debug(`[postMessage=${this.constructor.name}]`, message);
     if (this._panel) {
       return this._panel.webview.postMessage(message);
     } else {

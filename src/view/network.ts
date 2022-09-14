@@ -39,6 +39,9 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
     }, null, this.disposables);
 
     webviewView.webview.onDidReceiveMessage(async(event: MessageEvent) => {
+      if (event.command !== "log") {
+        this.ctx.log.debug(`[recevieMessage=${this.constructor.name}]`, event);
+      }
       switch (event.command) {
         case "log":
           const method = event.subCommand as "info" | "debug" | "warn" | "error" | "log";
@@ -100,6 +103,7 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
   }
 
   public async postMessage(message: any): Promise<boolean> {
+    this.ctx.log.debug(`[postMessage=${this.constructor.name}]`, message);
     if (this._webviewView) {
       return this._webviewView.webview.postMessage(message);
     } else {
