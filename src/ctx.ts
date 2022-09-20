@@ -196,6 +196,8 @@ export class Ctx {
       provider.on("disconnect", () => {
         this.log.info("The Vite bridge provider closed", node.url);
         node.status = ViteNodeStatus.Disconnected;
+        provider.unsubscribeAll();
+        provider.stopBizHeartBeat();
         this.cache.delete(id);
       });
     } else {

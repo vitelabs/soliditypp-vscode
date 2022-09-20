@@ -14,7 +14,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
   readonly onDidDispose: vscode.Event<void> = this._onDidDispose.event;
   private _onDidDeriveAddress = new vscode.EventEmitter<void>();
   readonly onDidDeriveAddress: vscode.Event<void> = this._onDidDeriveAddress.event;
-  private isSubViteConnectEvents = false;
+  private shouldRecreateVCSession = false;
 
   constructor(private readonly ctx: Ctx) {}
 
@@ -123,27 +123,17 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
         case "copyToClipboard":
           await vscode.env.clipboard.writeText(event.message);
           break;
-        case "createSession":
+        case "createVCSession":
           {
-            const provider = this.ctx.bridgeProvider;
-            this.subToBridgeProviderEvents(provider);
-            await provider.createSession();
-            this.postMessage({
-              command: "setViteConnectUri",
-              message: provider.uri,
-            });
+            this.shouldRecreateVCSession = true;
+            this.createVCSession();
           }
           break;
-        case "killSession": 
+        case "killVCSession":
           {
-            await this.ctx.bridgeProvider.destroy();
-            await this.postMessage({
-              command: "setAddress",
-              message: [{
-                addressList: [],
-                network: ViteNetwork.Bridge,
-              }],
-            });
+            this.shouldRecreateVCSession = false;
+            const provider = this.ctx.bridgeProvider;
+            await provider.killSession();
           }
           break;
         case "changeBackendNetwork":
@@ -381,49 +371,64 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
     await this.updateAddressInfo(network);
   }
 
-  private subToBridgeProviderEvents(provider: any) {
-    if (this.isSubViteConnectEvents) {
-      return;
-    }
-    this.isSubViteConnectEvents = true;
+  private async createVCSession(){
+    const provider = this.ctx.bridgeProvider;
     provider.on("open", () => {
       this._onDidDeriveAddress.fire();
     });
-    provider.on("disconnect", () => {
-      this.isSubViteConnectEvents = false;
+    provider.on("disconnect", async () => {
       this.ctx.clearAddressList(ViteNetwork.Bridge);
+      this.postMessage({
+        command: "setAddress",
+        message: [{
+          addressList: [],
+          network: ViteNetwork.Bridge,
+        }],
+      });
       this._onDidDeriveAddress.fire();
-    });
-    provider.on("connect", async (err: any, payload: any) => {
-      if (err) {
-        this.ctx.log.error(this.constructor.name, err);
-        return;
-      }
-      // TODO: peerMeta should contain node url
-      this.ctx.log.debug(this.constructor.name, "vite connect payload", payload);
-      const { accounts } = payload.params[0];
-      if (!accounts || !accounts[0]) {
-        this.ctx.log.error(this.constructor.name, "address is null");
-      } else {
-        for (const address of accounts) {
-          this.ctx.setAddress(ViteNetwork.Bridge, {
-            publicKey: "",
-            privateKey: "",
-            originalAddress: "",
-            address,
-            path: "",
-          });
-          await this.postMessage({
-            command: "setAddress",
-            message: [{
-              addressList: this.ctx.getAddressList(ViteNetwork.Bridge),
-              network: ViteNetwork.Bridge,
-            }],
-          });
-          this.updateAddressInfo(ViteNetwork.Bridge, address);
-        }
-        this._onDidDeriveAddress.fire();
+      // recreate session
+      if (this.shouldRecreateVCSession) {
+        this.createVCSession();
       }
     });
+    provider.on("connect", this.setAddress.bind(this));
+    provider.on("session_update", this.setAddress.bind(this));
+    // create session
+    await provider.createSession();
+    this.postMessage({
+      command: "setViteConnectUri",
+      message: provider.uri,
+    });
+  }
+
+  private async setAddress(err: any, payload: any){
+    this.ctx.log.error(`[viteConnect=${this.constructor.name}][error=${err}][payload]`, payload);
+    if (err) {
+      return;
+    }
+    // TODO: peerMeta should contain node url
+    const { accounts } = payload.params[0];
+    if (!accounts || !accounts[0]) {
+      this.ctx.log.error(this.constructor.name, "address is null");
+    } else {
+      for (const address of accounts) {
+        this.ctx.setAddress(ViteNetwork.Bridge, {
+          publicKey: "",
+          privateKey: "",
+          originalAddress: "",
+          address,
+          path: "",
+        });
+        await this.postMessage({
+          command: "setAddress",
+          message: [{
+            addressList: this.ctx.getAddressList(ViteNetwork.Bridge),
+            network: ViteNetwork.Bridge,
+          }],
+        });
+        this.updateAddressInfo(ViteNetwork.Bridge, address);
+      }
+      this._onDidDeriveAddress.fire();
+    }
   }
 }

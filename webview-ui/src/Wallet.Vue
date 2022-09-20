@@ -257,17 +257,14 @@ function receiveTx(address: Address, network: ViteNetwork) {
   });
 }
 
-function createSession() {
+function createVCSession() {
   vscode.postMessage({
-    command: "createSession",
+    command: "createVCSession",
   });
 }
-function hideViteConnectQRcode() {
-  state.viteConnectUri = "";
-}
-function killSession() {
+function killVCSession() {
   vscode.postMessage({
-    command: "killSession",
+    command: "killVCSession",
   });
   state.viteConnectUri = "";
 }
@@ -289,7 +286,7 @@ function changeBackendNetwork(network: ViteNetwork) {
           <span class="codicon codicon-add"></span>
         </vscode-button>
         <vscode-button v-else-if="state.bridgeAddressMap.size > 0" appearance="icon" aria-label="Sign Out"
-          title="Sign Out" @click="killSession()">
+          title="Sign Out" @click="killVCSession()">
           <span class="codicon codicon-sign-out"></span>
         </vscode-button>
       </div>
@@ -306,8 +303,8 @@ function changeBackendNetwork(network: ViteNetwork) {
             <h3>Scan the QR code via Vite Wallet App</h3>
             <canvas ref="viteConnectEl"></canvas>
           </div>
-          <vscode-button v-show="!state.viteConnectUri" @click="createSession()">Vite Connect</vscode-button>
-          <vscode-button v-show="state.viteConnectUri" appearance="secondary" @click="hideViteConnectQRcode()">Close
+          <vscode-button v-show="!state.viteConnectUri" @click="createVCSession()">Vite Connect</vscode-button>
+          <vscode-button v-show="state.viteConnectUri" appearance="secondary" @click="killVCSession()">Close
           </vscode-button>
         </section>
       </div>

@@ -59,7 +59,7 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
             await this.updateSnapshotChainHeight();
             timer = setInterval(async() => {
               await this.updateSnapshotChainHeight();
-            }, 6000);
+            }, 1000 * 10);
           }
           break;
         case "startLocalViteNode":
@@ -103,7 +103,9 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
   }
 
   public async postMessage(message: any): Promise<boolean> {
-    this.ctx.log.debug(`[postMessage=${this.constructor.name}]`, message);
+    if (message.command !== "updateSnapshotChainHeight") {
+      this.ctx.log.debug(`[postMessage=${this.constructor.name}]`, message);
+    }
     if (this._webviewView) {
       return this._webviewView.webview.postMessage(message);
     } else {

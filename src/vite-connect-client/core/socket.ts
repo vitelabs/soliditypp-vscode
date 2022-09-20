@@ -82,7 +82,6 @@ class SocketTransport {
         ? bridge.replace('http', 'ws')
         : bridge
 
-      
     const socket = new WebSocket(url)
     this.socket = socket
 

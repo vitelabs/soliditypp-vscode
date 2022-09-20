@@ -138,12 +138,6 @@ export class Connector {
         params: null
       });
     });
-    this._socket.socket!.addEventListener("close", () => {
-      this._eventManager.trigger({
-        event: "close",
-        params: null
-      });
-    });
   }
 
   // -- setters / getters ----------------------------------------------- //
@@ -858,6 +852,11 @@ export class Connector {
       this.bizHeartBeatHandler = null;
     }
   }
+
+  unsubscribeAll() {
+    this._eventManager.offAll();
+  }
+
   destroy() {
     this.stopBizHeartBeat();
     this.killSession().finally(() => {
