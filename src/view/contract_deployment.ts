@@ -76,7 +76,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             } = event.message;
 
             if (selectedNode.network === ViteNetwork.Bridge) {
-              if (selectedNode.status !== ViteNodeStatus.Running) {
+              if (selectedNode.status !== ViteNodeStatus.Connected) {
                 vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not connected`);
                 return;
               }
