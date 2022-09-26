@@ -19,9 +19,9 @@ class ContractTextDocumentContentProvider implements vscode.TextDocumentContentP
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
-/*
-  custom a virtual document of contract, "scheme://contract/file/path#contractName"
-*/
+  /*
+    custom a virtual document of contract, "scheme://contract/file/path#contractName"
+  */
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
     const file = vscode.Uri.parse(uri.query || uri.path).with({ fragment: uri.fragment });
     const ret = await readContractJsonFile(file);
@@ -36,9 +36,9 @@ export async function activateContractView(ctx: Ctx): Promise<void> {
     vscode.workspace.registerTextDocumentContentProvider(CONTRACT_SCHEME, new ContractTextDocumentContentProvider())
   );
 
-  /* 
-     Contract Tree Data Provider
-   */
+  /*
+    Contract Tree Data Provider
+  */
   const treeDataProvider = new ContractTreeDataProvider(ctx);
   const treeViewer = vscode.window.createTreeView(ContractTreeDataProvider.viewType, {
     treeDataProvider: treeDataProvider,

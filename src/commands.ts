@@ -2,67 +2,95 @@ import * as vscode from "vscode";
 const vuilder = require("@vite/vuilder");
 const vite = require("@vite/vitejs");
 import { Ctx, Cmd } from "./ctx";
-import { Address, ViteNetwork } from "./types/types";
+import { Address, ViteNetwork, DeployInfo } from "./types/types";
 import { getAmount } from "./util";
+import { ContractConsoleViewPanel } from "./view/contract_console";
 
 export function stake(ctx: Ctx): Cmd {
   return async () => {
-    const networkStr = await vscode.window.showInputBox({
+    let selectedNetwork: ViteNetwork | null = null;
+    await vscode.window.showInputBox({
+      ignoreFocusOut: true,
       placeHolder: "Debug | TestNet | MainNet",
-      prompt: "Enter the network, default is TestNet",
+      prompt: "Please input the network",
+      validateInput: (value: string) => {
+        if (value) {
+          let found:any;
+          for (const network of Object.values(ViteNetwork)) {
+            found = network.match(new RegExp(value, "i"));
+            if (found) {
+              selectedNetwork = network;
+              break;
+            }
+          }
+          if (found) {
+            return "";
+          } else {
+            return "Invalid network";
+          }
+        } else {
+          return "";
+        }
+      }
     });
-    let network: ViteNetwork = ViteNetwork.TestNet;
-    switch (networkStr?.toLowerCase()) {
-      case "debug":
-        network = ViteNetwork.DebugNet;
-        break;
-      case "testnet":
-        network = ViteNetwork.TestNet;
-        break;
-      case "mainnet":
-        network = ViteNetwork.MainNet;
-        break;
-      default:
-        network = ViteNetwork.TestNet;
+    if (!selectedNetwork) {
+      return;
     }
 
     const fromAddress = await vscode.window.showInputBox({
-      value: ctx.getAddressList(network)[0],
+      ignoreFocusOut: true,
+      value: ctx.getAddressList(selectedNetwork)[0],
       placeHolder: "Deduction Address",
-      prompt: "Enter the address to stake from",
+      prompt: "Please input the address to stake from",
+      validateInput: (value: string) => {
+        if (vite.wallet.isValidAddress(value) !== 1) {
+          return "Please input a valid address";
+        } else {
+          return "";
+        }
+      }
     });
     if (!fromAddress) {
       return;
     };
     const beneficiaryAddress: Address | undefined = await vscode.window.showInputBox({
-      value: ctx.getAddressList(network)[0],
+      ignoreFocusOut: true,
+      value: ctx.getAddressList(selectedNetwork)[0],
       placeHolder: "Quota Beneficiary",
-      prompt: "Enter the address to stake to",
+      prompt: "Input the address to stake to",
+      validateInput: (value: string) => {
+        if (vite.wallet.isValidAddress(value) !== 1) {
+          return "Please input a valid address";
+        } else {
+          return "";
+        }
+      }
     });
     if (!beneficiaryAddress) {
       return;
     };
     let amount = await vscode.window.showInputBox({
+      ignoreFocusOut: true,
       placeHolder: "The minimum staking amount is 134 VITE",
-      prompt: "Enter the amount to stake",
+      prompt: "Input the amount to stake",
     });
     if (!amount) {
       return;
     };
     const fromAddressObj = ctx.getAddressObj(fromAddress);
     if (!fromAddressObj) {
-      ctx.vmLog.error(`[${network}][stake]${fromAddress} is not found in the wallet`);
+      ctx.vmLog.error(`[${selectedNetwork}][stake]${fromAddress} is not found in the wallet`);
       return;
     }
 
-    ctx.vmLog.info(`[${network}][stake][request]`, {
+    ctx.vmLog.info(`[${selectedNetwork}][stake][request]`, {
       fromAddress,
       beneficiaryAddress,
       amount,
-      network,
+      network: selectedNetwork,
     });
     // get provider and operator
-    const provider = ctx.getProviderByNetwork(network);
+    const provider = ctx.getProviderByNetwork(selectedNetwork);
     const sender = new vuilder.UserAccount(fromAddress);
     sender._setProvider(provider);
     sender.setPrivateKey(fromAddressObj.privateKey);
@@ -75,7 +103,7 @@ export function stake(ctx: Ctx): Cmd {
     try {
       sendBlock = await sendBlock.autoSendByPoW();
     } catch (error) {
-      ctx.vmLog.error(`[${network}][stake][autoSendByPoW]`, error);
+      ctx.vmLog.error(`[${selectedNetwork}][stake][autoSendByPoW]`, error);
       resend = true;
     }
 
@@ -83,7 +111,7 @@ export function stake(ctx: Ctx): Cmd {
       if (resend) {
         sendBlock = await sendBlock.autoSend();
       }
-      ctx.vmLog.info(`[${network}][stake][sendBlock=${sendBlock.hash}]`, sendBlock);
+      ctx.vmLog.info(`[${selectedNetwork}][stake][sendBlock=${sendBlock.hash}]`, sendBlock);
 
       // get account block
       await vuilder.utils.waitFor(async () => {
@@ -91,7 +119,7 @@ export function stake(ctx: Ctx): Cmd {
         for (const block of blocks) {
           if (block.previousHash === sendBlock.previousHash) {
             sendBlock = block;
-            ctx.vmLog.info(`[${network}][stake][sendBlock=${sendBlock.hash}]`, sendBlock);
+            ctx.vmLog.info(`[${selectedNetwork}][stake][sendBlock=${sendBlock.hash}]`, sendBlock);
             return true;
           }
         }
@@ -104,7 +132,7 @@ export function stake(ctx: Ctx): Cmd {
         if (!sendBlock.confirmedHash || !sendBlock.receiveBlockHash) {
           return false;
         }
-        ctx.vmLog.info(`[${network}][stake][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
+        ctx.vmLog.info(`[${selectedNetwork}][stake][sendBlock][confirmed=${sendBlock.confirmedHash}]`, sendBlock);
         return true;
       });
 
@@ -115,13 +143,120 @@ export function stake(ctx: Ctx): Cmd {
         if (!receiveBlock.confirmedHash) {
           return false;
         }
-        ctx.vmLog.info(`[${network}][stake][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
+        ctx.vmLog.info(`[${selectedNetwork}][stake][receiveBlock][confirmed=${receiveBlock.confirmedHash}]`, receiveBlock);
         return true;
       });
       // refresh Wallet
       await vscode.commands.executeCommand("soliditypp.refreshWallet");
     } catch (error: any) {
-      ctx.vmLog.error(`[${network}][stake]`, error);
+      ctx.vmLog.error(`[${selectedNetwork}][stake]`, error);
+    }
+  };
+}
+
+export function loadContract(ctx: Ctx): Cmd {
+  return async () => {
+    const contracts = [
+      ...(await vscode.workspace.findFiles("**/*.sol", "**/node_modules/**")),
+      ...(await vscode.workspace.findFiles("**/*.solpp", "**/node_modules/**")),
+    ];
+    let selectedContract: string = "";
+    if (contracts.length > 0) {
+      selectedContract = vscode.workspace.asRelativePath(contracts[0], false);
+    }
+    const contractFileStr = await vscode.window.showInputBox({
+      ignoreFocusOut: true,
+      value: selectedContract,
+      prompt: "Input the contract file path",
+    });
+    if (!contractFileStr) {
+      return;
+    }
+    const contractFile = contracts.find((item: vscode.Uri) => {
+      if (item.fsPath.match(new RegExp(contractFileStr, "i"))) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    if (!contractFile) {
+      vscode.window.showErrorMessage(`Contract ${contractFileStr} is not found`);
+      return;
+    }
+
+    const contractJsonFile = vscode.Uri.parse(`${contractFile.fsPath}.json`);
+    try {
+      const stat = await vscode.workspace.fs.stat(contractJsonFile)
+    } catch (error) {
+      vscode.window.showErrorMessage(`Contract ${contractFileStr} is not compiled`);
+      return;
+    }
+
+    const ret: Uint8Array = await vscode.workspace.fs.readFile(contractJsonFile);
+    const compileResult = JSON.parse(ret.toString());
+    if (compileResult.errors) {
+      vscode.window.showErrorMessage(`Contract ${contractFileStr} is compiled with errors`);
+      return;
+    }
+
+    let selectedNetwork: ViteNetwork | null = null;
+    await vscode.window.showInputBox({
+      ignoreFocusOut: true,
+      placeHolder: "Debug | TestNet | MainNet",
+      prompt: "Please input the network",
+      validateInput: (value: string) => {
+        if (value) {
+          let found:any;
+          for (const network of Object.values(ViteNetwork)) {
+            found = network.match(new RegExp(value, "i"));
+            if (found) {
+              selectedNetwork = network;
+              break;
+            }
+          }
+          if (found) {
+            return "";
+          } else {
+            return "Invalid network";
+          }
+        } else {
+          return "";
+        }
+      }
+    });
+    if (!selectedNetwork) {
+      return;
+    }
+
+    const address = await vscode.window.showInputBox({
+      ignoreFocusOut: true,
+      prompt: "Please input the contract address",
+      validateInput: (value: string) => {
+        if (vite.wallet.isValidAddress(value) !== 2) {
+          return "Please input a valid address";
+        } else {
+          return "";
+        }
+      }
+    });
+    if (!address) {
+      return;
+    }
+    for (const fileName in compileResult.contracts) {
+      const contractObj = compileResult.contracts[fileName];
+      for (const contractName in contractObj) {
+        const contract = contractObj[contractName];
+        const deployinfo: DeployInfo = {
+          contractName,
+          address,
+          contractFsPath: contractJsonFile.fsPath,
+          sourceFsPath: contractFile.fsPath,
+          network: selectedNetwork,
+          abi: contract.abi,
+        };
+        // render console webview
+        ContractConsoleViewPanel.render(ctx, deployinfo);
+      }
     }
   };
 }

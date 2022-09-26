@@ -28,6 +28,8 @@ export async function activate(context: vscode.ExtensionContext) {
   await vscode.workspace.getConfiguration().update("files.associations", {"*.abi": "json"}, vscode.ConfigurationTarget.Workspace);
 
   ctx.registerCommand("stake", commands.stake);
+
+  ctx.registerCommand("load", commands.loadContract);
 }
 
 export async function deactivate() {

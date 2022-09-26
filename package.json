@@ -365,6 +365,11 @@
         "command": "soliditypp.stake",
         "title": "Stake for Quota",
         "category": "Soliditypp"
+      },
+      {
+        "command": "soliditypp.load",
+        "title": "Load Contract",
+        "category": "Soliditypp"
       }
     ],
     "viewsContainers": {

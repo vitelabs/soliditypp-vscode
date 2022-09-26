@@ -85,7 +85,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               return;
             }
             const contractFile = vscode.Uri.parse(selectedContract.fsPath).with({ fragment: selectedContract.name });
-            const compileResult: any = await this.ctx.getCompileResult(contractFile);
+            const compileResult = await this.ctx.getCompileResult(contractFile);
             const abi = compileResult?.abi;
             const bytecode = compileResult?.bytecode;
             if (!abi || !bytecode) {

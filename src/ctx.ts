@@ -355,17 +355,17 @@ export class Ctx {
     this.cache.set(`vite.compile.result.${contractFile.toString(true)}`, ret);
   }
 
-  async getCompileResult(contractFile: vscode.Uri): Promise<CompileResult | undefined> {
-    let ret: CompileResult | undefined = this.cache.get(`vite.compile.result.${contractFile.toString(true)}`);
+  async getCompileResult(contractJsonFile: vscode.Uri): Promise<CompileResult | undefined> {
+    let ret: CompileResult | undefined = this.cache.get(`vite.compile.result.${contractJsonFile.toString(true)}`);
     if (!ret) {
-      const compileRet: any = await readContractJsonFile(contractFile);
-      if (compileRet) {
+      const compileRet: any = await readContractJsonFile(contractJsonFile);
+      if (compileRet && compileRet.abi && compileRet.evm?.bytecode?.object) {
         ret = {
           abi: compileRet.abi,
-          bytecode: compileRet.evm?.bytecode?.object,
+          bytecode: compileRet.evm.bytecode.object,
         };
+        this.cache.set(`vite.compile.result.${contractJsonFile.toString(true)}`, ret);
       }
-      this.cache.set(`vite.compile.result.${contractFile.toString(true)}`, ret);
     }
     return ret;
   }
