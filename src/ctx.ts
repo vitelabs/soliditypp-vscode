@@ -5,7 +5,7 @@ import * as fs from "fs";
 import { Connector }  from "./vite-connect-client/core";
 import * as cryptoLib from './vite-connect-client/webCrypto';
 const vite = require("@vite/vitejs");
-const viteConnectHandler = require("@vite/vitejs/es5/viteAPI/connectHandler");
+const viteConnectHandler = require("@vite/vitejs/es5/viteAPI");
 import { Config } from "./config";
 import {
   ViteNetwork,

@@ -188,7 +188,7 @@ export class ViteWalletViewProvider implements vscode.WebviewViewProvider {
               ab.setPrivateKey(addressObj!.privateKey);
               try {
                 // sign and send
-                let sendBlock = ab.autoSend();
+                let sendBlock = await ab.autoSend();
                 // get account block
                 await vuilder.utils.waitFor(async () => {
                   const blocks = await provider.request("ledger_getAccountBlocksByAddress", fromAddress, 0, 3);
