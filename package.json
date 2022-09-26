@@ -42,7 +42,7 @@
     "@ethersproject/strings": "^5.0.0-beta.125",
     "@types/node": "^16.11.56",
     "@types/websocket": "^1.0.5",
-    "@vite/vitejs": "^2.3.19-alpha.3",
+    "@vite/vitejs": "^2.3.19",
     "@vite/vuilder": "^0.1.0-alpha.17",
     "@vscode/debugadapter": "^1.55.1",
     "bignumber.js": "^9.0.2",
