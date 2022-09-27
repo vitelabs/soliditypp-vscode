@@ -78,10 +78,12 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             if (selectedNode.network === ViteNetwork.Bridge) {
               if (selectedNode.status !== ViteNodeStatus.Connected) {
                 vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not connected`);
+                this.updateDeploymentStatus();
                 return;
               }
             } else if (selectedNode.status !== ViteNodeStatus.Running) {
               vscode.window.showErrorMessage(`Vite node[${selectedNode.url}] is not running`);
+              this.updateDeploymentStatus();
               return;
             }
             const contractFile = vscode.Uri.parse(selectedContract.fsPath).with({ fragment: selectedContract.name });
@@ -89,7 +91,8 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
             const abi = compileResult?.abi;
             const bytecode = compileResult?.bytecode;
             if (!abi || !bytecode) {
-              vscode.window.showErrorMessage("ABI and/or bytecode are missing in the compilation result");
+              vscode.window.showErrorMessage(`Contract [${selectedContract.name}] ABI and/or bytecode are missing`);
+              this.updateDeploymentStatus();
               return;
             }
 
@@ -157,6 +160,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
                 this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
               } catch (error) {
                 this.ctx.vmLog.error(`[${selectedNode.network}][${selectedContract.name}][deploy]`, error);
+                this.updateDeploymentStatus();
                 return;
               }
             } else {
@@ -171,6 +175,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
                 this.ctx.vmLog.info(`[${selectedNode.network}][${selectedContract.name}][deploy][sendBlock=${sendBlock.hash}]`, sendBlock);
               } catch (error) {
                 this.ctx.vmLog.error(`[${selectedNode.network}][${selectedContract.name}][deploy]`, error);
+                this.updateDeploymentStatus();
                 return;
               }
             }
@@ -211,12 +216,7 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
               ContractConsoleViewPanel.render(this.ctx, deployinfo);
             }
 
-            this.postMessage({
-              command: "updateDeploymentStatus",
-              message: {
-                isDeploying: false,
-              }
-            });
+            this.updateDeploymentStatus();
           }
           break;
       }
@@ -224,6 +224,15 @@ export class ContractDeploymentViewProvider implements vscode.WebviewViewProvide
     }, null, this.disposables);
 
     webviewView.webview.html = getWebviewContent(webviewView.webview, this.ctx.extensionUri, "deployment");
+  }
+
+  private updateDeploymentStatus() {
+    this.postMessage({
+      command: "updateDeploymentStatus",
+      message: {
+        isDeploying: false,
+      }
+    });
   }
 
   public async postMessage(message: any): Promise<boolean> {

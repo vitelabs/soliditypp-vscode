@@ -70,7 +70,7 @@ export class Log {
   }
 }
 
-export const log = new Log("Soliditypp Debugger Client");
+export const log = new Log("Solidity++ Debugger Client");
 
 class VmLog extends Log {
   error(...msg: [unknown, ...unknown[]]): void {

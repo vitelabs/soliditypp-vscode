@@ -319,57 +319,57 @@
     "commands": [
       {
         "command": "soliditypp.enableWatchMode",
-        "title": "Enable compiler watch mode",
-        "category": "Soliditypp"
+        "title": "Enable Compiler Watch Mode",
+        "category": "Solidity++"
       },
       {
         "command": "soliditypp.disableWatchMode",
-        "title": "Disable compiler watch mode",
-        "category": "Soliditypp"
+        "title": "Disable Compiler Watch Mode",
+        "category": "Solidity++"
       },
       {
         "command": "soliditypp.compile",
-        "title": "Compile contract",
-        "category": "Soliditypp",
+        "title": "Compile Contract",
+        "category": "Solidity++",
         "icon": "$(sync)"
       },
       {
         "command": "soliditypp.openContract",
-        "title": "Open contract",
-        "category": "Soliditypp",
+        "title": "Open Contract",
+        "category": "Solidity++",
         "icon": "$(go-to-file)"
       },
       {
         "command": "soliditypp.refreshContractTree",
-        "title": "Refresh contract tree",
-        "category": "Soliditypp",
+        "title": "Refresh Contract Tree",
+        "category": "Solidity++",
         "icon": "$(refresh)"
       },
       {
         "command": "soliditypp.startLocalViteNode",
-        "title": "Start a local vite node",
-        "category": "Soliditypp"
+        "title": "Start Local Vite Node",
+        "category": "Solidity++"
       },
       {
         "command": "soliditypp.stopLocalViteNode",
-        "title": "Stop the local vite node",
-        "category": "Soliditypp"
+        "title": "Stop Local Vite Node",
+        "category": "Solidity++"
       },
       {
         "command": "soliditypp.refreshWallet",
-        "title": "Refresh wallet",
-        "category": "Soliditypp",
+        "title": "Refresh Wallet",
+        "category": "Solidity++",
         "icon": "$(refresh)"
       },
       {
         "command": "soliditypp.stake",
         "title": "Stake for Quota",
-        "category": "Soliditypp"
+        "category": "Solidity++"
       },
       {
         "command": "soliditypp.load",
         "title": "Load Contract",
-        "category": "Soliditypp"
+        "category": "Solidity++"
       }
     ],
     "viewsContainers": {

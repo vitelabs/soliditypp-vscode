@@ -126,7 +126,7 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
 
   public async startLocalViteNode() {
     const node = this.ctx.getViteNode("local");
-    delete node?.error;
+    delete node!.error;
     await this.postMessage({
       command: "updateViteNode",
       message: {
@@ -144,7 +144,6 @@ export class NetworkViewProvider implements vscode.WebviewViewProvider {
       },
       "defaultNode": "local"
     };
-    this.localNodePid = await vuilder.startLocalNetwork(nodeConfig);
     node!.status = ViteNodeStatus.Syncing;
     this._onDidChangeNode.fire(node!);
     return this.localNodePid;

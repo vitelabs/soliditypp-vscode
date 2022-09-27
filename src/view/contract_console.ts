@@ -175,7 +175,7 @@ export class ContractConsoleViewPanel {
                   data: Buffer.from(data, "hex").toString("base64"),
                 });
                 if (rawRet) {
-                  const ret = vite.abi.decodeParameters(
+                  const ret = vite.abi.decodeFunctionOutput(
                     func.outputs.map((x: any)=>x.type),
                     Buffer.from(rawRet, "base64").toString("hex"),
                   );
