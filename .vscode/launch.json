@@ -5,29 +5,27 @@
       "name": "Run Extension",
       "type": "extensionHost",
       "request": "launch",
-      "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/sampleWorkspace",
-        "--disable-extensions",
+        "${workspaceFolder}/sampleWorkspace"
       ],
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
-      ]
-      // "preLaunchTask": "npm: watch"
-      // "preLaunchTask": "npm: view:build:watch"
+      ],
+      "preLaunchTask": "${defaultBuildTask}"
     },
     {
       "name": "Extension Tests",
       "type": "extensionHost",
       "request": "launch",
-      "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
-        "--disable-extensions",
+        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
       ],
-      "outFiles": ["${workspaceFolder}/out/test/**/*.js"]
+      "outFiles": [
+        "${workspaceFolder}/out/test/**/*.js"
+      ],
+      "preLaunchTask": "${defaultBuildTask}"
     }
   ]
 }

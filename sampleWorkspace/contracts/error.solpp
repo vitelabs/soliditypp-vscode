@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-3.0
+
+pragma soliditypp >=0.8.0;
+
+contract Error {
+    uint storedData;
+
+    function set(uintt x) external {
+        storedData = x;
+    }
+
+    function get() external view returns (uint) {
+        return storedData;
+    }
+}

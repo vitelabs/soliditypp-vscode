@@ -1,4 +1,9 @@
 # Soliditypp extension for Visual Studio Code
+## 0.8.0-beta
+### Features
+1. All in vscode, make contract deployment easier.
+2. The project has been refactored to make the development of new features easier.
+
 ## 0.6.1
 ### Fixes
 1. Fix the problem of showing balance.

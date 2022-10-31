@@ -1,0 +1,52 @@
+{
+  "SPDX license": {
+    "prefix": "spdx", 
+    "body": "// SPDX-License-Identifier: ${1:GPL-3.0}",
+    "description": "SPDX License"
+  },
+  "spdx license": {
+    "prefix": "lic", 
+    "body": "// SPDX-License-Identifier: ${1:GPL-3.0}",
+    "description": "SPDX License"
+  },
+  "pragma soliditypp":{
+    "prefix": "pra",
+    "body": "pragma soliditypp ${1:>=0.8.0};"
+  },
+  "contract SPXD license and pragma": {
+    "prefix": "header",
+    "body": [
+      "// SPDX-License-Identifier: ${1:GPL-3.0}",
+      "pragma soliditypp ${2:>=0.8.0};\n"
+    ]
+  },
+  "contract declaration": {
+    "prefix": "con",
+    "body": [
+      "contract $1 {",
+      "\tconstructor($2) ${3:payable} {",
+      "\t\t$4",
+      "\t}",
+      "}"
+    ],
+    "description": "Create a new contract"
+  },
+  "constructor declaration": {
+    "prefix": "con",
+    "body": [
+      "constructor ($1) ${2:payable} {\n",
+      "\t$3\n",
+      "}"
+    ],
+    "description": "Create a constructor"
+  },
+  "function declaration": {
+    "prefix": "fun",
+    "body": [
+      "function $1($2) $3 {\n",
+      "\t$4\n",
+      "}"
+    ],
+    "description": "Create a function"
+  }
+}

@@ -1,2 +1,2 @@
-**/*.js
-!view/**/*
+node_modules
+.eslintrc.js

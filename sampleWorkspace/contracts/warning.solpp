@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: 
+
+contract Foo {
+    uint storedData;
+
+    function set(uint x) external {
+        storedData = x;
+    }
+
+    function get() external view returns (uint) {
+        return storedData;
+    }
+}
